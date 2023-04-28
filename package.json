@@ -1,0 +1,19 @@
+{
+  "name": "suimjs",
+  "version": "1.0.0",
+  "description": "Sebarcode UI Module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebarcode/suimjs.git"
+  },
+  "author": "Arief Darmawan ariefda@hotmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sebarcode/suimjs/issues"
+  },
+  "homepage": "https://github.com/sebarcode/suimjs#readme"
+}
