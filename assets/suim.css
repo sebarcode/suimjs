@@ -1,0 +1,68 @@
+.card {
+    @apply bg-white;
+}
+
+.card_title {
+    @apply text-xl font-semibold;
+}
+
+.btn_primary {
+    @apply bg-primary text-white  disabled:bg-slate-500 disabled:text-white disabled:cursor-not-allowed
+}
+
+.btn_secondary {
+    @apply bg-secondary text-white  disabled:bg-slate-500 disabled:text-white disabled:cursor-not-allowed
+}
+
+.btn_warning {
+    @apply bg-warning text-black disabled:bg-slate-500 disabled:text-white disabled:cursor-not-allowed
+}
+
+.btn_error {
+    @apply bg-error text-yellow-500 disabled:opacity-60 disabled:cursor-not-allowed
+}
+
+.btn_text_primary {
+    @apply cursor-pointer text-primary
+        hover:bg-primary hover:text-white hover:opacity-30 hover:px-2
+        disabled:cursor-none;
+}
+
+.btn_text_secondary {
+    @apply cursor-pointer text-secondary
+        hover:bg-secondary hover:text-white hover:opacity-30 hover:px-2
+        disabled:cursor-none;
+}
+
+
+.btn_text_warning {
+    @apply cursor-pointer text-warning
+        hover:bg-warning hover:text-slate-700 hover:opacity-30 hover:px-2
+        disabled:cursor-none;
+}
+
+.btn_text_error {
+    @apply cursor-pointer text-error
+    hover:bg-error hover:text-warning hover:opacity-30 hover:px-2
+    disabled:cursor-none;
+}
+
+.input_label {
+    @apply text-[0.7em] font-bold text-slate-500
+}
+
+.input_field {
+@apply w-[100%] bg-input-bg text-input-text border-b-[1px] border-slate-300 
+    focus:bg-input-bg-active focus:text-input-text-active focus:border-black focus:px-[4px]
+    text-sm
+    disabled:bg-slate-50 min-h-[34.4px]
+    outline-none;
+}
+
+.input_icon {
+@apply absolute right-0 h-full items-center px-2 text-slate-700 hover:opacity-30;
+}
+
+.input_error {
+@apply text-[0.7em] font-semibold text-error;
+}
