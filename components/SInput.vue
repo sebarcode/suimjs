@@ -77,7 +77,7 @@
         <s-select
           v-model="value"
           :items="items"
-          class="w-[100%] input_field rounded-none border-none"
+          class="w-[100%]"
           ref="control"
           :label="caption != '' ? caption : label != '' ? label : field"
           :show-clear-button="true"

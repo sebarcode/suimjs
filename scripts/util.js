@@ -1,3 +1,9 @@
+import { nextTick } from 'vue'
+
+const suimContext = {
+    notif: null
+}
+
 export default {
     addNumbSep(number, thouSep) {
         return number.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1' + thouSep)
@@ -48,5 +54,39 @@ export default {
         if (msg=='') return "unknown error"
 
         return msg
-    }
+    },
+
+    setNotifStore (store) {
+        suimContext.notif = store
+    },
+
+    sendNotif (kind, message) {
+        if (suimContext.notif==undefined || suimContext.notif==null) return
+
+        suimContext.notif.add({kind: kind, message: message})
+    },
+
+    showInfo (message) {
+        this.sendNotif('info', message)
+    },
+
+    showWarning (message) {
+        this.sendNotif('warning', message)
+    },
+
+    showError (message) {
+        this.sendNotif('error', message)
+    },
+
+    nextTickN(n, f) {
+        if (n == 0) {
+            nextTick(() => {
+                f()
+            })
+        } else {
+            nextTick(() => {
+                this.nextTickN(n - 1, f)
+            })
+        }
+    },
 }

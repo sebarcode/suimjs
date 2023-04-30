@@ -10,26 +10,26 @@
             >
             <s-button
                 v-if="!hideSubmitButton"
-                icon="content-save"
+                :icon="submitIcon"
                 class="btn_primary"
-                :label="onlyIcon ? '' : 'Save'"
+                :label="onlyIcon ? '' : submitText || 'Save'"
                 @click="onSubmitForm"
                 :disabled="disableSubmit"
             />
             <s-button
                 v-if="!hideCancelButton"
-                icon="rewind"
-                :label="onlyIcon ? '' : 'Back'"
+                :icon="cancelIcon" 
                 class="btn_warning"
+                :label="onlyIcon ? '' : cancelText || 'Back'"
                 @click="onCancelForm"
             />
             </slot>
             <slot v-else name="buttons">
             <s-button
                 v-if="hideCancelButton == undefined || hideCancelButton === false"
-                icon="arrow-left"
-                class="bg-warning text-black"
-                :label="onlyIcon ? '' : 'Back'"
+                :icon="cancelIcon" 
+                class="btn_warning"
+                :label="onlyIcon ? '' : cancelText || 'Back'"
                 @click="onCancelForm"
             />
             </slot>
@@ -44,7 +44,10 @@ import SButton from './SButton.vue'
 
 const props = defineProps({
     mode: {type:String, default: 'edit'},
+    submitIcon: {type: String, default:'content-save'},
     submitText: {type: String, default: 'Save'},
+    cancelIcon: {type: String, default:'rewind'},
+    cancelText: {type: String, default: 'Cancel'},
     hideSubmitButton: {type: Boolean, default: false},
     hideCancelButton: {type: Boolean, default: false},
     hideButtoms: {type: Boolean, default: false},

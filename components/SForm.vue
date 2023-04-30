@@ -1,5 +1,5 @@
 <template>
-    <div class="form-control">
+    <div class="suim_form">
       <div v-if="config && config.setting">
         <h1 v-if="config.setting.showTitle && config.setting.title != ''">
           {{ config.title }}
@@ -33,7 +33,8 @@
         <div id="form_inputs" v-if="data.currentTab == 0">
             <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl"
                 :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
-                :only-icon="onlyIcon" :disable-submit="data.inSubmission"
+                :only-icon="onlyIconTop" :disable-submit="data.inSubmission"
+                :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
                 @submit-click="onSubmitForm" @cancel-click="onCancelForm">
                 <template #buttons_1="item"><slot name="buttons_1" :item="item"></slot></template>
                 <template #buttons="item"><slot name="buttons" :item="item"></slot></template>
@@ -43,8 +44,8 @@
           <div
             v-for="(section, sectionIdx) in config.sections"
             :key="'form_section_' + sectionIdx"
-            class="mb-5 w-full"
             v-show="section.visible"
+            class="section"
           >
             <h3
               v-if="section.showTitle && section.title != ''"
@@ -63,18 +64,12 @@
                 :key="'form_section_' + sectionIdx + '_row_' + rowIdx"
                 class="w-full items-start gap-2 grid-flow-col grid"
                 :class="{
-                  'grid-cols-1': row.colCount == 1,
-                  'grid-cols-2': row.colCount == 2,
-                  'grid-cols-3': row.colCount == 3,
-                  'grid-cols-4': row.colCount == 4,
-                  'grid-cols-5': row.colCount == 5,
-                  'grid-cols-6': row.colCount == 6,
-                  'grid-cols-7': row.colCount == 7,
-                  'grid-cols-8': row.colCount == 8,
-                  'grid-cols-9': row.colCount == 9,
-                  'grid-cols-10': row.colCount == 10,
-                  'grid-cols-11': row.colCount == 11,
-                  'grid-cols-12': row.colCount == 12,
+                  gridCol1: row.colCount == 1,
+                  gridCol2: row.colCount == 2,
+                  gridCol3: row.colCount == 3,
+                  gridCol4: row.colCount == 4,
+                  gridCol5: row.colCount == 5,
+                  gridCol6: row.colCount == 6,
                 }"
               >
                 <div
@@ -83,18 +78,18 @@
                     'form_input_' + sectionIdx + '_' + rowIdx + '_' + inputIdx
                   "
                   :class="{
-                    'col-span-1': input.colSpan == 1,
-                    'col-span-2': input.colSpan == 2,
-                    'col-span-3': input.colSpan == 3,
-                    'col-span-4': input.colSpan == 4,
-                    'col-span-5': input.colSpan == 5,
-                    'col-span-6': input.colSpan == 6,
-                    'col-span-7': input.colSpan == 7,
-                    'col-span-8': input.colSpan == 8,
-                    'col-span-9': input.colSpan == 9,
-                    'col-span-10': input.colSpan == 10,
-                    'col-span-11': input.colSpan == 11,
-                    'col-span-12': input.colSpan == 12,
+                    colSpan1: input.colSpan == 1,
+                    colSpan2: input.colSpan == 2,
+                    colSpan3: input.colSpan == 3,
+                    colSpan4: input.colSpan == 4,
+                    colSpan5: input.colSpan == 5,
+                    colSpan6: input.colSpan == 6,
+                    colSpan7: input.colSpan == 7,
+                    colSpan8: input.colSpan == 8,
+                    colSpan9: input.colSpan == 9,
+                    colSpan10: input.colSpan == 10,
+                    colSpan11: input.colSpan == 11,
+                    colSpan12: input.colSpan == 12,
                     'col-auto': input.colSpan == undefined || input.colSpan == 0,
                   }"
                 >
@@ -185,6 +180,7 @@
                           : input.lookupSearchs
                       "
                       v-model="value[input.field]"
+                      :class="{checkboxOffset: input.kind=='checkbox'}"
                       ref="inputs"
                     />
                   </slot>
@@ -207,7 +203,8 @@
           <div class="mt-2">
             <s-form-buttons v-if="buttonsOnBottom" ref="buttonsBottomCtl"
                 :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
-                :only-icon="onlyIcon" :disable-submit="data.inSubmission"
+                :only-icon="onlyIconBottom" :disable-submit="data.inSubmission" 
+                :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
                 @submit-click="onSubmitForm" @cancel-click="onCancelForm">
                 <template #buttons_1="item"><slot name="buttons_1" :item="item"></slot></template>
                 <template #buttons="item"><slot name="buttons" :item="item"></slot></template>
@@ -250,13 +247,17 @@
       type: Object,
       default: () => {},
     },
-    submitText: { type: String, default: "Save" },
+    submitIcon: {type: String, default:'content-save'},
+    submitText: {type: String, default: 'Save'},
+    cancelIcon: {type: String, default:'rewind'},
+    cancelText: {type: String, default: 'Cancel'},
     hideSubmit: { type: Boolean, default: false },
     hideCancel: { type: Boolean, default: false },
     hideButtons: { type: Boolean, default: false },
     buttonsOnTop: { type: Boolean, default: true},
     buttonsOnBottom: { type: Boolean }, 
-    onlyIcon: { type: Boolean, default: false},
+    onlyIconTop: { type: Boolean, default: false},
+    onlyIconBottom: { type: Boolean, default: false},
     loading: { type: Boolean },
     autoFocus: { type: Boolean },
     mode: { type: String, default: "edit" }, // mode: new, edit, view
@@ -501,5 +502,33 @@
   .tab {
     @apply p-2 border-b border-slate-600 cursor-pointer hover:text-secondary hover:border-secondary;
   }
+
+  .gridCol1 {@apply grid-cols-1}
+  .gridCol2 {@apply grid-cols-2}
+  .gridCol3 {@apply grid-cols-3}
+  .gridCol4 {@apply grid-cols-4}
+  .gridCol5 {@apply grid-cols-5}
+  .gridCol6 {@apply grid-cols-6}
+  .gridCol7 {@apply grid-cols-7}
+  .gridCol8 {@apply grid-cols-8}
+  .gridCol9 {@apply grid-cols-9}
+  .gridCol10 {@apply grid-cols-10}
+  .gridCol11 {@apply grid-cols-11}
+  .gridCol12 {@apply grid-cols-12}
+
+  .colSpan1 { @apply col-span-1 }
+  .colSpan2 { @apply col-span-2 }
+  .colSpan3 { @apply col-span-3 }
+  .colSpan4 { @apply col-span-4 }
+  .colSpan5 { @apply col-span-5 }
+  .colSpan6 { @apply col-span-6 }
+  .colSpan7 { @apply col-span-7 }
+  .colSpan8 { @apply col-span-8 }
+  .colSpan9 { @apply col-span-9 }
+  .colSpan10 { @apply col-span-10 }
+  .colSpan11 { @apply col-span-11 }
+  .colSpan12 { @apply col-span-12 }
+
+  .checkboxOffset { @apply pt-[22px] }
   </style>
   

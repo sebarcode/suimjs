@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import vSelect from "vue-select";
+import vSelect from 'vue-select'
 import { computed, inject, onMounted, reactive, ref } from "vue";
 
 const props = defineProps({
