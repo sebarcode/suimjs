@@ -338,10 +338,10 @@ function cancelForm() {
 }
 
 function save(saveData, cbOK, cbFalse) {
+    emit("preSave", data.record)
     const saveUrl = data.formMode == "new" ? props.formInsert : props.formUpdate
     axios.post(saveUrl, data.record).then(r => {
         let record = r.data
-        emit("preSave", record)
         data.record = record
         emit("postSave", record)
         emit("gridRowUpdated", record)
