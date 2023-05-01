@@ -263,7 +263,7 @@ onMounted(() => {
 .s-select-style .vs__dropdown-toggle,
 .s-select-style .vs__selected,
 .s-select-style .vs__actions {
-  @apply text-black;
+  @apply text-black border-none border-b-[1px];
 }
 
 .s-select-style .vs__search {

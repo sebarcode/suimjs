@@ -39,11 +39,9 @@
                     'pr-4': hdr.align == 'right' || hdr.kind == 'number',
                     'text-left': !(hdr.align == 'right' || hdr.kind == 'number'),
                   }" :style="hdr.width!='' ? `width:${hdr.width}`:''">
-                  <div class="text-sm font-semibold">
                     {{ hdr.label }}
-                  </div>
                 </th>
-                <th class="w-[80px] max-w-[180px] text-left text-sm font-semibold" v-if="!hideAction">
+                <th class="w-[50px] max-w-[180px] ml-[10px] border-l-[1px] border-white text-left text-sm font-semibold" v-if="!hideAction">
                   Action
                 </th>
               </tr>
