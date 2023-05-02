@@ -86,6 +86,7 @@
           :lookup-key="lookupKey"
           :lookup-labels="lookupLabels"
           :lookup-searchs="lookupSearchs"
+          :lookup-payload-builder="lookupPayloadBuilder"
           :disabled="disabled"
           :multiple="multiple"
           @focus="onFocus"
@@ -168,7 +169,7 @@
 
   <!-- view mode -->
   <div v-else>
-    <label class="suim_label" v-if="!hideLabel">
+    <label class="input_label" v-if="!hideLabel">
       <div v-if="true">
         {{ label }}
         <span v-if="required" class="font-extrabold text-yellow-200">*</span>
@@ -188,7 +189,7 @@
     <div class="bg-transparent" v-else-if="lookupUrl && lookupUrl != ''">
       {{ state.fieldLabel }}
     </div>
-    <div class="bg-transparent" v-else>{{ value }}</div>
+    <div class="bg-transparent" v-else>{{ value && value!="" ? value : "&nbsp;" }}</div>
   </div>
 </template>
 
@@ -249,6 +250,7 @@ import { VueEditor } from "vue3-editor";
 import moment from "moment";
 import util from "../scripts/util";
 import { mdiProgressUpload } from "@mdi/js";
+import { data } from "browserslist";
 //import axios from "axios";
 
 const control = ref(null);
@@ -285,6 +287,7 @@ const props = defineProps({
   lookupSearchs: { type: Array, default: () => [] },
   lookupFormat1: { type: String, default: "" },
   lookupFormat2: { type: String, default: "" },
+  lookupPayloadBuilder: { type: Function },
   dateFormat: { type: String, default: "" },
   decimal: { type: Number, default: 0 },
   multiple: { type: Boolean, default: false },
@@ -310,6 +313,7 @@ const state = reactive({
   fieldLabel: props.modelValue,
   editorMode: "text",
   showPassword: false,
+  payloadBuilder: undefined,
 });
 
 const value = computed({
@@ -427,11 +431,11 @@ function isValid() {
   return validate();
 }
 
-function searchText() {
+function searchText () {
   if (control.value && control.value.searchText)
     return control.value.searchText();
   return "";
 }
 
-defineExpose({ validate, focus, debug, value2, isValid, searchText });
+defineExpose({ validate, focus, debug, value2, isValid, searchText});
 </script>

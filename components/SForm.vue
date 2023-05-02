@@ -36,9 +36,9 @@
                 :only-icon="onlyIconTop" :disable-submit="data.inSubmission"
                 :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
                 @submit-click="onSubmitForm" @cancel-click="onCancelForm">
-                <template #buttons_1="item"><slot name="buttons_1" :item="item"></slot></template>
-                <template #buttons="item"><slot name="buttons" :item="item"></slot></template>
-                <template #buttons_2="item"><slot name="buttons_2" :item="item"></slot></template>
+                <template #buttons_1="item"><slot name="buttons_1" :item="value"></slot></template>
+                <template #buttons="item"><slot name="buttons" :item="value"></slot></template>
+                <template #buttons_2="item"><slot name="buttons_2" :item="value"></slot></template>
             </s-form-buttons>
             <slot name="form_header" :item="value" :config="config" />
           <div
@@ -133,6 +133,7 @@
                       :allow-add="input.allowAdd"
                       :lookup-format1="input.lookupFormat1"
                       :lookup-format2="input.lookupFormat2"
+                      :lookup-payload-builder="input.lookupPayloadBuilder"
                       :decimal="input.decimal"
                       :date-format="input.dateFormat"
                       :multiple="input.multiple"
@@ -170,6 +171,7 @@
                       :allow-add="input.allowAdd"
                       :lookup-format1="input.lookupFormat1"
                       :lookup-format2="input.lookupFormat2"
+                      :lookup-payload-builder="input.lookupPayloadBuilder"
                       :decimal="input.decimal"
                       :date-format="input.dateFormat"
                       :multiple="input.multiple"

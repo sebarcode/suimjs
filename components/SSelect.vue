@@ -47,6 +47,8 @@
 <script setup>
 import vSelect from 'vue-select'
 import { computed, inject, onMounted, reactive, ref } from "vue";
+import util from '../scripts/util';
+import { mdiDatabaseEye } from '@mdi/js';
 
 const props = defineProps({
   modelValue: { type: [String, Array], default: () => "" },
@@ -60,6 +62,7 @@ const props = defineProps({
   lookupKey: { type: String, default: "" },
   lookupLabels: { type: Array, default: () => [] },
   lookupSearchs: { type: Array, default: () => [] },
+  lookupPayloadBuilder: {type: Function},
   label: { type: String, default: "Please select" },
   showSearch: { type: Boolean },
   multiple: { type: Boolean, default: false },
@@ -111,61 +114,91 @@ const value = computed({
 
 // methods
 function fetchOptions(search, loading) {
-  //console.log("fetching data ", search)
-  if (search != "") data.filterTxt = search;
-  const qp = {
-    Take: 20,
-    Sort: [props.lookupLabels[0]],
-    Select: props.lookupLabels,
-  };
+  let qp = {}
+  if (props.lookupPayloadBuilder==undefined || props.lookupPayloadBuilder==null) {
+    //console.log("fetching data ", search)
+    if (search != "") data.filterTxt = search;
+    qp.Take =20
+    qp.Sort = [props.lookupLabels[0]]
+    qp.Select = props.lookupLabels 
 
-  //setting search
-  if (search.length > 0 && props.lookupSearchs.length > 0) {
-    if (props.lookupSearchs.length == 1)
-      qp.Where = {
-        Field: props.lookupSearchs[0],
-        Op: "$contains",
-        Value: [search],
-      };
-    else
-      qp.Where = {
-        Op: "$or",
-        items: props.lookupSearchs.map((el) => {
-          return { Field: el, Op: "$contains", Value: [search] };
-        }),
-      };
+    //setting search
+    if (search.length > 0 && props.lookupSearchs.length > 0) {
+      if (props.lookupSearchs.length == 1)
+        qp.Where = {
+          Field: props.lookupSearchs[0],
+          Op: "$startWith",
+          Value: [search],
+        };
+      else
+        qp.Where = {
+          Op: "$or",
+          items: props.lookupSearchs.map((el) => {
+            return { Field: el, Op: "$startWith", Value: [search] };
+          }),
+        };
+    }
+
+    if (
+      props.multiple &&
+      props.modelValue &&
+      props.modelValue.length > 0 &&
+      qp.Where != undefined
+    ) {
+      const whereExisting =
+        props.modelValue.length == 1
+          ? { Op: "$eq", Field: props.lookupKey, Value: props.modelValue[0] }
+          : {
+              Op: "$or",
+              items: props.modelValue.map((el) => {
+                return { Field: props.lookupKey, Op: "$eq", Value: el };
+              }),
+            };
+
+      qp.Where = { Op: "$or", items: [qp.Where, whereExisting] };
+    }
+  } else {
+    qp = props.lookupPayloadBuilder(search)
   }
-
-  if (
-    props.multiple &&
-    props.modelValue &&
-    props.modelValue.length > 0 &&
-    qp.Where != undefined
-  ) {
-    const whereExisting =
-      props.modelValue.length == 1
-        ? { Op: "$eq", Field: props.lookupKey, Value: props.modelValue[0] }
-        : {
-            Op: "$or",
-            items: props.modelValue.map((el) => {
-              return { Field: props.lookupKey, Op: "$eq", Value: el };
-            }),
-          };
-
-    qp.Where = { Op: "$or", items: [qp.Where, whereExisting] };
-  }
-
   if (loading) loading(true);
   axios.post(props.lookupUrl, qp).then(
     (r) => {
+      if (r.data && r.data.error) {
+        //data.options = []
+        //console.log(JSON.stringify(data.options))
+        if (loading) loading(false)
+        util.showError(r.data.error)
+        return
+      }
+
+      const existingOptions = []
+      if (props.modelValue && data.options && data.options.length > 0) {
+        //console.log(typeof props.modelValue, props.modelValue)
+        if (typeof props.modelValue==Array) {
+          props.modelValue.forEach(el => {
+            const opts = data.options.filter(el => el.key==props.modelValue)
+            if (opts.length > 0) existingOptions.push(...opts)
+          })
+        } else if (typeof props.modelValue=="string") {
+          const opts = data.options.filter(el => el.key==props.modelValue)
+          if (opts.length > 0) existingOptions.push(...opts)
+        }
+      }
+
       data.options = r.data.map((d) => {
-        //console.log(d, d[props.lookupTxt])
         return {
           key: d[props.lookupKey],
           text: getValue2(d),
         };
       });
-      //console.log(data.options)
+
+      existingOptions.forEach(el => {
+        const dataOptExists = data.options.filter(dtopt => el.key==dtopt.key)
+        if (dataOptExists==undefined || dataOptExists.length==0) {
+          data.options.push(el)
+        }
+      })
+      
       if (loading) loading(false);
     },
     (e) => {
@@ -179,14 +212,14 @@ function selectOpen() {
 }
 
 function addItem(opt) {
-  const opts = data.options;
+  const opts = data.options ? data.options : [];
   if (typeof opt == "object") {
     opt.key = opt.text;
   } else if (typeof opt == "string") {
     opt = { key: opt, text: opt };
   }
 
-  const currentOpts = data.options.filter((el) => el.key == opt.key);
+  const currentOpts = opts.filter((el) => el.key == opt.key);
   if (currentOpts.length > 0) {
     return;
   }
@@ -221,7 +254,7 @@ function value2(key) {
   if (key == undefined) {
     key = props.modelValue;
   }
-  const opts = data.options.filter((el) => el.key == key);
+  const opts = data.options && data.options.filter ? data.options.filter((el) => el.key == key) : undefined;
   return opts && opts.length > 0 ? opts[0].text : key;
 }
 

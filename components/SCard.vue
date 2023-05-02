@@ -20,7 +20,7 @@
       :class="{ cardFooterSeparator: !props.hideFooterSeparator }"
       v-if="!hideFooter"
     >
-      <slot name="footer">Ini porps:{{  props  }}</slot>
+      <slot name="footer"></slot>
     </div>
   </div>
 </template>
