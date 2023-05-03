@@ -1,7 +1,8 @@
 <template>
     <div style="w-full" class="flex flex-col gap-1">
-      <s-modal :display="data.showDeleteModal" ref="deleteModal" @submit="confirmDelete">
-        You are about to delete data from database. Are you sure ?
+      <s-modal :display="false" ref="deleteModal" @submit="confirmDelete">
+        You will delete data ! Are you sure ?<br/>
+        Please be noted, this can not be undone !
       </s-modal>
 
 
@@ -384,7 +385,7 @@
   }
   
   function deleteData(record, dataIndex) {
-    data.showDeleteModal = true
+    deleteModal.value.show()
     data.deleteFn = () => {
       if (props.deleteUrl == "") {
         emit("deleteData", data)
@@ -407,7 +408,7 @@
   }
   
   function confirmDelete() {
-    data.showDeleteModal = false
+    deleteModal.value.hide()
     data.deleteFn()
   }
   
