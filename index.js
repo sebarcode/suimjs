@@ -15,6 +15,7 @@ import SGrid from './components/SForm.vue'
 import SList from './components/SList.vue'
 import SListEditor from './components/SListEditor.vue'
 import DataList from './components/DataList.vue'
+import SModal from './components/SModal.vue'
 
 export {
     formConfig, formSection, formRow, formInput,
@@ -30,5 +31,6 @@ export {
     SGrid,
     SList,
     SListEditor,
-    DataList
+    DataList,
+    SModal
 }

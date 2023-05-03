@@ -1,5 +1,10 @@
 <template>
     <div style="w-full" class="flex flex-col gap-1">
+      <s-modal :display="data.showDeleteModal" ref="deleteModal" @submit="confirmDelete">
+        You are about to delete data from database. Are you sure ?
+      </s-modal>
+
+
       <div class="flex gap-2 justify-center" v-if="!hideControl">
         <slot name="header_search" :config="config">
           <input type="text" class="grow input_field border_b_[1px]"
@@ -144,7 +149,8 @@
   import SButton from './SButton.vue'
   import SInput from './SInput.vue'
   import SGridColumn from './SGridColumn.vue'
-  import { computed, inject, onMounted, reactive } from 'vue'
+  import SModal from './SModal.vue'
+  import { computed, inject, onMounted, reactive, ref } from 'vue'
   import util from '../scripts/util';
   
   const props = defineProps({
@@ -192,12 +198,14 @@
     sortField: "_id",
     sortDirection: "desc",
     pageSize: props.pageSize,
-    modalDelete: false,
     deleteFn: undefined,
     loading: false,
     currentIndex: -1,
     recordChanged: false,
+    showDeleteModal: false
   })
+
+  const deleteModal = ref(null)
   
   function rowFieldFocus(name, v1, v2, ctlRef) {
     const prevIndex = data.currentIndex
@@ -376,7 +384,7 @@
   }
   
   function deleteData(record, dataIndex) {
-    data.modalDelete = true
+    data.showDeleteModal = true
     data.deleteFn = () => {
       if (props.deleteUrl == "") {
         emit("deleteData", data)
@@ -399,7 +407,7 @@
   }
   
   function confirmDelete() {
-    data.modalDelete = false
+    data.showDeleteModal = false
     data.deleteFn()
   }
   
