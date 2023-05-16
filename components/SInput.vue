@@ -95,7 +95,7 @@
 
       <!-- html -->
       <div v-else-if="kind == 'html'" class="flex flex-col gap-0">
-        <vue-editor v-model="value" height="250px" ref="control" />
+        <!-- <vue-editor v-model="value" height="250px" ref="control" /> -->
       </div>
 
       <!-- password -->
@@ -246,12 +246,8 @@
 <script setup>
 import { reactive, computed, onMounted, nextTick, ref, inject } from "vue";
 import SSelect from "./SSelect.vue";
-import { VueEditor } from "vue3-editor";
 import moment from "moment";
 import util from "../scripts/util";
-import { mdiProgressUpload } from "@mdi/js";
-import { data } from "browserslist";
-//import axios from "axios";
 
 const control = ref(null);
 const props = defineProps({
