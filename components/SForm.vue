@@ -1,10 +1,10 @@
 <template>
     <div class="suim_form">
       <div v-if="config && config.setting">
-        <h1 v-if="config.setting.showTitle && config.setting.title != ''">
-          {{ config.title }}
+        <h1 v-if="config.setting.showTitle && config.setting.title != ''" class="title">
+          {{ config.setting.title }}
         </h1>
-  
+
         <!-- tab header -->
         <div
           class="flex gap-1 mb-2 items-center font-semibold"
@@ -31,28 +31,27 @@
         </div>
   
         <div id="form_inputs" v-if="data.currentTab == 0">
-            <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl"
-                :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
-                :only-icon="onlyIconTop" :disable-submit="data.inSubmission"
-                :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
-                @submit-click="onSubmitForm" @cancel-click="onCancelForm">
-                <template #buttons_1="item"><slot name="buttons_1" :item="value"></slot></template>
-                <template #buttons="item"><slot name="buttons" :item="value"></slot></template>
-                <template #buttons_2="item"><slot name="buttons_2" :item="value"></slot></template>
-            </s-form-buttons>
-            <slot name="form_header" :item="value" :config="config" />
-          <div
-            v-for="(section, sectionIdx) in config.sections"
-            :key="'form_section_' + sectionIdx"
-            v-show="section.visible"
-            class="section"
-          >
-            <h3
+          <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl"
+              :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
+              :only-icon="onlyIconTop" :disable-submit="data.inSubmission"
+              :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
+              @submit-click="onSubmitForm" @cancel-click="onCancelForm">
+              <template #buttons_1="item"><slot name="buttons_1" :item="value"></slot></template>
+              <template #buttons="item"><slot name="buttons" :item="value"></slot></template>
+              <template #buttons_2="item"><slot name="buttons_2" :item="value"></slot></template>
+          </s-form-buttons>
+
+          <slot name="form_header" :item="value" :config="config" />
+          
+          <div class="flex section_group_container" :class="{'flex-col':config.sectionDirection=='row'}">
+            <div v-for="g in config.sectionGroups()" class="flex grow section_group" :class="{'flex-col':config.sectionDirection=='col'}">
+              <div v-for="section in g.sections" v-show="section.visible" :key="section.id" class="section grow">    
+            <div
               v-if="section.showTitle && section.title != ''"
-              class="border-b border-slate-600 pb-1"
+              class="title"
             >
               {{ section.title }}
-            </h3>
+            </div>
             <slot
               :name="'section_' + section.title.replace(' ', '') + '_header'"
               :item="value"
@@ -199,6 +198,8 @@
               :item="value"
               :config="config"
             ></slot>
+          </div>
+          </div>
           </div>
           <slot name="footer_1" :item="value" :config="config" />
   
