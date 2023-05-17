@@ -7,22 +7,22 @@ class formConfig {
             showTitle: show
         }
         this.sections = []
-        this.sectionDirection = 'row'
-        this.sectionSize = 1
+        this.setting.sectionDirection = 'row'
+        this.setting.sectionSize = 1
     }
 
     setSectionConfig(direction, size) {
-        if (direction && direction!="") this.sectionDirection = direction
-        if (size && size > 0) this.sectionSize = size
+        if (direction && direction!="") this.setting.sectionDirection = direction
+        if (size && size > 0) this.setting.sectionSize = size
     }
 
     sectionGroups() {
-        const groupCount = Math.ceil(this.sections.length / this.sectionSize)
+        const groupCount = Math.ceil(this.sections.length / this.setting.sectionSize)
 
         const groups = []
         for (let i=0; i<groupCount; i++) {
-            const iLow = i * this.sectionSize
-            const iHi = (iLow + this.sectionSize) >= this.sections.length ? this.sections.length : iLow + this.sectionSize
+            const iLow = i * this.setting.sectionSize
+            const iHi = (iLow + this.setting.sectionSize) >= this.sections.length ? this.sections.length : iLow + this.setting.sectionSize
             const groupSections = this.sections.slice(iLow, iHi)
             
             groups.push({
@@ -51,6 +51,14 @@ class formConfig {
         }
 
         return undefined
+    }
+
+    generateConfig () {
+        const modeledConfig = {
+            setting: this.setting
+        }
+        modeledConfig.sectionGroups = this.sectionGroups()
+        return modeledConfig
     }
 }
 

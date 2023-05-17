@@ -43,8 +43,8 @@
 
           <slot name="form_header" :item="value" :config="config" />
           
-          <div class="flex section_group_container" :class="{'flex-col':config.sectionDirection=='row'}">
-            <div v-for="g in config.sectionGroups()" class="flex grow section_group" :class="{'flex-col':config.sectionDirection=='col'}">
+          <div class="flex section_group_container" :class="{'flex-col':config.setting.sectionDirection=='row'}">
+            <div v-for="g in config.sectionGroups" class="flex grow section_group" :class="{'flex-col':config.setting.sectionDirection=='col'}">
               <div v-for="section in g.sections" v-show="section.visible" :key="section.id" class="section grow">    
             <div
               v-if="section.showTitle && section.title != ''"
@@ -399,11 +399,13 @@
     //console.log('changefields calculated')
   
     const changefieldsBuffer = [];
-    cfg.sections.forEach((section) => {
-      section.rows.forEach((row) => {
-        row.inputs.forEach((input) => {
-          if (input.labelField != "" || input.needChangeHandler === true)
-            changefieldsBuffer.push(input.field);
+    cfg.sectionGroups.forEach(sg => {
+      sg.sections.forEach((section) => {
+        section.rows.forEach((row) => {
+          row.inputs.forEach((input) => {
+            if (input.labelField != "" || input.needChangeHandler === true)
+              changefieldsBuffer.push(input.field);
+          });
         });
       });
     });
@@ -411,71 +413,108 @@
   }
   
   function getConfigInputByName(fieldName) {
-    if (props.config.sections == undefined) return;
+    if (props.config.sectionGroups == undefined) return;
     let found = false;
     let resInput = undefined;
-    props.config.sections.forEach((section) => {
-      section.rows.forEach((row) => {
-        row.inputs.forEach((input) => {
-          //console.log(input.field, fieldName)
-          //if (input.labelField != "" || input.needChangeHandler === true) changefieldsBuffer.push(input.field)
-          if (input.field == fieldName) {
-            found = true;
-            resInput = input;
-            return;
-          }
+    props.config.sectionGroups.forEach(sg => {
+      sg.sections.forEach((section) => {
+          section.rows.forEach((row) => {
+            row.inputs.forEach((input) => {
+              if (input.field == fieldName) {
+                found = true;
+                resInput = input;
+                return;
+              }
+            });
+            if (found) return;
+          });
+          if (found) return;
         });
         if (found) return;
-      });
-      if (found) return;
     });
     return resInput;
   }
   
   function getSection(name) {
-    const sections = props.config.sections.filter((x) => x.Title == name);
-    if (sections && sections.length > 0) return sections[0];
+    let found = false
+    let section = undefined
+
+    props.config.sectionGroups.forEach(g => {
+      g.sections.forEach(s => {
+        if (s.Title==name) {
+          found = true
+          section = s
+        }
+        if (found) return
+      })
+      if (found) return
+    })
+    return section
   }
   
   function getField(name) {
     let field;
     let found;
-    props.config.sections.forEach((section) => {
+    props.config.sectionGroups.forEach(g => {
+      if (found) return
+      g.sections.forEach(section => { 
       if (found) return;
-      section.rows.forEach((row) => {
-        if (found) return;
-        row.inputs.forEach((input) => {
+        section.rows.forEach((row) => {
           if (found) return;
-  
-          if (input.field == name) {
-            found = true;
-            field = input;
-          }
+          row.inputs.forEach((input) => {
+            if (found) return;
+    
+            if (input.field == name) {
+              found = true;
+              field = input;
+            }
+          });
         });
-      });
-    });
+      })
+    })
   
     if (found) return field;
   }
   
   function setSectionAttr(name, attr, value) {
-    const sections = props.config.sections.filter((x) => x.Title == name);
-    if (sections && sections.length > 0) {
-      sections[0][attr] = value;
-    }
+    props.config.sectionGroups.forEach(sg => {
+      sg.sections.forEach(s => {
+        if (s.Title==name) {
+          s[attr] = value
+        }
+      })
+    })
   }
   
   function setFieldAttr(name, attr, value) {
-    props.config.sections.forEach((section, sIdx) => {
-      section.rows.forEach((row, rIdx) => {
-        row.inputs.forEach((input) => {
-          //console.log(name)
-          if (input.field == name) {
-            input[attr] = value;
-          }
-        });
-      });
-    });
+    props.config.sectionGroups.forEach(g => {
+      g.sections.forEach(s => {
+        s.rows.forEach((row) => {
+          row.inputs.forEach((input) => {
+            if (input.field == name) input[attr] = value;
+          })
+        })
+      })
+    })
+
+    /*
+    const sectionGroups = props.config.sectionGroups.map(g => {
+      g.sections = g.sections.map(s => {
+        if (s.Title == name) {
+          s.rows.forEach((row) => {
+            row.inputs.forEach((input) => {
+              if (input.field == name) {
+                input[attr] = value;
+              }
+            });
+          });
+        }
+        return s
+      })
+      return g
+    })
+    props.config.sectionGroups = sectionGroups
+    */
   }
   
   watch(
