@@ -7,7 +7,7 @@ class formConfig {
             showTitle: show
         }
         this.sections = []
-        this.setting.sectionDirection = 'row'
+        this.setting.sectionDirection = 'col'
         this.setting.sectionSize = 1
     }
 
@@ -17,12 +17,13 @@ class formConfig {
     }
 
     sectionGroups() {
-        const groupCount = Math.ceil(this.sections.length / this.setting.sectionSize)
+        const groupCount = this.setting.sectionSize
+        const groupSize = Math.ceil(this.sections.length / this.setting.sectionSize)
 
         const groups = []
         for (let i=0; i<groupCount; i++) {
-            const iLow = i * this.setting.sectionSize
-            const iHi = (iLow + this.setting.sectionSize) >= this.sections.length ? this.sections.length : iLow + this.setting.sectionSize
+            const iLow = i * groupSize
+            const iHi = (iLow + groupSize) >= this.sections.length ? this.sections.length : iLow + groupSize
             const groupSections = this.sections.slice(iLow, iHi)
             
             groups.push({

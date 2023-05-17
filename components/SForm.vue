@@ -44,7 +44,17 @@
           <slot name="form_header" :item="value" :config="config" />
           
           <div class="flex section_group_container" :class="{'flex-col':config.setting.sectionDirection=='row'}">
-            <div v-for="g in config.sectionGroups" class="flex grow section_group" :class="{'flex-col':config.setting.sectionDirection=='col'}">
+            <div v-for="g in config.sectionGroups" class="section_group" 
+              :class="{
+                'col flex-col grow': config.setting.sectionDirection=='col',
+                grid: config.setting.sectionDirection=='row',
+                gridCol1: config.setting.sectionDirection=='row' && g.sections.length==1,
+                gridCol2: config.setting.sectionDirection=='row' && g.sections.length==2,
+                gridCol3: config.setting.sectionDirection=='row' && g.sections.length==3,
+                gridCol4: config.setting.sectionDirection=='row' && g.sections.length==4,
+                gridCol5: config.setting.sectionDirection=='row' && g.sections.length==5,
+                gridCol6: config.setting.sectionDirection=='row' && g.sections.length==6,
+              }">
               <div v-for="section in g.sections" v-show="section.visible" :key="section.id" class="section grow">    
             <div
               v-if="section.showTitle && section.title != ''"
@@ -92,10 +102,6 @@
                     'col-auto': input.colSpan == undefined || input.colSpan == 0,
                   }"
                 >
-                  <!--
-                  {{ inputIdx==0 ?  `grid-cols-${row.colCount}` : ''}}
-                  {{ input.colSpan==undefined || input.colSpan=='' || input.colSpan=='auto' || input.colSpan=='0' ? `` : `col-span-${input.colSpan}` }}
-                  -->
                   <slot
                     :name="'input_' + input.field + '_header'"
                     :item="value"
@@ -365,19 +371,12 @@
     if (input.labelField && input.labelField != "") {
       v[name] = value1;
       v[input.labelField] = value2;
-      //console.log('configInputByName', data.changeFields[0], v[input.field], v[input.labelField])
     }
     emit("update:modelValue", v);
     nextTick(() => {
       emit("fieldChange", name, value1, value2, oldValue);
     });
   }
-  
-  /*
-  function inputValidated(field, isValid) {
-    inputValidities[field] = isValid;
-  }
-  */
   
   const value = computed({
     get() {

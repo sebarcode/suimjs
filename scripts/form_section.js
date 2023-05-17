@@ -15,7 +15,6 @@ class formSection {
 
     addRow(...inputFields) {
         const row = new formRow(...inputFields)
-        //row.className = 'grid grid-cols-' + row.inputs.length
         this.rows.push(row)
         return this
     }

@@ -63,7 +63,7 @@
             useList ||
             kind == 'md' ||
             kind == 'markdown' ||
-            keepLabelSection || true
+            keepLabelSection
           "
         >
           {{ label }}

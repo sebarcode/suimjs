@@ -481,7 +481,7 @@ defineExpose({
     setFormFieldAttr, getFormSection, setFormSectionAttr,
     getGridConfig, setGridConfig,
     setListAttr, refreshList, refreshForm,
-    setFormMode, getFormMode, newGridData, submitForm, cancelForm
+    setFormMode, getFormMode, newGridData, submitForm: save, cancelForm
 })
 
 onMounted(() => {
