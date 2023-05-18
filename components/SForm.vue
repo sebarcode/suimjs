@@ -7,7 +7,7 @@
 
         <!-- tab header -->
         <div
-          class="flex gap-1 mb-2 items-center font-semibold"
+          class="flex tab_container"
           v-if="tabs.length > 1"
         >
           <div
@@ -67,11 +67,11 @@
               :item="value"
               :config="config"
             ></slot>
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-4">
               <div
                 v-for="(row, rowIdx) in section.rows"
                 :key="'form_section_' + sectionIdx + '_row_' + rowIdx"
-                class="w-full items-start gap-2 grid-flow-col grid"
+                class="w-full items-start gap-5 grid"
                 :class="{
                   gridCol1: row.colCount == 1,
                   gridCol2: row.colCount == 2,
@@ -536,14 +536,6 @@
   </script>
   
   <style scope>
-  .tab_selected {
-    @apply p-2 border-b-[5px] border-primary text-primary;
-  }
-  
-  .tab {
-    @apply p-2 border-b border-slate-600 cursor-pointer hover:text-secondary hover:border-secondary;
-  }
-
   .gridCol1 {@apply grid-cols-1}
   .gridCol2 {@apply grid-cols-2}
   .gridCol3 {@apply grid-cols-3}

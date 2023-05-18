@@ -88,7 +88,7 @@
                 <td class="table_action" v-if="!hideAction">
                   <slot name="item_buttons_1" :item="r" :config="config"></slot>
                   <slot name="item_buttons" :item="r" :config="config">
-                    <a href="#" v-if="editor && r.sGridRecordChanged" @click="saveRowData(r)">
+                    <a href="#" v-if="editor && r.suimRecordChange" @click="saveRowData(r)">
                       <mdicon name="content-save" width="16" alt="edit" class="cursor-pointer hover:text-primary" />
                     </a>
                     <a href="#" v-if="!hideDetail" @click="selectData(r, 'detail')">
@@ -226,7 +226,7 @@
         r = r.data
         data.items.forEach((dt, index) => {
           if (dt._id==r._id) {
-            r.sGridRecordChanged = false
+            r.suimRecordChange = false
             data.items[index] = r
           }
         })
@@ -239,7 +239,7 @@
   function updateRecordChanged () {
     for (const itIndex in data.items) {
       const it = data.items[itIndex]
-      if (it.sGridRecordChanged===true) {
+      if (it.suimRecordChange===true) {
         data.recordChanged = true
         return
       }
@@ -249,12 +249,11 @@
   }
   
   function rowFieldChanged(name, v1, v2) {
-    const current = data.items[data.currentIndex]
-    const currentUpd = {}
-    currentUpd["_id"] = current["_id"]
-    currentUpd[name] = v1
-    current.sGridRecordChanged = true
+    const currentIndex = data.currentIndex 
+    const current = data.items[currentIndex]
+    current.suimRecordChange = true
     data.recordChanged = true
+    emit('rowFieldChanged', name, v1, v2, current)
   }
   
   const sortIcon = computed({
@@ -354,7 +353,7 @@
   function refreshData(fn) {
     if (props.readUrl == '') {
       emit("getData", data.keyword)
-      if (fn) fn()
+      if (fn && typeof fn=='function') fn()
       return
     }
   
@@ -366,7 +365,7 @@
       })
       data.recordCount = r.data.count
       setLoading(false)
-      if (fn) fn()
+      if (fn && typeof fn=='function') fn()
     }, e => {
       util.showError(e)
       setLoading(false)

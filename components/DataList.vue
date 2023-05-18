@@ -169,6 +169,7 @@ const props = defineProps({
     title: { type: String, default: "" },
     hideTitle: { type: Boolean },
     gridEditor: { type: Boolean },
+    gridEditorNoForm: { type: Boolean },
     gridFields: { type: Array, default: () => [] },
     gridHideControl: { type: Boolean, default: false },
     gridHideSearch: { type: Boolean, default: false },
@@ -244,8 +245,8 @@ function handleFormRecordChange(nv) {
   emit("formRecordChange", nv);
 }
 
-function handleGridFieldChanged(name, v1, v2, old, record) {
-    emit("gridRowFieldChanged", name, v2, v2, old, record)
+function handleGridFieldChanged(name, v1, v2, record, old) {
+    emit("gridRowFieldChanged", name, v1, v2, record, old)
 }
 
 function handleGridRowDeleted (record) {
