@@ -36,7 +36,7 @@
             <!-- header -->
             <thead name="grid_header">
               <tr class="border-b-[1px] border-slate-500">
-                <th class="w-[30px]" v-if="!hideSelect">
+                <th class="row_select" v-if="!hideSelect">
                   <input type="checkbox" @change="checkUncheckAll" />
                 </th>
                 <th v-for="(hdr, hdrIndex) in config.fields.filter(el => el.readType == 'show')"
@@ -85,7 +85,7 @@
                   </slot>
                 </td>
   
-                <td class="table_action" v-if="!hideAction">
+                <td class="row_action" v-if="!hideAction">
                   <slot name="item_buttons_1" :item="r" :config="config"></slot>
                   <slot name="item_buttons" :item="r" :config="config">
                     <a href="#" v-if="editor && r.suimRecordChange" @click="saveRowData(r)">

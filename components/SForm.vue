@@ -561,7 +561,5 @@
   .colSpan10 { @apply col-span-10 }
   .colSpan11 { @apply col-span-11 }
   .colSpan12 { @apply col-span-12 }
-
-  .checkboxOffset { @apply pt-[22px] }
   </style>
   

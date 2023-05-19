@@ -61,7 +61,7 @@
             (value && value.length > 0) ||
             !isNaN(value) ||
             useList ||
-            kind == 'md' ||
+            kind == 'md' || kind == 'date' || kind == 'time' ||
             kind == 'markdown' ||
             keepLabelSection
           "
