@@ -63,7 +63,7 @@
             useList ||
             kind == 'md' || kind == 'date' || kind == 'time' ||
             kind == 'markdown' ||
-            keepLabelSection
+            keepLabel
           "
         >
           {{ label }}
@@ -290,7 +290,7 @@ const props = defineProps({
   rounded: { type: Number, default: 0 },
   validateOnMount: { type: Boolean },
   disableValidateOnChange: { type: Boolean, default: false },
-  keepLabelSection: { type: Boolean, default: false },
+  keepLabel: { type: Boolean, default: false },
   keepErrorSection: { type: Boolean, default: false },
   width: { type: String, default: "" },
 });

@@ -1,6 +1,6 @@
 <template>
     <s-card :title="title" class="w-full bg-white" hide-footer :no-gap="noGap" :hide-title="hideTitle">
-      <div v-if="data.listCfg.setting && gridMode == 'list'" v-show="data.appMode == 'grid'">
+      <div v-if="data.listCfg.setting && gridMode == 'list'" v-show="data.controlMode == 'grid'">
           <s-list ref="listGrid" class="w-full" :read-url="data.gridReadUrl" :delete-url="data.gridDeleteUrl"
               :hide-search="gridHideSearch" :hide-control="gridHideControl" :hide-sort="gridHideSort"
               :hide-delete-button="gridHideDelete" :hide-refresh-button="gridHideRefresh"
@@ -23,7 +23,7 @@
           </s-list>
         </div>
 
-        <div v-if="data.listCfg.setting && gridMode == 'grid'" v-show="data.appMode == 'grid'">
+        <div v-if="data.listCfg.setting && gridMode == 'grid'" v-show="data.controlMode == 'grid'">
             <s-grid ref="listGrid" class="w-full" :hide-select="gridHideSelect" :editor="gridEditor"
                 :read-url="data.gridReadUrl" :update-url="data.gridUpdateUrl" :delete-url="data.gridDeleteUrl"
                 :config="data.listCfg" :hide-search="gridHideSearch" :hide-control="gridHideControl"
@@ -81,7 +81,7 @@
 
     <s-form
       ref="listForm"
-      v-if="data.appMode == 'form' && data.formCfg.setting"
+      v-if="data.controlMode == 'form' && data.formCfg.setting"
       v-model="data.record"
       :config="data.formCfg"
       :mode="data.formMode"
@@ -114,7 +114,7 @@
           :item="item"
           :config="{
             formMode: data.formMode,
-            appMode: data.appMode,
+            appMode: data.controlMode,
             formCfg: data.formCfg,
           }"
         >
@@ -222,7 +222,7 @@ const emit = defineEmits({
 })
 
 const data = reactive({
-  appMode: props.initAppMode,
+  controlMode: props.initAppMode,
   formMode: props.formDefaultMode,
   formCfg: {},
   listCfg: {},
@@ -306,7 +306,7 @@ function selectData(dt, op) {
   axios.post(props.formRead, [dt._id]).then(
     (r) => {
       emit("formEditData", r.data);
-      data.appMode = "form";
+      data.controlMode = "form";
       data.formMode = props.formDefaultMode;
       data.record = r.data;
       nextTick(() => {
@@ -323,7 +323,7 @@ function newData(dt) {
     if (dt == undefined) dt = {}
     emit("formNewData", dt)
     data.record = dt == undefined ? {} : dt
-    data.appMode = "form"
+    data.controlMode = "form"
     data.formMode = "new"
     nextTick(() => {
         emit("gridRowUpdated", data.record)
@@ -332,7 +332,7 @@ function newData(dt) {
 }
 
 function cancelForm() {
-  data.appMode = "grid";
+  data.controlMode = "grid";
   nextTick(() => {
     listGrid.value.refreshData();
   });
@@ -347,7 +347,7 @@ function save(saveData, cbOK, cbFalse) {
         emit("postSave", record)
         emit("gridRowUpdated", record)
         if (!props.stayOnFormAfterSave) {
-            data.appMode = "grid"
+            data.controlMode = "grid"
             nextTick(() => {
                 listGrid.value.refreshData()
             })
@@ -468,6 +468,14 @@ function refreshGrid () {
     refreshList()
 }
 
+function setControlMode (mode) {
+  data.controlMode = mode
+}
+
+function getControlMode () {
+  return data.controlMode
+}
+
 watch(
   () => props.gridRead,
   (nv) => {
@@ -482,7 +490,8 @@ defineExpose({
     setFormFieldAttr, getFormSection, setFormSectionAttr,
     getGridConfig, setGridConfig,
     setListAttr, refreshList, refreshForm,
-    setFormMode, getFormMode, newGridData, submitForm: save, cancelForm
+    setFormMode, getFormMode, newGridData, submitForm: save, cancelForm, 
+    setControlMode, getControlMode
 })
 
 onMounted(() => {

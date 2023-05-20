@@ -127,14 +127,14 @@ function fetchOptions(search, loading) {
       if (props.lookupSearchs.length == 1)
         qp.Where = {
           Field: props.lookupSearchs[0],
-          Op: "$startWith",
+          Op: "$startwith",
           Value: [search],
         };
       else
         qp.Where = {
           Op: "$or",
           items: props.lookupSearchs.map((el) => {
-            return { Field: el, Op: "$startWith", Value: [search] };
+            return { Field: el, Op: "$startwith", Value: [search] };
           }),
         };
     }

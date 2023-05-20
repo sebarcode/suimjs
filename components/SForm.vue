@@ -142,6 +142,7 @@
                       :decimal="input.decimal"
                       :date-format="input.dateFormat"
                       :multiple="input.multiple"
+                      :keep-label="keepLabel"
                       :lookup-labels="input.lookupLabels"
                       :lookup-searchs="
                         input.lookupSearchs && input.lookupSearchs.length == 0
@@ -180,6 +181,7 @@
                       :decimal="input.decimal"
                       :date-format="input.dateFormat"
                       :multiple="input.multiple"
+                      :keep-label="keepLabel"
                       :lookup-labels="input.lookupLabels"
                       :lookup-searchs="
                         input.lookupSearchs && input.lookupSearchs.length == 0
@@ -265,6 +267,7 @@
     hideButtons: { type: Boolean, default: false },
     buttonsOnTop: { type: Boolean, default: true},
     buttonsOnBottom: { type: Boolean }, 
+    keepLabel: { type: Boolean },
     onlyIconTop: { type: Boolean, default: false},
     onlyIconBottom: { type: Boolean, default: false},
     loading: { type: Boolean },
@@ -495,25 +498,6 @@
         })
       })
     })
-
-    /*
-    const sectionGroups = props.config.sectionGroups.map(g => {
-      g.sections = g.sections.map(s => {
-        if (s.Title == name) {
-          s.rows.forEach((row) => {
-            row.inputs.forEach((input) => {
-              if (input.field == name) {
-                input[attr] = value;
-              }
-            });
-          });
-        }
-        return s
-      })
-      return g
-    })
-    props.config.sectionGroups = sectionGroups
-    */
   }
   
   watch(

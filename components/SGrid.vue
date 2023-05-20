@@ -129,7 +129,7 @@
   
         <div v-else>
           <slot name="nodata">
-            <div class="py-2">
+            <div class="nodata">
               No data
             </div>
           </slot>
@@ -138,7 +138,7 @@
 
       <div v-else>
         <slot name="loading">
-          <div class="py-2">
+          <div class="loading">
             loading data from server ...
           </div>
         </slot>
