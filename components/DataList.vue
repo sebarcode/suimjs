@@ -83,6 +83,7 @@
       ref="listForm"
       v-if="data.controlMode == 'form' && data.formCfg.setting"
       v-model="data.record"
+      :keep-label="formKeepLabel"
       :config="data.formCfg"
       :mode="data.formMode"
       class="pt-2"
@@ -190,6 +191,7 @@ const props = defineProps({
     formHideSubmit: { type: Boolean, default: false },
     formHideCancel: { type: Boolean, default: false },
     formAutoFocus: { type: Boolean },
+    formKeepLabel: { type: Boolean },
     gridMode: { type: String, default: "list" },
     gridLabelMethod: { type: String, default: "labelfield" },
     gridConfig: { type: [String, Object], default: () => { } },
