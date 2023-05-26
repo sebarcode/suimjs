@@ -273,6 +273,7 @@ const props = defineProps({
   required: { type: Boolean, default: false },
   readOnly: { type: Boolean },
   hideLabel: { type: Boolean },
+  keepLabel: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   rules: { type: Array, default: () => [] },
   masked: { type: Boolean, default: false },
@@ -290,7 +291,6 @@ const props = defineProps({
   rounded: { type: Number, default: 0 },
   validateOnMount: { type: Boolean },
   disableValidateOnChange: { type: Boolean, default: false },
-  keepLabel: { type: Boolean, default: false },
   keepErrorSection: { type: Boolean, default: false },
   width: { type: String, default: "" },
 });
