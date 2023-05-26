@@ -5,7 +5,6 @@
         Please be noted, this can not be undone !
       </s-modal>
 
-
       <div class="flex gap-2 justify-center" v-if="!hideControl">
         <slot name="header_search" :config="config">
           <input type="text" class="grow input_field border_b_[1px]"
@@ -24,7 +23,7 @@
           <slot name="header_buttons_1" :config="config"></slot>
           <slot name="header_buttons" :config="config">
             <s-button icon="refresh" class="btn_primary" @click="refreshData" v-if="!hideRefreshButton" />
-            <s-button icon="plus" class="btn_primary" @click="newData" v-if="!hideNewButton" :disabled="data.recordChanged" />
+            <s-button icon="plus" class="btn_primary" @click="newData" v-if="!hideNewButton" :disabled="data.recordChanged && !hideSaveButton" />
           </slot>
           <slot name="header_buttons_2" :config="config"></slot>
         </div>
@@ -68,7 +67,8 @@
                   <slot :name="'item_' + hdr.field" :item="r" :header="hdr">
                     <div v-if="editor && !hdr.input.readOnly">
                       <s-input hide-label :ctl-ref="{rowIndex: rIdx}" :field="hdr.input.field" :kind="hdr.input.kind"
-                        :label="hdr.input.label" :disabled="hdr.input.readOnly" :caption="hdr.input.caption"
+                        :label="hdr.input.kind=='checkbox' || hdr.input.kind=='bool' ? '' : hdr.input.label" 
+                        :disabled="hdr.input.readOnly" :caption="hdr.input.caption"
                         :hint="hdr.input.hint" :multi-row="hdr.input.multiRow" :use-list="hdr.input.useList"
                         :items="hdr.input.items" :rules="hdr.input.rules" :required="hdr.input.required"
                         :read-only="hdr.input.readOnly" :lookup-url="hdr.input.lookupUrl"
@@ -88,7 +88,7 @@
                 <td class="row_action" v-if="!hideAction">
                   <slot name="item_buttons_1" :item="r" :config="config"></slot>
                   <slot name="item_buttons" :item="r" :config="config">
-                    <a href="#" v-if="editor && r.suimRecordChange" @click="saveRowData(r)">
+                    <a href="#" v-if="editor && r.suimRecordChange && !hideSaveButton" @click="saveRowData(r)">
                       <mdicon name="content-save" width="16" alt="edit" class="cursor-pointer hover:text-primary" />
                     </a>
                     <a href="#" v-if="!hideDetail" @click="selectData(r, 'detail')">
@@ -151,7 +151,7 @@
   import SInput from './SInput.vue'
   import SGridColumn from './SGridColumn.vue'
   import SModal from './SModal.vue'
-  import { computed, inject, onMounted, reactive, ref } from 'vue'
+  import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
   import util from '../scripts/util';
   
   const props = defineProps({
@@ -165,6 +165,7 @@
     hideHeader: { type: Boolean },
     editor: { type: Boolean },
     labelMethod: { type: String, default: "database" },
+    noConfirmDelete: { type: Boolean },
     hideNew: { type: Boolean },
     hideControl: { type: Boolean },
     hideSearch: { type: Boolean },
@@ -172,6 +173,7 @@
     hideButtons: { type: Boolean, default: false },
     hideRefreshButton: { type: Boolean, default: false },
     hideNewButton: { type: Boolean, default: false },
+    hideSaveButton: { type: Boolean },
     hideDeleteButton: { type: Boolean, default: false },
     hideFooter: { type: Boolean, default: false },
     hideSelect: { type: Boolean, default: false },
@@ -188,7 +190,7 @@
     "rowUpdated": null,
     "rowDeleted": null,
     "rowFieldChanged": null,
-    "modelValue:update": null
+    "update:modelValue": null
   })
   
   const data = reactive({
@@ -277,7 +279,7 @@
     }
   })
   
-  const items = computed({
+  /*const items = computed({
     get() {
       if (data.items == undefined) data.items = []
       return data.items
@@ -285,9 +287,10 @@
   
     set(v) {
       data.items = v
-      emit("modelValue:update", v)
+      emit("update:modelValue", v)
     }
   })
+  */
   
   function setLoading(loading) {
     data.loading = loading
@@ -350,10 +353,10 @@
     return param
   }
   
-  function refreshData(fn) {
-    if (props.readUrl == '') {
+  function refreshData(callBackFn) {
+    if (props.readUrl ==undefined || props.readUrl== '') {
       emit("getData", data.keyword)
-      if (fn && typeof fn=='function') fn()
+      if (callBackFn && typeof callBackFn=='function') callBackFn()
       return
     }
   
@@ -365,7 +368,7 @@
       })
       data.recordCount = r.data.count
       setLoading(false)
-      if (fn && typeof fn=='function') fn()
+      if (callBackFn && typeof callBackFn=='function') callBackFn()
     }, e => {
       util.showError(e)
       setLoading(false)
@@ -384,10 +387,9 @@
   }
   
   function deleteData(record, dataIndex) {
-    deleteModal.value.show()
     data.deleteFn = () => {
       if (props.deleteUrl == "") {
-        emit("deleteData", data)
+        emit("deleteData", data, dataIndex)
         refreshData(() => {
           emit("rowDeleted", record)
           updateRecordChanged()
@@ -404,6 +406,13 @@
         })
       }
     }
+
+    if (props.noConfirmDelete) {
+      data.deleteFn();
+      return;
+    };
+
+    deleteModal.value.show()
   }
   
   function confirmDelete() {
@@ -442,7 +451,11 @@
   }
   
   function getActiveIndex () {
-    return data.currentIndex
+    return data.currentIndex;
+  }
+
+  function setRecords (newDataSet) {
+    data.items = newDataSet;
   }
   
   defineExpose({
@@ -455,10 +468,17 @@
     addData,
     newData,
     setLoading,
+    setRecords
    })
   
   onMounted(() => {
     refreshData()
   })
+  
+  watch(() => props.modelValue, (nv) => {
+    console.log('di grd',nv);
+    if (nv==undefined) data.items = [];
+    data.items = nv;
+  });
   
   </script>
