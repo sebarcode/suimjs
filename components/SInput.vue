@@ -379,14 +379,11 @@ function validate() {
 
   let res = true;
 
-  if (props.modelValue === false && props.required) {
-    state.errors.push("required");
-    res = false;
-  }
-
-  if (props.required && (data == undefined || data === "")) {
-    state.errors.push("required");
-    res = false;
+  if (props.required) {
+    if (data === false || data === undefined || data === "" || data.length==0) {
+      state.errors.push("required");
+      res = false;
+    }
   }
 
   props.rules.forEach((rule) => {

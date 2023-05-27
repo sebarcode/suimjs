@@ -398,8 +398,7 @@
   function calcChangeFields(cfg) {
     if (cfg == undefined) cfg = props.config;
     if (!(cfg && cfg.sections)) return;
-    //console.log('changefields calculated')
-  
+   
     const changefieldsBuffer = [];
     cfg.sectionGroups.forEach(sg => {
       sg.sections.forEach((section) => {
