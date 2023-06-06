@@ -40,7 +40,7 @@
               <template #buttons="item"><slot name="buttons" :item="value"></slot></template>
               <template #buttons_2="item"><slot name="buttons_2" :item="value"></slot></template>
           </s-form-buttons>
-
+          
           <slot name="form_header" :item="value" :config="config" />
           
           <div class="flex section_group_container" :class="{'flex-col':config.setting.sectionDirection=='row'}">

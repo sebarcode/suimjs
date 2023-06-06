@@ -95,7 +95,7 @@
 
       <!-- html -->
       <div v-else-if="kind == 'html'" class="flex flex-col gap-0">
-        <!-- <vue-editor v-model="value" height="250px" ref="control" /> -->
+        <s-editor ref="control" v-model="value" />
       </div>
 
       <!-- password -->
@@ -194,13 +194,6 @@
 </template>
 
 <style>
-/* .input_field {
-  @apply w-[100%] bg-input-bg text-input-text border-[1px] border-slate-300 
-    focus:bg-input-bg-active focus:text-input-text-active focus:border-black 
-    disabled:bg-transparent disabled:border-b disabled:border-t-0 disabled:border-l-0 disabled:border-r-0 disabled:border-slate-300
-    outline-none;
-} */
-
 .radio-item {
   display: inline-block;
   position: relative;
@@ -248,6 +241,7 @@ import { reactive, computed, onMounted, nextTick, ref, inject } from "vue";
 import SSelect from "./SSelect.vue";
 import moment from "moment";
 import util from "../scripts/util";
+import SEditor from './SEditor.vue';
 
 const control = ref(null);
 const props = defineProps({
