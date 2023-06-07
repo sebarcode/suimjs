@@ -1,8 +1,8 @@
-import { nextTick } from 'vue'
+import { nextTick } from 'vue';
 
 const suimContext = {
     notif: null
-}
+};
 
 export default {
     addNumbSep(number, thouSep) {

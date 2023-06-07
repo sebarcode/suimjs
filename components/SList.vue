@@ -1,5 +1,10 @@
 <template>
   <div class="flex flex-col gap-4">
+    <s-modal :display="false" ref="deleteModal" @submit="confirmDelete">
+      You will delete data ! Are you sure ?<br/>
+      Please be noted, this can not be undone !
+    </s-modal>
+    
     <div class="flex gap-2 justify-center" v-if="!hideControl">
       <input
         type="text"
@@ -164,8 +169,9 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, reactive } from "vue";
+import { computed, inject, onMounted, reactive, ref } from "vue";
 import SButton from "./SButton.vue";
+import SModal from './SModal.vue';
 import util from "../scripts/util";
 
 const props = defineProps({
@@ -189,6 +195,7 @@ const props = defineProps({
 });
 
 const axios = inject("axios");
+const deleteModal = ref(null);
 
 const emit = defineEmits({
   newData: null,
@@ -205,7 +212,6 @@ const data = reactive({
   sortField: "_id",
   sortDirection: "desc",
   pageSize: props.pageSize,
-  modalDelete: false,
   deleteFn: undefined,
   loading: false,
 });
@@ -340,7 +346,7 @@ function addData(dt) {
 }
 
 function deleteData(record, dataIndex) {
-  data.modalDelete = true;
+  deleteModal.value.show();
   data.deleteFn = () => {
     if (props.deleteUrl == "") {
       emit("deleteData", data);
@@ -360,7 +366,7 @@ function deleteData(record, dataIndex) {
 }
 
 function confirmDelete() {
-  data.modalDelete = false;
+  deleteModal.value.hide();
   data.deleteFn();
 }
 

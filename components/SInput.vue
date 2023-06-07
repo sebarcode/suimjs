@@ -374,7 +374,7 @@ function validate() {
   let res = true;
 
   if (props.required) {
-    if (data === false || data === undefined || data === "" || data.length==0) {
+    if (data === false || data === undefined || data === "") {
       state.errors.push("required");
       res = false;
     }
