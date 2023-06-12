@@ -107,7 +107,6 @@ const value = computed({
   },
 
   set(v) {
-    //emit("change", v, value2(v), props.modelValue)
     emit("update:modelValue", v);
   },
 });
@@ -116,11 +115,21 @@ const value = computed({
 function fetchOptions(search, loading) {
   let qp = {}
   if (props.lookupPayloadBuilder==undefined || props.lookupPayloadBuilder==null) {
-    //console.log("fetching data ", search)
     if (search != "") data.filterTxt = search;
     qp.Take =20
     qp.Sort = [props.lookupLabels[0]]
     qp.Select = props.lookupLabels 
+    let idInSelect = false;
+    const selectedFields = props.lookupLabels.map(x => {
+      if (x==props.lookupKey) {
+        idInSelect = true;
+      }
+      return x;
+    });
+    if (!idInSelect) {
+      selectedFields.push(props.lookupKey);
+    }
+    qp.Select = selectedFields;
 
     //setting search
     if (search.length > 0 && props.lookupSearchs.length > 0) {
@@ -164,8 +173,6 @@ function fetchOptions(search, loading) {
   axios.post(props.lookupUrl, qp).then(
     (r) => {
       if (r.data && r.data.error) {
-        //data.options = []
-        //console.log(JSON.stringify(data.options))
         if (loading) loading(false)
         util.showError(r.data.error)
         return
@@ -173,7 +180,6 @@ function fetchOptions(search, loading) {
 
       const existingOptions = []
       if (props.modelValue && data.options && data.options.length > 0) {
-        //console.log(typeof props.modelValue, props.modelValue)
         if (typeof props.modelValue==Array) {
           props.modelValue.forEach(el => {
             const opts = data.options.filter(el => el.key==props.modelValue)
@@ -228,12 +234,9 @@ function addItem(opt) {
   data.options = opts;
 
   emit("addItem", opt);
-  //vs.value.focus()
-  //console.log(typeof opt, opt, JSON.stringify(data.options), JSON.stringify(props.modelValue))
 }
 
 function selectItem(opt) {
-  //console.log(opt)
   emit("change", opt);
 }
 
@@ -270,7 +273,6 @@ async function getLookupLabel(id) {
       if (r.data.length == 0) return "";
 
       const labelTexts = props.lookupLabels.map((labelField) => {
-        //console.log(labelField, r.data[0][labelField])
         return r.data[0][labelField];
       });
       data.valueTxt = labelTexts.join(" - ");
