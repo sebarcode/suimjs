@@ -71,7 +71,7 @@
               <div
                 v-for="(row, rowIdx) in section.rows"
                 :key="'form_section_' + sectionIdx + '_row_' + rowIdx"
-                class="w-full items-start gap-5 grid"
+                class="w-full items-start gap-2 grid"
                 :class="{
                   gridCol1: row.colCount == 1,
                   gridCol2: row.colCount == 2,
