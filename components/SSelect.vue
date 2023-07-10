@@ -45,10 +45,8 @@
 </template>
 
 <script setup>
-import vSelect from 'vue-select'
 import { computed, inject, onMounted, reactive, ref } from "vue";
 import util from '../scripts/util';
-import { mdiDatabaseEye } from '@mdi/js';
 
 const props = defineProps({
   modelValue: { type: [String, Array], default: () => "" },
@@ -293,12 +291,20 @@ onMounted(() => {
 });
 </script>
 
-<style>
+<style> 
+.vs__dropdown-toggle {
+  @apply rounded-none;
+}
+
+.vs__actions {
+  @apply border-none;
+}
+
 .s-select-style .vs__search::placeholder,
-.s-select-style .vs__dropdown-toggle,
+.s-select-style
 .s-select-style .vs__selected,
-.s-select-style .vs__actions {
-  @apply text-black border-none border-b-[1px];
+.s-select-style  {
+  @apply text-slate-600 border-none;
 }
 
 .s-select-style .vs__search {
@@ -311,7 +317,7 @@ onMounted(() => {
 }
 
 .s-select-style .vs__dropdown-menu {
-  @apply border-[1px] border-slate-300 mt-1 bg-white text-slate-600;
+  @apply border border-slate-300 bg-white text-slate-600;
 }
 
 .s-select-style .vs__selected {
