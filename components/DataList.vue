@@ -30,9 +30,9 @@
                 :hide-detail="gridHideDetail"
                 :hide-sort="gridHideSort" :hide-delete-button="gridHideDelete" :label-method="gridLabelMethod"
                 :hide-refresh-button="gridHideRefresh" :hide-new-button="gridHideNew" 
-                :custom-filter="gridCustomFilter"
-                @select-data="selectData" @new-data="newData" 
-                @row-updated="gridRowUpdated" @row-field-changed="handleGridFieldChanged" 
+                :custom-filter="gridCustomFilter" :no-confirm-delete="gridNoConfirmDelete"
+                @select-data="selectData" @new-data="newData" @get-data="getData"  @delete-data="handleGridRowDelete"
+                @row-updated="gridRowUpdated" @row-field-changed="handleGridFieldChanged" @save-row-data="handleGridRowSave"
                 @row-deleted="handleGridRowDeleted">
                 <template #header_search="{config}">
                     <slot name="grid_header_search" :config="config"></slot>
@@ -181,6 +181,7 @@ const props = defineProps({
     gridHideRefresh: { type: Boolean, default: false },
     gridHideDelete: { type: Boolean, default: false },
     gridCustomFilter: { type: Object, default: () => {}},
+    gridNoConfirmDelete: { type: Boolean, default: false },
     formFields: { type: Array, default: () => [] },
     formConfig: { type: [String, Object], default: () => { } },
     formDefaultMode: { type: String, default: "edit" },
@@ -220,6 +221,7 @@ const emit = defineEmits({
     "alterFormConfig": null,
     "gridRowUpdated": null,
     "gridRowDeleted": null,
+    "gridRowDelete": null,
     "gridRowFieldChanged": null,
 })
 
@@ -253,6 +255,14 @@ function handleGridFieldChanged(name, v1, v2, record, old) {
 
 function handleGridRowDeleted (record) {
     emit("gridRowDeleted", record)
+}
+
+function handleGridRowDelete (record, index) {
+  emit('gridRowDelete', record, index)
+}
+
+function handleGridRowSave (record, index) {
+  emit('gridRowSave', record, index)
 }
 
 const formTabTitles = computed({
@@ -331,6 +341,10 @@ function newData(dt) {
         emit("gridRowUpdated", data.record)
         emit("formLoaded", data.record)
     })
+}
+
+function getData(keyword) {
+    emit('gridGetData', keyword)
 }
 
 function cancelForm() {
@@ -478,6 +492,10 @@ function getControlMode () {
   return data.controlMode
 }
 
+function setGridRecords (items) {
+  listGrid.value.setRecords(items);
+}
+
 watch(
   () => props.gridRead,
   (nv) => {
@@ -487,7 +505,7 @@ watch(
 );
 
 defineExpose({
-    getGridRecords, getGridRecord, refreshGrid, setGridRecord, setGridRecordByID,
+    getGridRecords, getGridRecord, refreshGrid, setGridRecords, setGridRecord, setGridRecordByID,
     getFormRecord, setFormRecord, getFormField,
     setFormFieldAttr, getFormSection, setFormSectionAttr,
     getGridConfig, setGridConfig,

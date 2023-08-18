@@ -88,7 +88,7 @@
                 <td class="row_action" v-if="!hideAction">
                   <slot name="item_buttons_1" :item="r" :config="config"></slot>
                   <slot name="item_buttons" :item="r" :config="config">
-                    <a href="#" v-if="editor && r.suimRecordChange && !hideSaveButton" @click="saveRowData(r)">
+                    <a href="#" v-if="editor && r.suimRecordChange===true && !hideSaveButton" @click="saveRowData(r, rIdx)">
                       <mdicon name="content-save" width="16" alt="edit" class="cursor-pointer hover:text-primary" />
                     </a>
                     <a href="#" v-if="!hideDetail" @click="selectData(r, 'detail')">
@@ -153,6 +153,7 @@
   import SModal from './SModal.vue'
   import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
   import util from '../scripts/util';
+import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
   
   const props = defineProps({
     modelValue: { type: Array, default: () => [] },
@@ -222,20 +223,27 @@
     data.recordChanged = false
   }
   
-  function saveRowData (r) {
-    if (props.updateUrl && props.updateUrl!="") {
-      axios.post(props.updateUrl, r).then(r => {
-        r = r.data
-        data.items.forEach((dt, index) => {
-          if (dt._id==r._id) {
-            r.suimRecordChange = false
-            data.items[index] = r
-          }
-        })
-        emit("rowUpdated",r)
-        updateRecordChanged()
-      }, e => util.showError(e))
+  function saveRowData (r, rowIndex) {
+    if (props.updateUrl==undefined || props.updateUrl=='' || props.updateUrl==null) {
+      emit('saveRowData', r, rowIndex);
+      return;
     }
+
+    axios.post(props.updateUrl, r).then(r => {
+      r = r.data;
+      r.suimRecordChange = false;
+      data.items[rowIndex] = r;
+      /*
+      data.items.forEach((dt) => {
+        if (dt._id==r._id) {
+          r.suimRecordChange = false
+          data.items[index] = r
+        }
+      })
+      */
+      emit("rowUpdated",r)
+      updateRecordChanged()
+    }, e => util.showError(e));
   }
   
   function updateRecordChanged () {
@@ -476,7 +484,6 @@
   })
   
   watch(() => props.modelValue, (nv) => {
-    console.log('di grd',nv);
     if (nv==undefined) data.items = [];
     data.items = nv;
   });
