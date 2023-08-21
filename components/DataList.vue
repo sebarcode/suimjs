@@ -31,6 +31,7 @@
                 :hide-sort="gridHideSort" :hide-delete-button="gridHideDelete" :label-method="gridLabelMethod"
                 :hide-refresh-button="gridHideRefresh" :hide-new-button="gridHideNew" 
                 :custom-filter="gridCustomFilter" :no-confirm-delete="gridNoConfirmDelete"
+                :auto-commit-line="gridAutoCommitLine"
                 @select-data="selectData" @new-data="newData" @get-data="getData"  @delete-data="handleGridRowDelete"
                 @row-updated="gridRowUpdated" @row-field-changed="handleGridFieldChanged" @save-row-data="handleGridRowSave"
                 @row-deleted="handleGridRowDeleted">
@@ -80,8 +81,8 @@
     </div>
 
     <s-form
+      v-if="data.controlMode == 'form' && data.formCfg && data.formCfg.setting"
       ref="listForm"
-      v-if="data.controlMode == 'form' && data.formCfg.setting"
       v-model="data.record"
       :keep-label="formKeepLabel"
       :config="data.formCfg"
@@ -195,6 +196,7 @@ const props = defineProps({
     formKeepLabel: { type: Boolean },
     gridMode: { type: String, default: "list" },
     gridLabelMethod: { type: String, default: "labelfield" },
+    gridAutoCommitLine: {type: Boolean, default: false},
     gridConfig: { type: [String, Object], default: () => { } },
     gridRead: { type: [String, Object], default: () => { } },
     gridUpdate: { type: [String, Object], default: () => { } },
@@ -205,6 +207,7 @@ const props = defineProps({
     formTabsView: { type: Array, default: () => [] },
     formInitialTab: { type: Number, default: 0 },
     initAppMode: { type: String, default: "grid" },
+    newRecordType: {type: String, default: 'form'},
     //initFormMode: { type: String, default: "edit" },
 })
 
@@ -219,6 +222,7 @@ const emit = defineEmits({
     "formLoaded": null,
     "alterGridConfig": null,
     "alterFormConfig": null,
+    "gridRowAdd": null,
     "gridRowUpdated": null,
     "gridRowDeleted": null,
     "gridRowDelete": null,
@@ -333,14 +337,22 @@ function selectData(dt, op) {
 
 function newData(dt) {
     if (dt == undefined) dt = {}
-    emit("formNewData", dt)
-    data.record = dt == undefined ? {} : dt
-    data.controlMode = "form"
-    data.formMode = "new"
-    nextTick(() => {
-        emit("gridRowUpdated", data.record)
-        emit("formLoaded", data.record)
-    })
+
+    switch(props.newRecordType) {
+      case 'form':
+        emit("formNewData", dt);
+        data.record = dt == undefined ? {} : dt
+        data.controlMode = "form"
+        data.formMode = "new"
+        nextTick(() => {
+            emit("gridRowUpdated", data.record)
+            emit("formLoaded", data.record)
+        });
+
+      case 'grid':
+        emit('gridRowAdd', dt);
+    }
+    
 }
 
 function getData(keyword) {
@@ -394,6 +406,7 @@ function refreshList() {
 }
 
 function refreshForm() {
+  if (props.formConfig==undefined || props.formConfig=='') return;
   loadFormConfig(axios, props.formConfig).then(
     (r) => {
       emit("alterFormConfig", r);

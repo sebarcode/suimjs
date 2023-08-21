@@ -88,7 +88,7 @@
                 <td class="row_action" v-if="!hideAction">
                   <slot name="item_buttons_1" :item="r" :config="config"></slot>
                   <slot name="item_buttons" :item="r" :config="config">
-                    <a href="#" v-if="editor && r.suimRecordChange===true && !hideSaveButton" @click="saveRowData(r, rIdx)">
+                    <a href="#" v-if="editor && r.suimRecordChange===true && !hideSaveButton && !autoCommitLine" @click="saveRowData(r, rIdx)">
                       <mdicon name="content-save" width="16" alt="edit" class="cursor-pointer hover:text-primary" />
                     </a>
                     <a href="#" v-if="!hideDetail" @click="selectData(r, 'detail')">
@@ -163,8 +163,9 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     updateUrl: { type: String, default: "" },
     deleteUrl: { type: String, default: "" },
     pageSize: { type: Number, default: 25 },
-    hideHeader: { type: Boolean },
-    editor: { type: Boolean },
+    hideHeader: { type: Boolean, default: false },
+    editor: { type: Boolean, default: false },
+    autoCommitLine: { type: Boolean, default: false },
     labelMethod: { type: String, default: "database" },
     noConfirmDelete: { type: Boolean },
     hideNew: { type: Boolean },
@@ -233,14 +234,6 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
       r = r.data;
       r.suimRecordChange = false;
       data.items[rowIndex] = r;
-      /*
-      data.items.forEach((dt) => {
-        if (dt._id==r._id) {
-          r.suimRecordChange = false
-          data.items[index] = r
-        }
-      })
-      */
       emit("rowUpdated",r)
       updateRecordChanged()
     }, e => util.showError(e));
@@ -248,22 +241,26 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
   
   function updateRecordChanged () {
     for (const itIndex in data.items) {
-      const it = data.items[itIndex]
+      const it = data.items[itIndex];
       if (it.suimRecordChange===true) {
-        data.recordChanged = true
-        return
+        data.recordChanged = true;
+        return;
       }
     }
    
-    data.recordChanged = false
+    data.recordChanged = false;
   }
   
   function rowFieldChanged(name, v1, v2) {
-    const currentIndex = data.currentIndex 
-    const current = data.items[currentIndex]
-    current.suimRecordChange = true
-    data.recordChanged = true
-    emit('rowFieldChanged', name, v1, v2, current)
+    const currentIndex = data.currentIndex; 
+    const current = data.items[currentIndex];
+    if (props.autoCommitLine) {
+      emit('update:modelValue',data.items);
+    } else {
+      current.suimRecordChange = true;
+      data.recordChanged = true;
+      emit('rowFieldChanged', name, v1, v2, current);
+    }
   }
   
   const sortIcon = computed({
@@ -286,19 +283,6 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
       return Math.ceil(data.recordCount / data.pageSize)
     }
   })
-  
-  /*const items = computed({
-    get() {
-      if (data.items == undefined) data.items = []
-      return data.items
-    },
-  
-    set(v) {
-      data.items = v
-      emit("update:modelValue", v)
-    }
-  })
-  */
   
   function setLoading(loading) {
     data.loading = loading
