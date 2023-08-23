@@ -469,7 +469,7 @@ function setGridConfig(cfg) {
   data.listCfg = cfg;
 }
 
-function setListAttr(name, attr, value) {
+function setGridAttr(name, attr, value) {
   const fields = data.listCfg.fields.map((el) => {
     if (el.field != name) return el;
 
@@ -477,6 +477,30 @@ function setListAttr(name, attr, value) {
     return el;
   });
   data.listCfg.fields = fields;
+}
+
+function setGridField (name, field) {
+  const fields = data.listCfg.fields.map((el) => {
+    if (el.field != name) return el;
+
+    return field;
+  });
+  data.listCfg.fields = fields;
+}
+
+function getGridField (name) {
+  const fields = data.listCfg.fields.filter(el => el.field == name);
+  if (fields.length==0) {
+    return {};
+  }
+  return fields[0];
+}
+
+function removeGridField(name) {
+  const newFields = data.listCfg.fields.filter(el => {
+    return el.field!=name;
+  });
+  data.listCfg.fields = newFields;
 }
 
 function getFormRecord() {
@@ -546,11 +570,12 @@ function getGridCurrentIndex() {
 }
 
 defineExpose({
-    getGridRecords, getGridRecord, refreshGrid, setGridRecords, setGridRecord, setGridRecordByID, getGridCurrentIndex,
+    getGridRecords, getGridRecord, refreshGrid, setGridRecords, 
+    setGridRecord, setGridRecordByID, getGridCurrentIndex,
     getFormRecord, setFormRecord, getFormField,
     setFormFieldAttr, getFormSection, setFormSectionAttr,
-    getGridConfig, setGridConfig,
-    setListAttr, refreshList, refreshForm,
+    getGridConfig, setGridConfig, getGridField, removeGridField, setGridField,
+    setGridAttr, refreshList, refreshForm,
     setFormMode, getFormMode, newGridData, submitForm: save, cancelForm, 
     setControlMode, getControlMode
 })

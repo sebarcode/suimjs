@@ -71,7 +71,7 @@
                         :disabled="hdr.input.readOnly" :caption="hdr.input.caption"
                         :hint="hdr.input.hint" :multi-row="hdr.input.multiRow" :use-list="hdr.input.useList"
                         :items="hdr.input.items" :rules="hdr.input.rules" :required="hdr.input.required"
-                        :read-only="hdr.input.readOnly" :lookup-url="hdr.input.lookupUrl"
+                        :read-only="hdr.input.readOnly" :lookup-url="hdr.input.lookupUrl" 
                         :lookup-key="hdr.input.lookupKey" :allow-add="hdr.input.allowAdd"
                         :lookup-format1="hdr.input.lookupFormat1" :lookup-format2="hdr.input.lookupFormat2"
                         :decimal="hdr.input.decimal" :date-format="hdr.input.dateFormat" :multiple="hdr.input.multiple"
