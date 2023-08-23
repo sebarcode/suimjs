@@ -1,7 +1,7 @@
 <template>
     <s-card :title="title" class="w-full bg-white" hide-footer :no-gap="noGap" :hide-title="hideTitle">
       <div v-if="data.listCfg.setting && gridMode == 'list'" v-show="data.controlMode == 'grid'">
-          <s-list ref="listGrid" class="w-full" :read-url="data.gridReadUrl" :delete-url="data.gridDeleteUrl"
+          <s-list ref="gridCtl" class="w-full" :read-url="data.gridReadUrl" :delete-url="data.gridDeleteUrl"
               :hide-search="gridHideSearch" :hide-control="gridHideControl" :hide-sort="gridHideSort"
               :hide-delete-button="gridHideDelete" :hide-refresh-button="gridHideRefresh"
               :hide-new-button="gridHideNew" v-if="data.listCfg.setting" :config="data.listCfg"
@@ -24,7 +24,7 @@
         </div>
 
         <div v-if="data.listCfg.setting && gridMode == 'grid'" v-show="data.controlMode == 'grid'">
-            <s-grid ref="listGrid" class="w-full" :hide-select="gridHideSelect" :editor="gridEditor"
+            <s-grid ref="gridCtl" class="w-full" :hide-select="gridHideSelect" :editor="gridEditor"
                 :read-url="data.gridReadUrl" :update-url="data.gridUpdateUrl" :delete-url="data.gridDeleteUrl"
                 :config="data.listCfg" :hide-search="gridHideSearch" :hide-control="gridHideControl"
                 :hide-detail="gridHideDetail"
@@ -82,7 +82,7 @@
 
     <s-form
       v-if="data.controlMode == 'form' && data.formCfg && data.formCfg.setting"
-      ref="listForm"
+      ref="formCtl"
       v-model="data.record"
       :keep-label="formKeepLabel"
       :config="data.formCfg"
@@ -186,9 +186,9 @@ const props = defineProps({
     formFields: { type: Array, default: () => [] },
     formConfig: { type: [String, Object], default: () => { } },
     formDefaultMode: { type: String, default: "edit" },
-    formRead: { type: [String, Object], default: () => { } },
-    formInsert: { type: [String, Object], default: () => { } },
-    formUpdate: { type: [String, Object], default: () => { } },
+    formRead: { type: String, default: '' },
+    formInsert: { type: String, default: '' },
+    formUpdate: { type: String, default: '' },
     formHideButtons: { type: Boolean, default: false },
     formHideSubmit: { type: Boolean, default: false },
     formHideCancel: { type: Boolean, default: false },
@@ -198,9 +198,9 @@ const props = defineProps({
     gridLabelMethod: { type: String, default: "labelfield" },
     gridAutoCommitLine: {type: Boolean, default: false},
     gridConfig: { type: [String, Object], default: () => { } },
-    gridRead: { type: [String, Object], default: () => { } },
-    gridUpdate: { type: [String, Object], default: () => { } },
-    gridDelete: { type: [String, Object], default: () => { } },
+    gridRead: { type: String, default: '' },
+    gridUpdate: { type: String, default: '' },
+    gridDelete: { type: String, default: '' },
     stayOnFormAfterSave: { type: Boolean, default: false },
     formTabsNew: { type: Array, default: () => [] },
     formTabsEdit: { type: Array, default: () => [] },
@@ -226,6 +226,7 @@ const emit = defineEmits({
     "gridRowUpdated": null,
     "gridRowDeleted": null,
     "gridRowDelete": null,
+    "gridRowSave": null,
     "gridRowFieldChanged": null,
 })
 
@@ -242,8 +243,8 @@ const data = reactive({
   },
 });
 
-const listGrid = ref(null);
-const listForm = ref(null);
+const gridCtl = ref(null);
+const formCtl = ref(null);
 
 function handleFormFieldChange(name, v1, v2, old) {
   emit("formFieldChange", name, v1, v2, old, data.record);
@@ -253,8 +254,8 @@ function handleFormRecordChange(nv) {
   emit("formRecordChange", nv);
 }
 
-function handleGridFieldChanged(name, v1, v2, record, old) {
-    emit("gridRowFieldChanged", name, v1, v2, record, old)
+function handleGridFieldChanged(name, v1, v2, old, record) {
+    emit("gridRowFieldChanged", name, v1, v2, old, record)
 }
 
 function handleGridRowDeleted (record) {
@@ -318,7 +319,18 @@ const gridFieldInputSlotNames = computed({
   },
 });
 
-function selectData(dt, op) {
+function selectData(dt, index) {
+  if (props.formRead=='') {
+    data.record = dt;
+    emit("formEditData", data.record);
+    data.controlMode = "form";
+    data.formMode = props.formDefaultMode;
+    nextTick(() => {
+      emit("formLoaded", data.record);
+    });
+    return;
+  }
+
   axios.post(props.formRead, [dt._id]).then(
     (r) => {
       emit("formEditData", r.data);
@@ -362,14 +374,26 @@ function getData(keyword) {
 function cancelForm() {
   data.controlMode = "grid";
   nextTick(() => {
-    listGrid.value.refreshData();
+    gridCtl.value.refreshData();
   });
 }
 
 function save(saveData, cbOK, cbFalse) {
-    emit("preSave", data.record)
-    const saveUrl = data.formMode == "new" ? props.formInsert : props.formUpdate
-    axios.post(saveUrl, data.record).then(r => {
+    emit("preSave", saveData);
+    const saveEndPoint = data.formMode == "new" ? props.formInsert : props.formUpdate
+    
+    if (saveEndPoint=="") {
+      emit('postSave', saveData, data.currentIndex);
+      if (!props.stayOnFormAfterSave) {
+          data.controlMode = "grid";
+      } else {
+          util.showInfo("data has been saved");
+      }
+      cbOK(); 
+      return;
+    }
+
+    axios.post(saveEndPoint, saveData).then(r => {
         let record = r.data
         data.record = record
         emit("postSave", record)
@@ -377,7 +401,7 @@ function save(saveData, cbOK, cbFalse) {
         if (!props.stayOnFormAfterSave) {
             data.controlMode = "grid"
             nextTick(() => {
-                listGrid.value.refreshData()
+                gridCtl.value.refreshData()
             })
         } else {
             util.showInfo("data has been saved")
@@ -417,24 +441,24 @@ function refreshForm() {
 }
 
 function getFormSection(name) {
-  return listForm.value.getSection(name);
+  return formCtl.value.getSection(name);
 }
 
 function getFormField(name) {
-  return listForm.value.getField(name);
+  return formCtl.value.getField(name);
 }
 
 function setFormSectionAttr(name, attr, value) {
-  if (listForm.value == undefined) return;
-  listForm.value.setSectionAttr(name, attr, value);
+  if (formCtl.value == undefined) return;
+  formCtl.value.setSectionAttr(name, attr, value);
 }
 
 function setFormFieldAttr(name, attr, value) {
-  if (listForm.value == undefined) {
+  if (formCtl.value == undefined) {
     console.warn("calling setFormFieldAttr when form is not yet initiated");
     return;
   }
-  listForm.value.setFieldAttr(name, attr, value);
+  formCtl.value.setFieldAttr(name, attr, value);
 }
 
 function getGridConfig() {
@@ -464,19 +488,19 @@ function setFormRecord(record) {
 }
 
 function getGridRecords () {
-    return listGrid.value.getRecords()
+    return gridCtl.value.getRecords()
 }
 
 function getGridRecord (idx) {
-    return listGrid.value.getRecord(idx)
+    return gridCtl.value.getRecord(idx)
 }
 
 function setGridRecord (idx, dt) {
-    return listGrid.value.setRecord(idx, dt)
+    return gridCtl.value.setRecord(idx, dt)
 }
 
 function setGridRecordByID (dt) {
-    return listGrid.value.setRecordByID(dt)
+    return gridCtl.value.setRecordByID(dt)
 }
 
 function setFormMode(mode) {
@@ -488,8 +512,8 @@ function getFormMode () {
 }
 
 function newGridData () {
-    if (listGrid.value) {
-        listGrid.value.newData()
+    if (gridCtl.value) {
+        gridCtl.value.newData()
     }
 }
 
@@ -506,19 +530,23 @@ function getControlMode () {
 }
 
 function setGridRecords (items) {
-  listGrid.value.setRecords(items);
+  gridCtl.value.setRecords(items);
 }
 
 watch(
   () => props.gridRead,
   (nv) => {
     data.gridReadUrl = nv;
-    util.nextTickN(1, () => listGrid.value.refreshData());
+    util.nextTickN(1, () => gridCtl.value.refreshData());
   }
 );
 
+function getGridCurrentIndex() {
+  return gridCtl.value.getCurrentIndex();
+}
+
 defineExpose({
-    getGridRecords, getGridRecord, refreshGrid, setGridRecords, setGridRecord, setGridRecordByID,
+    getGridRecords, getGridRecord, refreshGrid, setGridRecords, setGridRecord, setGridRecordByID, getGridCurrentIndex,
     getFormRecord, setFormRecord, getFormField,
     setFormFieldAttr, getFormSection, setFormSectionAttr,
     getGridConfig, setGridConfig,

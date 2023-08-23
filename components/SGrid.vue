@@ -91,7 +91,7 @@
                     <a href="#" v-if="editor && r.suimRecordChange===true && !hideSaveButton && !autoCommitLine" @click="saveRowData(r, rIdx)">
                       <mdicon name="content-save" width="16" alt="edit" class="cursor-pointer hover:text-primary" />
                     </a>
-                    <a href="#" v-if="!hideDetail" @click="selectData(r, 'detail')">
+                    <a href="#" v-if="!hideDetail" @click="selectData(r, rIdx)">
                       <mdicon name="pencil" width="16" alt="edit" class="cursor-pointer hover:text-primary" />
                     </a>
                     <a href="#" v-if="!hideDeleteButton" @click="deleteData(r, rIdx)">
@@ -255,11 +255,12 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     const currentIndex = data.currentIndex; 
     const current = data.items[currentIndex];
     if (props.autoCommitLine) {
+      emit('rowFieldChanged', name, v1, v2, current, current);
       emit('update:modelValue',data.items);
     } else {
       current.suimRecordChange = true;
       data.recordChanged = true;
-      emit('rowFieldChanged', name, v1, v2, current);
+      emit('rowFieldChanged', name, v1, v2, current, current);
     }
   }
   
@@ -412,9 +413,10 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     data.deleteFn()
   }
   
-  function selectData(data, op, dblclick) {
-    if (dblclick && props.editor) return
-    emit("selectData", data, op)
+  function selectData(data, index, dblclick) {
+    if (dblclick && props.editor) return;
+    data.currentIndex = index;
+    emit("selectData", data, index)
   }
   
   function changePage(page) {
@@ -449,8 +451,13 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
   function setRecords (newDataSet) {
     data.items = newDataSet;
   }
+
+  function getCurrentIndex () {
+    return data.currentIndex;
+  }
   
   defineExpose({
+    getCurrentIndex,
     getRecords,
     getRecord,
     getActiveIndex,

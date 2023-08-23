@@ -1,37 +1,37 @@
 <template>
     <div class="suim_form">
       <div v-if="config && config.setting">
-        <h1 v-if="config.setting.showTitle && config.setting.title != ''" class="title">
+        <h1 v-if="config.setting.showTitle && config.setting.title != ''" class="title grow">
           {{ config.setting.title }}
         </h1>
 
         <!-- tab header -->
-        <div
-          class="flex tab_container"
-          v-if="tabs.length > 1"
-        >
+        <div class="flex">
           <div
-            v-for="(tabTitle, tabIdx) in tabs"
-            @click="data.currentTab = tabIdx"
-            :class="{
-              tab_selected: data.currentTab == tabIdx,
-              tab: data.currentTab != tabIdx,
-            }"
+            class="flex tab_container grow"
+            v-if="tabs.length > 1"
           >
-            {{ tabTitle }}
-          </div>
-          <div class="flex gap-2 ml-2 mr-2">
-            <button
-              class="p-1 hover:bg-white hover:text-primary"
-              @click="onCancelForm"
+            <div
+              v-for="(tabTitle, tabIdx) in tabs"
+              @click="data.currentTab = tabIdx"
+              :class="{
+                tab_selected: data.currentTab == tabIdx,
+                tab: data.currentTab != tabIdx,
+              }"
             >
-              <mdicon name="close" size="16"></mdicon>
-            </button>
+              {{ tabTitle }}
+            </div>
+            <div class="flex gap-2 ml-2 mr-2">
+              <button
+                class="p-1 hover:bg-white hover:text-primary"
+                @click="onCancelForm"
+              >
+                <mdicon name="close" size="16"></mdicon>
+              </button>
+            </div>
           </div>
-        </div>
-  
-        <div id="form_inputs" v-if="data.currentTab == 0">
-          <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl"
+
+          <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="grow"
               :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
               :only-icon="onlyIconTop" :disable-submit="data.inSubmission"
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
@@ -40,7 +40,9 @@
               <template #buttons="item"><slot name="buttons" :item="value"></slot></template>
               <template #buttons_2="item"><slot name="buttons_2" :item="value"></slot></template>
           </s-form-buttons>
-          
+        </div>
+  
+        <div id="form_inputs" v-if="data.currentTab == 0">
           <slot name="form_header" :item="value" :config="config" />
           
           <div class="flex section_group_container" :class="{'flex-col':config.setting.sectionDirection=='row'}">
