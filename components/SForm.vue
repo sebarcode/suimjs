@@ -6,7 +6,7 @@
         </h1>
 
         <!-- tab header -->
-        <div class="flex">
+        <div class="mb-2 flex">
           <div
             class="flex tab_container grow"
             v-if="tabs.length > 1"
@@ -41,7 +41,7 @@
               <template #buttons_2="item"><slot name="buttons_2" :item="value"></slot></template>
           </s-form-buttons>
         </div>
-  
+        
         <div id="form_inputs" v-if="data.currentTab == 0">
           <slot name="form_header" :item="value" :config="config" />
           
@@ -298,6 +298,7 @@
     getSection,
     setSectionAttr,
     getField,
+    removeField,
     setFieldAttr,
     submit: onSubmitForm,
   });
@@ -412,6 +413,7 @@
         });
       });
     });
+    
     data.changeFields = changefieldsBuffer;
   }
   
@@ -477,6 +479,22 @@
     })
   
     if (found) return field;
+  }
+
+  function removeField (name) {
+    props.config.sectionGroups.forEach(g => {
+      g.sections.forEach(section => { 
+        section.rows.forEach((row) => {
+          row.inputs = row.inputs.filter((input) => input.field!=name);
+        });
+      })
+    })
+
+    props.config.sectionGroups.forEach(g => {
+      g.sections.forEach(section => { 
+        section.rows = section.rows.filter(row => row.inputs.length > 0);
+      })
+    })
   }
   
   function setSectionAttr(name, attr, value) {

@@ -34,7 +34,7 @@
                 :auto-commit-line="gridAutoCommitLine"
                 @select-data="selectData" @new-data="newData" @get-data="getData"  @delete-data="handleGridRowDelete"
                 @row-updated="gridRowUpdated" @row-field-changed="handleGridFieldChanged" @save-row-data="handleGridRowSave"
-                @row-deleted="handleGridRowDeleted">
+                @row-deleted="handleGridRowDeleted" @grid-refreshed="handleGridRefreshed">
                 <template #header_search="{config}">
                     <slot name="grid_header_search" :config="config"></slot>
                 </template>
@@ -222,12 +222,15 @@ const emit = defineEmits({
     "formLoaded": null,
     "alterGridConfig": null,
     "alterFormConfig": null,
+    "gridRefreshed": null,
     "gridRowAdd": null,
     "gridRowUpdated": null,
     "gridRowDeleted": null,
     "gridRowDelete": null,
     "gridRowSave": null,
     "gridRowFieldChanged": null,
+    "controlModeChanged": null,
+    "formModeChanged": null,
 })
 
 const data = reactive({
@@ -246,12 +249,24 @@ const data = reactive({
 const gridCtl = ref(null);
 const formCtl = ref(null);
 
+watch(() => data.controlMode, (nv) => {
+  emit('controlModeChanged', nv);
+})
+
+watch(() => data.formMode, (nv) => {
+  emit('formModeChanged', nv);
+})
+
 function handleFormFieldChange(name, v1, v2, old) {
   emit("formFieldChange", name, v1, v2, old, data.record);
 }
 
 function handleFormRecordChange(nv) {
   emit("formRecordChange", nv);
+}
+
+function handleGridRefreshed () {
+  emit('gridRefreshed');
 }
 
 function handleGridFieldChanged(name, v1, v2, old, record) {
@@ -419,6 +434,11 @@ function gridRowUpdated (dt) {
 }
 
 function refreshList() {
+  if (gridCtl.value) {
+    gridCtl.value.refreshData();
+    return;
+  }
+
   loadGridConfig(axios, props.gridConfig).then(
     (r) => {
       emit("alterGridConfig", r);
@@ -459,6 +479,10 @@ function setFormFieldAttr(name, attr, value) {
     return;
   }
   formCtl.value.setFieldAttr(name, attr, value);
+}
+
+function removeFormField (name) {
+  formCtl.value.removeField(name);
 }
 
 function getGridConfig() {
@@ -569,15 +593,35 @@ function getGridCurrentIndex() {
   return gridCtl.value.getCurrentIndex();
 }
 
+function getGridSortField () {
+  return gridCtl.value.getSortField();
+}
+
+function setGridSortField (s) {
+  gridCtl.value.setSortField(s);
+}
+
+function getGridSortDirection () {
+  return gridCtl.value.getSortDirection();
+}
+
+function setGridSortDirection (d) {
+  gridCtl.value.setSortDirection(d);
+}
+
 defineExpose({
     getGridRecords, getGridRecord, refreshGrid, setGridRecords, 
     setGridRecord, setGridRecordByID, getGridCurrentIndex,
-    getFormRecord, setFormRecord, getFormField,
+    getFormRecord, setFormRecord, getFormField, removeFormField,
     setFormFieldAttr, getFormSection, setFormSectionAttr,
     getGridConfig, setGridConfig, getGridField, removeGridField, setGridField,
     setGridAttr, refreshList, refreshForm,
     setFormMode, getFormMode, newGridData, submitForm: save, cancelForm, 
-    setControlMode, getControlMode
+    setControlMode, getControlMode,
+    getGridSortField,
+    setGridSortField,
+    getGridSortDirection,
+    setGridSortDirection,
 })
 
 onMounted(() => {

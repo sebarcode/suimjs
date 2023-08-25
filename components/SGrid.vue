@@ -5,7 +5,7 @@
         Please be noted, this can not be undone !
       </s-modal>
 
-      <div class="flex gap-2 justify-center" v-if="!hideControl">
+      <div class="flex gap-2 justify-center items-center" v-if="!hideControl">
         <slot name="header_search" :config="config">
           <input type="text" class="grow input_field border_b_[1px]"
             placeholder="enter search keyword" v-model="data.keyword" @keyup.enter="refreshData" v-if="!hideSearch" />
@@ -192,6 +192,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     "rowUpdated": null,
     "rowDeleted": null,
     "rowFieldChanged": null,
+    "gridRefreshed": null,
     "update:modelValue": null
   })
   
@@ -350,6 +351,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     if (props.readUrl ==undefined || props.readUrl== '') {
       emit("getData", data.keyword)
       if (callBackFn && typeof callBackFn=='function') callBackFn()
+      emit('gridRefreshed');
       return
     }
   
@@ -361,6 +363,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
       })
       data.recordCount = r.data.count
       setLoading(false)
+      emit('gridRefreshed');
       if (callBackFn && typeof callBackFn=='function') callBackFn()
     }, e => {
       util.showError(e)
@@ -455,6 +458,22 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
   function getCurrentIndex () {
     return data.currentIndex;
   }
+
+  function getSortField () {
+    return data.sortField;
+  }
+
+  function setSortField (s) {
+    data.sortField = s;
+  }
+
+  function getSortDirection () {
+    return data.sortDirection;
+  }
+
+  function setSortDirection (d) {
+    data.sortDirection = d
+  }
   
   defineExpose({
     getCurrentIndex,
@@ -466,6 +485,10 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     refreshData,
     addData,
     newData,
+    getSortField,
+    setSortField,
+    getSortDirection,
+    setSortDirection,
     setLoading,
     setRecords
    })
