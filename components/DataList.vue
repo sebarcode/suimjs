@@ -609,8 +609,12 @@ function setGridSortDirection (d) {
   gridCtl.value.setSortDirection(d);
 }
 
+function getGridSelected () {
+  return gridCtl.value.getSelected;
+}
+
 defineExpose({
-    getGridRecords, getGridRecord, refreshGrid, setGridRecords, 
+    getGridRecords, getGridRecord, refreshGrid, setGridRecords, getGridSelected,
     setGridRecord, setGridRecordByID, getGridCurrentIndex,
     getFormRecord, setFormRecord, getFormField, removeFormField,
     setFormFieldAttr, getFormSection, setFormSectionAttr,

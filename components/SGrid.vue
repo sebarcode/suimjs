@@ -264,6 +264,10 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
       emit('rowFieldChanged', name, v1, v2, current, current);
     }
   }
+
+  const selecteds = computed(() => {
+    return data.items.filter(el => el.isSelected===true);
+  })
   
   const sortIcon = computed({
     get() {
@@ -474,6 +478,10 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
   function setSortDirection (d) {
     data.sortDirection = d
   }
+
+  function getSelected () {
+    return selecteds;
+  }
   
   defineExpose({
     getCurrentIndex,
@@ -482,6 +490,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     getActiveIndex,
     setRecord,
     setRecordByID,
+    getSelected,
     refreshData,
     addData,
     newData,
