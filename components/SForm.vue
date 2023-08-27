@@ -263,7 +263,7 @@
     submitIcon: {type: String, default:'content-save'},
     submitText: {type: String, default: 'Save'},
     cancelIcon: {type: String, default:'rewind'},
-    cancelText: {type: String, default: 'Cancel'},
+    cancelText: {type: String, default: 'Back'},
     hideSubmit: { type: Boolean, default: false },
     hideCancel: { type: Boolean, default: false },
     hideButtons: { type: Boolean, default: false },
