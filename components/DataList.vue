@@ -89,6 +89,7 @@
       :mode="data.formMode"
       class="pt-2"
       :auto-focus="formAutoFocus"
+      :focus="formFocus"
       @submitForm="save"
       :tabs="formTabTitles"
       :initialTab="formInitialTab"
@@ -148,12 +149,12 @@
 </template>
 
 <script setup>
-import SCard from './SCard.vue'
-import SGrid from './SGrid.vue'
-import SList from './SList.vue'
-import SForm from './SForm.vue'
-import loadFormConfig from '../scripts/load_form_config.js'
-import loadGridConfig from '../scripts/load_grid_config.js'
+import SCard from "./SCard.vue";
+import SGrid from "./SGrid.vue";
+import SList from "./SList.vue";
+import SForm from "./SForm.vue";
+import loadFormConfig from "../scripts/load_form_config.js";
+import loadGridConfig from "../scripts/load_grid_config.js";
 
 import {
   reactive,
@@ -167,71 +168,72 @@ import {
 import util from "../scripts/util.js";
 
 const props = defineProps({
-    noGap: { type: Boolean },
-    title: { type: String, default: "" },
-    hideTitle: { type: Boolean },
-    gridEditor: { type: Boolean },
-    gridEditorNoForm: { type: Boolean },
-    gridFields: { type: Array, default: () => [] },
-    gridHideControl: { type: Boolean, default: false },
-    gridHideSearch: { type: Boolean, default: false },
-    gridHideSelect: { type: Boolean, default: false },
-    gridHideDetail: { type: Boolean },
-    gridHideSort: { type: Boolean },
-    gridHideNew: { type: Boolean, default: false },
-    gridHideRefresh: { type: Boolean, default: false },
-    gridHideDelete: { type: Boolean, default: false },
-    gridCustomFilter: { type: Object, default: () => {}},
-    gridNoConfirmDelete: { type: Boolean, default: false },
-    formFields: { type: Array, default: () => [] },
-    formConfig: { type: [String, Object], default: () => { } },
-    formDefaultMode: { type: String, default: "edit" },
-    formRead: { type: String, default: '' },
-    formInsert: { type: String, default: '' },
-    formUpdate: { type: String, default: '' },
-    formHideButtons: { type: Boolean, default: false },
-    formHideSubmit: { type: Boolean, default: false },
-    formHideCancel: { type: Boolean, default: false },
-    formAutoFocus: { type: Boolean },
-    formKeepLabel: { type: Boolean },
-    gridMode: { type: String, default: "list" },
-    gridLabelMethod: { type: String, default: "labelfield" },
-    gridAutoCommitLine: {type: Boolean, default: false},
-    gridConfig: { type: [String, Object], default: () => { } },
-    gridRead: { type: String, default: '' },
-    gridUpdate: { type: String, default: '' },
-    gridDelete: { type: String, default: '' },
-    stayOnFormAfterSave: { type: Boolean, default: false },
-    formTabsNew: { type: Array, default: () => [] },
-    formTabsEdit: { type: Array, default: () => [] },
-    formTabsView: { type: Array, default: () => [] },
-    formInitialTab: { type: Number, default: 0 },
-    initAppMode: { type: String, default: "grid" },
-    newRecordType: {type: String, default: 'form'},
-    //initFormMode: { type: String, default: "edit" },
-})
+  noGap: { type: Boolean },
+  title: { type: String, default: "" },
+  hideTitle: { type: Boolean },
+  gridEditor: { type: Boolean },
+  gridEditorNoForm: { type: Boolean },
+  gridFields: { type: Array, default: () => [] },
+  gridHideControl: { type: Boolean, default: false },
+  gridHideSearch: { type: Boolean, default: false },
+  gridHideSelect: { type: Boolean, default: false },
+  gridHideDetail: { type: Boolean },
+  gridHideSort: { type: Boolean },
+  gridHideNew: { type: Boolean, default: false },
+  gridHideRefresh: { type: Boolean, default: false },
+  gridHideDelete: { type: Boolean, default: false },
+  gridCustomFilter: { type: Object, default: () => {} },
+  gridNoConfirmDelete: { type: Boolean, default: false },
+  formFields: { type: Array, default: () => [] },
+  formConfig: { type: [String, Object], default: () => {} },
+  formDefaultMode: { type: String, default: "edit" },
+  formRead: { type: String, default: "" },
+  formInsert: { type: String, default: "" },
+  formUpdate: { type: String, default: "" },
+  formHideButtons: { type: Boolean, default: false },
+  formHideSubmit: { type: Boolean, default: false },
+  formHideCancel: { type: Boolean, default: false },
+  formFocus: { type: Boolean, default: false },
+  formAutoFocus: { type: Boolean },
+  formKeepLabel: { type: Boolean },
+  gridMode: { type: String, default: "list" },
+  gridLabelMethod: { type: String, default: "labelfield" },
+  gridAutoCommitLine: { type: Boolean, default: false },
+  gridConfig: { type: [String, Object], default: () => {} },
+  gridRead: { type: String, default: "" },
+  gridUpdate: { type: String, default: "" },
+  gridDelete: { type: String, default: "" },
+  stayOnFormAfterSave: { type: Boolean, default: false },
+  formTabsNew: { type: Array, default: () => [] },
+  formTabsEdit: { type: Array, default: () => [] },
+  formTabsView: { type: Array, default: () => [] },
+  formInitialTab: { type: Number, default: 0 },
+  initAppMode: { type: String, default: "grid" },
+  newRecordType: { type: String, default: "form" },
+  //initFormMode: { type: String, default: "edit" },
+});
 
 const axios = inject("axios");
 const emit = defineEmits({
-    "preSave": null,
-    "postSave": null,
-    "formFieldChange": null,
-    "formRecordChange": null,
-    "formNewData": null,
-    "formEditData": null,
-    "formLoaded": null,
-    "alterGridConfig": null,
-    "alterFormConfig": null,
-    "gridRefreshed": null,
-    "gridRowAdd": null,
-    "gridRowUpdated": null,
-    "gridRowDeleted": null,
-    "gridRowDelete": null,
-    "gridRowSave": null,
-    "gridRowFieldChanged": null,
-    "controlModeChanged": null,
-    "formModeChanged": null,
-})
+  preSave: null,
+  postSave: null,
+  formFieldChange: null,
+  formRecordChange: null,
+  formNewData: null,
+  formEditData: null,
+  formLoaded: null,
+  alterGridConfig: null,
+  alterFormConfig: null,
+  gridRefreshed: null,
+  gridRowAdd: null,
+  gridRowUpdated: null,
+  gridRowDeleted: null,
+  gridRowDelete: null,
+  gridRowSave: null,
+  gridRowFieldChanged: null,
+  controlModeChanged: null,
+  formModeChanged: null,
+});
 
 const data = reactive({
   controlMode: props.initAppMode,
@@ -249,13 +251,19 @@ const data = reactive({
 const gridCtl = ref(null);
 const formCtl = ref(null);
 
-watch(() => data.controlMode, (nv) => {
-  emit('controlModeChanged', nv);
-})
+watch(
+  () => data.controlMode,
+  (nv) => {
+    emit("controlModeChanged", nv);
+  }
+);
 
-watch(() => data.formMode, (nv) => {
-  emit('formModeChanged', nv);
-})
+watch(
+  () => data.formMode,
+  (nv) => {
+    emit("formModeChanged", nv);
+  }
+);
 
 function handleFormFieldChange(name, v1, v2, old) {
   emit("formFieldChange", name, v1, v2, old, data.record);
@@ -265,24 +273,24 @@ function handleFormRecordChange(nv) {
   emit("formRecordChange", nv);
 }
 
-function handleGridRefreshed () {
-  emit('gridRefreshed');
+function handleGridRefreshed() {
+  emit("gridRefreshed");
 }
 
 function handleGridFieldChanged(name, v1, v2, old, record) {
-    emit("gridRowFieldChanged", name, v1, v2, old, record)
+  emit("gridRowFieldChanged", name, v1, v2, old, record);
 }
 
-function handleGridRowDeleted (record) {
-    emit("gridRowDeleted", record)
+function handleGridRowDeleted(record) {
+  emit("gridRowDeleted", record);
 }
 
-function handleGridRowDelete (record, index) {
-  emit('gridRowDelete', record, index)
+function handleGridRowDelete(record, index) {
+  emit("gridRowDelete", record, index);
 }
 
-function handleGridRowSave (record, index) {
-  emit('gridRowSave', record, index)
+function handleGridRowSave(record, index) {
+  emit("gridRowSave", record, index);
 }
 
 const formTabTitles = computed({
@@ -335,7 +343,7 @@ const gridFieldInputSlotNames = computed({
 });
 
 function selectData(dt, index) {
-  if (props.formRead=='') {
+  if (props.formRead == "") {
     data.record = dt;
     emit("formEditData", data.record);
     data.controlMode = "form";
@@ -363,27 +371,26 @@ function selectData(dt, index) {
 }
 
 function newData(dt) {
-    if (dt == undefined) dt = {}
+  if (dt == undefined) dt = {};
 
-    switch(props.newRecordType) {
-      case 'form':
-        emit("formNewData", dt);
-        data.record = dt == undefined ? {} : dt
-        data.controlMode = "form"
-        data.formMode = "new"
-        nextTick(() => {
-            emit("gridRowUpdated", data.record)
-            emit("formLoaded", data.record)
-        });
+  switch (props.newRecordType) {
+    case "form":
+      emit("formNewData", dt);
+      data.record = dt == undefined ? {} : dt;
+      data.controlMode = "form";
+      data.formMode = "new";
+      nextTick(() => {
+        emit("gridRowUpdated", data.record);
+        emit("formLoaded", data.record);
+      });
 
-      case 'grid':
-        emit('gridRowAdd', dt);
-    }
-    
+    case "grid":
+      emit("gridRowAdd", dt);
+  }
 }
 
 function getData(keyword) {
-    emit('gridGetData', keyword)
+  emit("gridGetData", keyword);
 }
 
 function cancelForm() {
@@ -394,43 +401,47 @@ function cancelForm() {
 }
 
 function save(saveData, cbOK, cbFalse) {
-    emit("preSave", saveData);
-    const saveEndPoint = data.formMode == "new" ? props.formInsert : props.formUpdate
-    
-    if (saveEndPoint=="") {
-      emit('postSave', saveData, data.currentIndex);
-      if (!props.stayOnFormAfterSave) {
-          data.controlMode = "grid";
-      } else {
-          util.showInfo("data has been saved");
-      }
-      cbOK(); 
-      return;
-    }
+  emit("preSave", saveData);
+  const saveEndPoint =
+    data.formMode == "new" ? props.formInsert : props.formUpdate;
 
-    axios.post(saveEndPoint, saveData).then(r => {
-        let record = r.data
-        data.record = record
-        emit("postSave", record)
-        emit("gridRowUpdated", record)
-        if (!props.stayOnFormAfterSave) {
-            data.controlMode = "grid"
-            nextTick(() => {
-                gridCtl.value.refreshData()
-            })
-        } else {
-            util.showInfo("data has been saved")
-            selectData(data.record, "detail")
-        }
-        cbOK()
-    }, e => {
-        util.showError(e)
-        cbFalse()
-    })
+  if (saveEndPoint == "") {
+    emit("postSave", saveData, data.currentIndex);
+    if (!props.stayOnFormAfterSave) {
+      data.controlMode = "grid";
+    } else {
+      util.showInfo("data has been saved");
+    }
+    cbOK();
+    return;
+  }
+
+  axios.post(saveEndPoint, saveData).then(
+    (r) => {
+      let record = r.data;
+      data.record = record;
+      emit("postSave", record);
+      emit("gridRowUpdated", record);
+      if (!props.stayOnFormAfterSave) {
+        data.controlMode = "grid";
+        nextTick(() => {
+          gridCtl.value.refreshData();
+        });
+      } else {
+        util.showInfo("data has been saved");
+        selectData(data.record, "detail");
+      }
+      cbOK();
+    },
+    (e) => {
+      util.showError(e);
+      cbFalse();
+    }
+  );
 }
 
-function gridRowUpdated (dt) {
-    emit("gridRowUpdated", dt)
+function gridRowUpdated(dt) {
+  emit("gridRowUpdated", dt);
 }
 
 function refreshList() {
@@ -450,7 +461,7 @@ function refreshList() {
 }
 
 function refreshForm() {
-  if (props.formConfig==undefined || props.formConfig=='') return;
+  if (props.formConfig == undefined || props.formConfig == "") return;
   loadFormConfig(axios, props.formConfig).then(
     (r) => {
       emit("alterFormConfig", r);
@@ -481,7 +492,7 @@ function setFormFieldAttr(name, attr, value) {
   formCtl.value.setFieldAttr(name, attr, value);
 }
 
-function removeFormField (name) {
+function removeFormField(name) {
   formCtl.value.removeField(name);
 }
 
@@ -503,7 +514,7 @@ function setGridAttr(name, attr, value) {
   data.listCfg.fields = fields;
 }
 
-function setGridField (name, field) {
+function setGridField(name, field) {
   const fields = data.listCfg.fields.map((el) => {
     if (el.field != name) return el;
 
@@ -512,17 +523,17 @@ function setGridField (name, field) {
   data.listCfg.fields = fields;
 }
 
-function getGridField (name) {
-  const fields = data.listCfg.fields.filter(el => el.field == name);
-  if (fields.length==0) {
+function getGridField(name) {
+  const fields = data.listCfg.fields.filter((el) => el.field == name);
+  if (fields.length == 0) {
     return {};
   }
   return fields[0];
 }
 
 function removeGridField(name) {
-  const newFields = data.listCfg.fields.filter(el => {
-    return el.field!=name;
+  const newFields = data.listCfg.fields.filter((el) => {
+    return el.field != name;
   });
   data.listCfg.fields = newFields;
 }
@@ -535,49 +546,49 @@ function setFormRecord(record) {
   data.record = record;
 }
 
-function getGridRecords () {
-    return gridCtl.value.getRecords()
+function getGridRecords() {
+  return gridCtl.value.getRecords();
 }
 
-function getGridRecord (idx) {
-    return gridCtl.value.getRecord(idx)
+function getGridRecord(idx) {
+  return gridCtl.value.getRecord(idx);
 }
 
-function setGridRecord (idx, dt) {
-    return gridCtl.value.setRecord(idx, dt)
+function setGridRecord(idx, dt) {
+  return gridCtl.value.setRecord(idx, dt);
 }
 
-function setGridRecordByID (dt) {
-    return gridCtl.value.setRecordByID(dt)
+function setGridRecordByID(dt) {
+  return gridCtl.value.setRecordByID(dt);
 }
 
 function setFormMode(mode) {
   data.formMode = mode;
 }
 
-function getFormMode () {
-    return data.formMode
+function getFormMode() {
+  return data.formMode;
 }
 
-function newGridData () {
-    if (gridCtl.value) {
-        gridCtl.value.newData()
-    }
+function newGridData() {
+  if (gridCtl.value) {
+    gridCtl.value.newData();
+  }
 }
 
-function refreshGrid () {
-    refreshList()
+function refreshGrid() {
+  refreshList();
 }
 
-function setControlMode (mode) {
-  data.controlMode = mode
+function setControlMode(mode) {
+  data.controlMode = mode;
 }
 
-function getControlMode () {
-  return data.controlMode
+function getControlMode() {
+  return data.controlMode;
 }
 
-function setGridRecords (items) {
+function setGridRecords(items) {
   gridCtl.value.setRecords(items);
 }
 
@@ -593,40 +604,62 @@ function getGridCurrentIndex() {
   return gridCtl.value.getCurrentIndex();
 }
 
-function getGridSortField () {
+function getGridSortField() {
   return gridCtl.value.getSortField();
 }
 
-function setGridSortField (s) {
+function setGridSortField(s) {
   gridCtl.value.setSortField(s);
 }
 
-function getGridSortDirection () {
+function getGridSortDirection() {
   return gridCtl.value.getSortDirection();
 }
 
-function setGridSortDirection (d) {
+function setGridSortDirection(d) {
   gridCtl.value.setSortDirection(d);
 }
 
-function getGridSelected () {
+function getGridSelected() {
   return gridCtl.value.getSelected;
 }
 
 defineExpose({
-    getGridRecords, getGridRecord, refreshGrid, setGridRecords, getGridSelected,
-    setGridRecord, setGridRecordByID, getGridCurrentIndex,
-    getFormRecord, setFormRecord, getFormField, removeFormField,
-    setFormFieldAttr, getFormSection, setFormSectionAttr,
-    getGridConfig, setGridConfig, getGridField, removeGridField, setGridField,
-    setGridAttr, refreshList, refreshForm,
-    setFormMode, getFormMode, newGridData, submitForm: save, cancelForm, 
-    setControlMode, getControlMode,
-    getGridSortField,
-    setGridSortField,
-    getGridSortDirection,
-    setGridSortDirection,
-})
+  getGridRecords,
+  getGridRecord,
+  refreshGrid,
+  setGridRecords,
+  getGridSelected,
+  setGridRecord,
+  setGridRecordByID,
+  getGridCurrentIndex,
+  getFormRecord,
+  setFormRecord,
+  getFormField,
+  removeFormField,
+  setFormFieldAttr,
+  getFormSection,
+  setFormSectionAttr,
+  getGridConfig,
+  setGridConfig,
+  getGridField,
+  removeGridField,
+  setGridField,
+  setGridAttr,
+  refreshList,
+  refreshForm,
+  setFormMode,
+  getFormMode,
+  newGridData,
+  submitForm: save,
+  cancelForm,
+  setControlMode,
+  getControlMode,
+  getGridSortField,
+  setGridSortField,
+  getGridSortDirection,
+  setGridSortDirection,
+});
 
 onMounted(() => {
   refreshList();
