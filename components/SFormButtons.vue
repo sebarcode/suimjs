@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="suim_form_button">
         <div class="flex items-center justify-end w-full" :class="{hasGap:!onlyIcon}">
             <div class="grow">&nbsp;</div>
             <slot name="buttons_1" :item="modelValue" />
@@ -11,7 +11,7 @@
             <s-button
                 v-if="!hideSubmitButton"
                 :icon="submitIcon"
-                class="btn_primary"
+                class="btn_primary submit_btn"
                 :label="onlyIcon ? '' : submitText || 'Save'"
                 @click="onSubmitForm"
                 :disabled="disableSubmit"
@@ -19,7 +19,7 @@
             <s-button
                 v-if="!hideCancelButton"
                 :icon="cancelIcon" 
-                class="btn_warning"
+                class="btn_warning back_btn"
                 :label="onlyIcon ? '' : cancelText || 'Back'"
                 @click="onCancelForm"
             />
@@ -28,7 +28,7 @@
             <s-button
                 v-if="hideCancelButton == undefined || hideCancelButton === false"
                 :icon="cancelIcon" 
-                class="btn_warning"
+                class="btn_warning back_btn"
                 :label="onlyIcon ? '' : cancelText || 'Back'"
                 @click="onCancelForm"
             />
