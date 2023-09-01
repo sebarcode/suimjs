@@ -1,5 +1,5 @@
 <template>
-    <s-card :title="title" class="w-full bg-white" hide-footer :no-gap="noGap" :hide-title="hideTitle">
+    <s-card :title="title" class="w-full bg-white suim_datalist" hide-footer :no-gap="noGap" :hide-title="hideTitle">
       <div v-if="data.listCfg.setting && gridMode == 'list'" v-show="data.controlMode == 'grid'">
           <s-list ref="gridCtl" class="w-full" :read-url="data.gridReadUrl" :delete-url="data.gridDeleteUrl"
               :hide-search="gridHideSearch" :hide-control="gridHideControl" :hide-sort="gridHideSort"
