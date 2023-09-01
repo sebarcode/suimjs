@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col suim_card" :class="[hideTitle?'hide_title':'show_title']">
     <div
-      class="flex py-2 items-center justify-center text-primary"
+      class="flex py-2 items-center justify-center text-primary title"
       :class="{ hasGap: !noGap, cardTitleSeparator: !props.hideTitleSeparator }"
       v-if="!hideTitle"
     >
@@ -12,7 +12,7 @@
         <div class="card_title_controls"><slot name="title_controls"></slot></div>
       </slot>
     </div>
-    <div class="h-full" :class="{hasGap: !noGap}">
+    <div class="h-full card_body" :class="{hasGap: !noGap}">
       <slot></slot>
     </div>
     <div

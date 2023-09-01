@@ -13,7 +13,7 @@
         <div v-else-if="columnConfig.kind == 'checkbox'" class="flex gap-1 text-center text-green-500">
             <mdicon name="check-bold" size="16" v-if="record[columnConfig.field]" />
         </div>
-        <div v-else-if="columnConfig.kind == 'number'" class="text-right pr-4">
+        <div v-else-if="columnConfig.kind == 'number'" style="text-align:right">
             {{ util.formatMoney(record[columnConfig.field], {decimal:columnConfig.decimal}) }}
         </div>
         <div v-else-if="columnConfig.kind == 'date'">
