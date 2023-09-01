@@ -6,7 +6,7 @@
         </h1>
 
         <!-- tab header -->
-        <div class="mb-2 flex">
+        <div class="mb-2 flex header">
           <div
             class="flex tab_container grow"
             v-if="tabs.length > 1"
@@ -21,7 +21,7 @@
             >
               {{ tabTitle }}
             </div>
-            <div class="flex gap-2 ml-2 mr-2">
+            <div class="flex gap-2 ml-2 mr-2 sform_tab_close">
               <button
                 class="p-1 hover:bg-white hover:text-primary"
                 @click="onCancelForm"
@@ -31,7 +31,7 @@
             </div>
           </div>
 
-          <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="grow"
+          <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="grow form_button_top"
               :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
               :only-icon="onlyIconTop" :disable-submit="data.inSubmission"
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
@@ -60,7 +60,7 @@
               <div v-for="section in g.sections" v-show="section.visible" :key="section.id" class="section grow">    
             <div
               v-if="section.showTitle && section.title != ''"
-              class="title"
+              class="title section_title"
             >
               {{ section.title }}
             </div>
@@ -214,7 +214,7 @@
           <slot name="footer_1" :item="value" :config="config" />
   
           <div class="mt-2">
-            <s-form-buttons v-if="buttonsOnBottom" ref="buttonsBottomCtl"
+            <s-form-buttons v-if="buttonsOnBottom" ref="buttonsBottomCtl" class="form_button_bottom"
                 :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
                 :only-icon="onlyIconBottom" :disable-submit="data.inSubmission" 
                 :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
