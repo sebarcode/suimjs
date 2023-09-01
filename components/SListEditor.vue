@@ -1,5 +1,5 @@
 <template>
-    <ul class="flex flex-col gap-2 justify-center">
+    <ul class="flex flex-col gap-2 justify-center suim_listeditor">
         <li class="flex gap-2 items-center" v-if="!hideHeader">
             <slot name="header"></slot>
         </li>
@@ -11,7 +11,7 @@
             <slot name="item" :item="record" :config="data.config">
                 <div class="grow">{{ record }}</div>
             </slot>
-            <div>
+            <div class="action_delete">
                 <mdicon name="delete" class="cursor-pointer" size="18" @click="deleteRecord(recordIndex)" />
             </div>
         </li>
@@ -22,7 +22,7 @@
                     <slot name="editor" :item="data.record" :config="data.config"></slot>
                 </div>
                 <div class="pt-6">
-                    <button @click="addRecord">
+                    <button @click="addRecord"  class="add_btn">
                         <mdicon name="plus-circle" class="cursor-pointer" size="18" />
                     </button>
                 </div>
