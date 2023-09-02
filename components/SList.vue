@@ -1,26 +1,26 @@
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 suim_list">
     <s-modal :display="false" ref="deleteModal" @submit="confirmDelete">
       You will delete data ! Are you sure ?<br/>
       Please be noted, this can not be undone !
     </s-modal>
     
-    <div class="flex gap-2 justify-center" v-if="!hideControl">
+    <div class="flex gap-2 justify-center header" v-if="!hideControl">
       <input
         type="text"
-        class="grow bg-transparent outline-none border-b border-slate-300 text-slate-500 text-sm py-2"
+        class="grow bg-transparent outline-none border-b border-slate-300 text-slate-500 text-sm py-2 search_input"
         placeholder="enter search keyword"
         v-model="data.keyword"
         @keyup.enter="refreshData"
         v-if="!hideSearch"
       />
       <div class="grow" v-else>&nbsp;</div>
-      <button @click="changeSortDirection" v-if="!hideSort">
+      <button @click="changeSortDirection" v-if="!hideSort"  class="sort_btn">
         <mdicon :name="sortIcon" size="18" />
       </button>
       <select
         v-model="data.sortField"
-        class="bg-transparent border-b border-slate-300 text-[0.8em] pt-1 pb-1"
+        class="bg-transparent border-b border-slate-300 text-[0.8em] pt-1 pb-1 sort_select "
         @change="refreshData"
         v-if="config.setting && !hideSort"
       >
@@ -33,18 +33,18 @@
           {{ f }}
         </option>
       </select>
-      <div class="flex gap-1">
+      <div class="flex gap-1 header_button">
         <slot name="header_buttons_1" :config="config"></slot>
         <slot name="header_buttons" :config="config">
           <s-button
             icon="refresh"
-            class="bg-primary text-white"
+            class="bg-primary text-white refresh_btn"
             @click="refreshData"
             v-if="!hideRefreshButton"
           />
           <s-button
             icon="plus"
-            class="bg-primary text-white"
+            class="bg-primary text-white new_btn"
             @click="newData"
             v-if="!hideNewButton"
           />
@@ -91,10 +91,11 @@
                     {{ record }}
                   </slot>
                 </div>
-                <div class="flex gap-1">
+                <div class="flex gap-1 action">
                   <slot name="action_1" :item="record" :index="idx"></slot>
                   <slot name="actions" :item="record" :index="idx">
                     <s-button
+                      class="delete_action"
                       type="icon"
                       icon="delete"
                       v-if="!hideDeleteButton"
@@ -127,7 +128,7 @@
               pageCount: pageCount,
             }"
           >
-            <div v-if="pageCount > 1" class="flex gap-2 justify-center">
+            <div v-if="pageCount > 1" class="flex gap-2 justify-center pagination">
               <mdicon
                 name="arrow-left"
                 class="cursor-pointer"
@@ -136,7 +137,7 @@
                 }"
                 @click="changePage(data.currentPage - 1)"
               />
-              <div>Page {{ data.currentPage }} of {{ pageCount }}</div>
+              <div class="pagination_info">Page {{ data.currentPage }} of {{ pageCount }}</div>
               <mdicon
                 name="arrow-right"
                 class="cursor-pointer"

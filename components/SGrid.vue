@@ -1,29 +1,29 @@
 <template>
-    <div style="w-full" class="flex flex-col gap-1">
+    <div style="w-full" class="flex flex-col gap-1 suim_grid">
       <s-modal :display="false" ref="deleteModal" @submit="confirmDelete">
         You will delete data ! Are you sure ?<br/>
         Please be noted, this can not be undone !
       </s-modal>
 
-      <div class="flex gap-2 justify-center items-center" v-if="!hideControl">
+      <div class="flex gap-2 justify-center items-center header" v-if="!hideControl">
         <slot name="header_search" :config="config">
-          <input type="text" class="grow input_field border_b_[1px]"
+          <input type="text" class="grow input_field border_b_[1px] search_input"
             placeholder="enter search keyword" v-model="data.keyword" @keyup.enter="refreshData" v-if="!hideSearch" />
           <div v-else class="grow">&nbsp;</div>
         </slot>
-        <button @click="changeSortDirection" v-if="!hideSort">
+        <button @click="changeSortDirection" v-if="!hideSort" class="sort_btn">
           <mdicon :name="sortIcon" size="18" />
         </button>
-        <select v-model="data.sortField" class="input_select border-b"
+        <select v-model="data.sortField" class="sort_select border-b"
           @change="refreshData" v-if="config.setting && !hideSort">
           <option value="">No Sort</option>
           <option v-for="f in config.setting.sortable" :value="f">{{ f }}</option>
         </select>
-        <div class="flex gap-[1px]">
+        <div class="flex gap-[1px] header_button">
           <slot name="header_buttons_1" :config="config"></slot>
           <slot name="header_buttons" :config="config">
-            <s-button icon="refresh" class="btn_primary" @click="refreshData" v-if="!hideRefreshButton" />
-            <s-button icon="plus" class="btn_primary" @click="newData" v-if="!hideNewButton" :disabled="data.recordChanged && !hideSaveButton" />
+            <s-button icon="refresh" class="btn_primary refresh_btn" @click="refreshData" v-if="!hideRefreshButton" />
+            <s-button icon="plus" class="btn_primary new_btn" @click="newData" v-if="!hideNewButton" :disabled="data.recordChanged && !hideSaveButton" />
           </slot>
           <slot name="header_buttons_2" :config="config"></slot>
         </div>
@@ -53,7 +53,7 @@
             </thead>
   
             <!-- records -->
-            <tbody name="grid_body" :class="{'text-[0.9em]':editor}">
+            <tbody name="grid_body" :class="{'text-[0.9em] editor':editor}">
               <tr v-for="(r, rIdx) in data.items" :key="'grid_item_' + rIdx"
                 class="cursor-pointer border-b-[1px] border-slate-200 last:border-non hover:bg-slate-200"
                 :class="{'even:bg-slate-100':!editor}" @dblclick="selectData(r, 'detail', true)">
@@ -88,13 +88,13 @@
                 <td class="row_action" v-if="!hideAction">
                   <slot name="item_buttons_1" :item="r" :config="config"></slot>
                   <slot name="item_buttons" :item="r" :config="config">
-                    <a href="#" v-if="editor && r.suimRecordChange===true && !hideSaveButton && !autoCommitLine" @click="saveRowData(r, rIdx)">
+                    <a href="#" v-if="editor && r.suimRecordChange===true && !hideSaveButton && !autoCommitLine" @click="saveRowData(r, rIdx)"  class="save_action">
                       <mdicon name="content-save" width="16" alt="edit" class="cursor-pointer hover:text-primary" />
                     </a>
-                    <a href="#" v-if="!hideDetail" @click="selectData(r, rIdx)">
+                    <a href="#" v-if="!hideDetail" @click="selectData(r, rIdx)" class="edit_action">
                       <mdicon name="pencil" width="16" alt="edit" class="cursor-pointer hover:text-primary" />
                     </a>
-                    <a href="#" v-if="!hideDeleteButton" @click="deleteData(r, rIdx)">
+                    <a href="#" v-if="!hideDeleteButton" @click="deleteData(r, rIdx)" class="delete_action">
                       <mdicon name="delete" width="16" alt="delete" class="cursor-pointer hover:text-primary" />
                     </a>
                   </slot>
@@ -111,12 +111,12 @@
             </slot>
             <slot name="paging"
               v-bind="{ items: data.items, recordCount: data.recordCount, currentPage: data.currentPage, pageCount: pageCount }">
-              <div v-if="pageCount > 1" class="flex gap-2 justify-center">
+              <div v-if="pageCount > 1" class="flex gap-2 justify-center pagination">
                 <mdicon name="arrow-left" class="cursor-pointer" :class="{
                   'opacity-25':
                     data.currentPage == 1
                 }" @click="changePage(data.currentPage - 1)" />
-                <div>Page {{ data.currentPage }} of {{ pageCount }}</div>
+                <div class="pagination_info">Page {{ data.currentPage }} of {{ pageCount }}</div>
                 <mdicon name="arrow-right" class="cursor-pointer" :class="{ 'opacity-25': data.currentPage == pageCount }"
                   @click="changePage(data.currentPage + 1)" />
               </div>
@@ -152,8 +152,11 @@
   import SGridColumn from './SGridColumn.vue'
   import SModal from './SModal.vue'
   import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
-  import util from '../scripts/util';
-import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
+  import util from '../scripts/util'
+  import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
+  import { useRoute } from 'vue-router'
+
+  const route = useRoute();
   
   const props = defineProps({
     modelValue: { type: Array, default: () => [] },
@@ -248,7 +251,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
         return;
       }
     }
-   
+  
     data.recordChanged = false;
   }
   
@@ -500,7 +503,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     setSortDirection,
     setLoading,
     setRecords
-   })
+  })
   
   onMounted(() => {
     refreshData()
@@ -511,4 +514,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     data.items = nv;
   });
   
+  watch(() => route.query, () => {
+    data.keyword = '';
+  });
   </script>

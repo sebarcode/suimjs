@@ -1,12 +1,12 @@
 <template>
-    <div class="suim_form">
+   <div class="suim_form" :class="[focus ? 'focus' :'']">
       <div v-if="config && config.setting">
         <h1 v-if="config.setting.showTitle && config.setting.title != ''" class="title grow">
           {{ config.setting.title }}
         </h1>
 
         <!-- tab header -->
-        <div class="mb-2 flex">
+        <div class="mb-2 flex header">
           <div
             class="flex tab_container grow"
             v-if="tabs.length > 1"
@@ -21,7 +21,7 @@
             >
               {{ tabTitle }}
             </div>
-            <div class="flex gap-2 ml-2 mr-2">
+            <div class="flex gap-2 ml-2 mr-2 sform_tab_close">
               <button
                 class="p-1 hover:bg-white hover:text-primary"
                 @click="onCancelForm"
@@ -31,7 +31,7 @@
             </div>
           </div>
 
-          <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="grow"
+          <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="grow form_button_top"
               :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
               :only-icon="onlyIconTop" :disable-submit="data.inSubmission"
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
@@ -60,7 +60,7 @@
               <div v-for="section in g.sections" v-show="section.visible" :key="section.id" class="section grow">    
             <div
               v-if="section.showTitle && section.title != ''"
-              class="title"
+              class="title section_title"
             >
               {{ section.title }}
             </div>
@@ -214,7 +214,7 @@
           <slot name="footer_1" :item="value" :config="config" />
   
           <div class="mt-2">
-            <s-form-buttons v-if="buttonsOnBottom" ref="buttonsBottomCtl"
+            <s-form-buttons v-if="buttonsOnBottom" ref="buttonsBottomCtl" class="form_button_bottom"
                 :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
                 :only-icon="onlyIconBottom" :disable-submit="data.inSubmission" 
                 :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
@@ -245,298 +245,298 @@
   </template>
   
   <script setup>
-  import { ref, reactive, computed, onMounted, watch, nextTick } from "vue";
-  import SFormButtons from "./SFormButtons.vue";
-  import SLoader from "./SLoader.vue";
-  import SInput from "./SInput.vue";
-  
-  const inputs = ref([]);
+import { ref, reactive, computed, onMounted, watch, nextTick } from "vue";
+import SFormButtons from "./SFormButtons.vue";
+import SLoader from "./SLoader.vue";
+import SInput from "./SInput.vue";
 
-  const buttonsTopCtl = ref(null)
-  const buttonsBottomCtl = ref(null)
-  
-  const props = defineProps({
-    config: {
-      type: Object,
-      default: () => {},
-    },
-    submitIcon: {type: String, default:'content-save'},
-    submitText: {type: String, default: 'Save'},
-    cancelIcon: {type: String, default:'rewind'},
-    cancelText: {type: String, default: 'Back'},
-    hideSubmit: { type: Boolean, default: false },
-    hideCancel: { type: Boolean, default: false },
-    hideButtons: { type: Boolean, default: false },
-    buttonsOnTop: { type: Boolean, default: true},
-    buttonsOnBottom: { type: Boolean }, 
-    keepLabel: { type: Boolean },
-    onlyIconTop: { type: Boolean, default: false},
-    onlyIconBottom: { type: Boolean, default: false},
-    loading: { type: Boolean },
-    autoFocus: { type: Boolean },
-    mode: { type: String, default: "edit" }, // mode: new, edit, view
-    modelValue: { type: Object, default: () => {} },
-    tabs: { type: Array, default: () => [] },
-    initialTab: { type: Number, default: 0 },
-  });
-  
-  const emit = defineEmits({
-    cancelForm: null,
-    preSubmitForm: null,
-    postSubmitForm: null,
-    onSubmit: null,
-    submitForm: null,
-    fieldChange: null,
-    recordChange: null,
-    "update:modelValue": null,
-  });
-  
-  defineExpose({
-    validate,
-    showError,
-    calcChangeFields,
-    getSection,
-    setSectionAttr,
-    getField,
-    removeField,
-    setFieldAttr,
-    submit: onSubmitForm,
-  });
-  
-  //const inputValidities = ref({});
-  
-  const data = reactive({
-    inSubmission: false,
-    showSubmitError: false,
-    submitErrorTxt: "",
-    currentTab: props.initialTab,
-    changeFields: [],
-  });
-  
-  const inputIsDisabled = (input) => {
-    if (props.mode == "view") return true;
-  
-    if (props.mode == "new" && input.readOnlyOnNew) return true;
-    if (props.mode == "edit" && input.readOnlyOnEdit) return true;
-  
-    return false;
-  };
-  
-  function validate() {
-    let isValid = true;
-    inputs.value.forEach((el) => {
-      if (!el.validate()) {
-        //el.debug()
-        isValid = false;
-      }
-    });
-    return isValid;
-  }
-  
-  function onSubmitForm() {
-    let isValid = true;
-    try {
-      emit("preSubmitForm", props.modelValue);
-      isValid = validate();
-    } catch (err) {
-      showError(err);
-      return;
+const inputs = ref([]);
+
+const buttonsTopCtl = ref(null);
+const buttonsBottomCtl = ref(null);
+
+const props = defineProps({
+  config: {
+    type: Object,
+    default: () => {},
+  },
+  submitIcon: { type: String, default: "content-save" },
+  submitText: { type: String, default: "Save" },
+  cancelIcon: { type: String, default: "rewind" },
+  cancelText: { type: String, default: "Back" },
+  hideSubmit: { type: Boolean, default: false },
+  hideCancel: { type: Boolean, default: false },
+  hideButtons: { type: Boolean, default: false },
+  buttonsOnTop: { type: Boolean, default: true },
+  buttonsOnBottom: { type: Boolean },
+  keepLabel: { type: Boolean },
+  onlyIconTop: { type: Boolean, default: false },
+  onlyIconBottom: { type: Boolean, default: false },
+  loading: { type: Boolean },
+  autoFocus: { type: Boolean },
+  mode: { type: String, default: "edit" }, // mode: new, edit, view
+  modelValue: { type: Object, default: () => {} },
+  tabs: { type: Array, default: () => [] },
+  initialTab: { type: Number, default: 0 },
+  focus: { type: Boolean, default: false },
+});
+
+const emit = defineEmits({
+  cancelForm: null,
+  preSubmitForm: null,
+  postSubmitForm: null,
+  onSubmit: null,
+  submitForm: null,
+  fieldChange: null,
+  recordChange: null,
+  "update:modelValue": null,
+});
+
+defineExpose({
+  validate,
+  showError,
+  calcChangeFields,
+  getSection,
+  setSectionAttr,
+  getField,
+  removeField,
+  setFieldAttr,
+  submit: onSubmitForm,
+});
+
+//const inputValidities = ref({});
+
+const data = reactive({
+  inSubmission: false,
+  showSubmitError: false,
+  submitErrorTxt: "",
+  currentTab: props.initialTab,
+  changeFields: [],
+});
+
+const inputIsDisabled = (input) => {
+  if (props.mode == "view") return true;
+
+  if (props.mode == "new" && input.readOnlyOnNew) return true;
+  if (props.mode == "edit" && input.readOnlyOnEdit) return true;
+
+  return false;
+};
+
+function validate() {
+  let isValid = true;
+  inputs.value.forEach((el) => {
+    if (!el.validate()) {
+      //el.debug()
+      isValid = false;
     }
-  
-    data.inSubmission = true;
-    data.hasErrors = false;
-  
-    if (!isValid) {
+  });
+  return isValid;
+}
+
+function onSubmitForm() {
+  let isValid = true;
+  try {
+    emit("preSubmitForm", props.modelValue);
+    isValid = validate();
+  } catch (err) {
+    showError(err);
+    return;
+  }
+
+  data.inSubmission = true;
+  data.hasErrors = false;
+
+  if (!isValid) {
+    data.inSubmission = false;
+    showError();
+    return;
+  }
+
+  emit(
+    "submitForm",
+    props.modelValue,
+    () => {
       data.inSubmission = false;
-      showError();
-      return;
-    }
-  
-    emit(
-      "submitForm",
-      props.modelValue,
-      () => {
-        data.inSubmission = false;
-        emit("postSubmitForm", props.modelValue);
-      },
-      () => {
-        data.inSubmission = false;
-      }
-    );
-  }
-  
-  function showError() {
-  }
-  
-  function handleChange(name, value1, value2, oldValue) {
-    //console.log(name,"is changed from",oldValue,"to",value1,value2)
-    const v = props.modelValue;
-    const input = getConfigInputByName(name);
-    if (input == undefined) return;
-  
-    if (input.labelField && input.labelField != "") {
-      v[name] = value1;
-      v[input.labelField] = value2;
-    }
-    emit("update:modelValue", v);
-    nextTick(() => {
-      emit("fieldChange", name, value1, value2, oldValue);
-    });
-  }
-  
-  const value = computed({
-    get() {
-      return props.modelValue;
+      emit("postSubmitForm", props.modelValue);
     },
-  
-    set(v) {
-      emit("update:modelValue", v);
-    },
+    () => {
+      data.inSubmission = false;
+    }
+  );
+}
+
+function showError() {}
+
+function handleChange(name, value1, value2, oldValue) {
+  //console.log(name,"is changed from",oldValue,"to",value1,value2)
+  const v = props.modelValue;
+  const input = getConfigInputByName(name);
+  if (input == undefined) return;
+
+  if (input.labelField && input.labelField != "") {
+    v[name] = value1;
+    v[input.labelField] = value2;
+  }
+  emit("update:modelValue", v);
+  nextTick(() => {
+    emit("fieldChange", name, value1, value2, oldValue);
   });
-  
-  function onCancelForm() {
-    emit("cancelForm");
-  }
-  
-  function calcChangeFields(cfg) {
-    if (cfg == undefined) cfg = props.config;
-    if (!(cfg && cfg.sections)) return;
-   
-    const changefieldsBuffer = [];
-    cfg.sectionGroups.forEach(sg => {
-      sg.sections.forEach((section) => {
-        section.rows.forEach((row) => {
-          row.inputs.forEach((input) => {
-            if (input.labelField != "" || input.needChangeHandler === true)
-              changefieldsBuffer.push(input.field);
-          });
+}
+
+const value = computed({
+  get() {
+    return props.modelValue;
+  },
+
+  set(v) {
+    emit("update:modelValue", v);
+  },
+});
+
+function onCancelForm() {
+  emit("cancelForm");
+}
+
+function calcChangeFields(cfg) {
+  if (cfg == undefined) cfg = props.config;
+  if (!(cfg && cfg.sections)) return;
+
+  const changefieldsBuffer = [];
+  cfg.sectionGroups.forEach((sg) => {
+    sg.sections.forEach((section) => {
+      section.rows.forEach((row) => {
+        row.inputs.forEach((input) => {
+          if (input.labelField != "" || input.needChangeHandler === true)
+            changefieldsBuffer.push(input.field);
         });
       });
     });
-    
-    data.changeFields = changefieldsBuffer;
-  }
-  
-  function getConfigInputByName(fieldName) {
-    if (props.config.sectionGroups == undefined) return;
-    let found = false;
-    let resInput = undefined;
-    props.config.sectionGroups.forEach(sg => {
-      sg.sections.forEach((section) => {
-          section.rows.forEach((row) => {
-            row.inputs.forEach((input) => {
-              if (input.field == fieldName) {
-                found = true;
-                resInput = input;
-                return;
-              }
-            });
-            if (found) return;
-          });
-          if (found) return;
+  });
+
+  data.changeFields = changefieldsBuffer;
+}
+
+function getConfigInputByName(fieldName) {
+  if (props.config.sectionGroups == undefined) return;
+  let found = false;
+  let resInput = undefined;
+  props.config.sectionGroups.forEach((sg) => {
+    sg.sections.forEach((section) => {
+      section.rows.forEach((row) => {
+        row.inputs.forEach((input) => {
+          if (input.field == fieldName) {
+            found = true;
+            resInput = input;
+            return;
+          }
         });
         if (found) return;
-    });
-    return resInput;
-  }
-  
-  function getSection(name) {
-    let found = false
-    let section = undefined
-
-    props.config.sectionGroups.forEach(g => {
-      g.sections.forEach(s => {
-        if (s.Title==name) {
-          found = true
-          section = s
-        }
-        if (found) return
-      })
-      if (found) return
-    })
-    return section
-  }
-  
-  function getField(name) {
-    let field;
-    let found;
-    props.config.sectionGroups.forEach(g => {
-      if (found) return
-      g.sections.forEach(section => { 
+      });
       if (found) return;
-        section.rows.forEach((row) => {
-          if (found) return;
-          row.inputs.forEach((input) => {
-            if (found) return;
-    
-            if (input.field == name) {
-              found = true;
-              field = input;
-            }
-          });
-        });
-      })
-    })
-  
-    if (found) return field;
-  }
-
-  function removeField (name) {
-    props.config.sectionGroups.forEach(g => {
-      g.sections.forEach(section => { 
-        section.rows.forEach((row) => {
-          row.inputs = row.inputs.filter((input) => input.field!=name);
-        });
-      })
-    })
-
-    props.config.sectionGroups.forEach(g => {
-      g.sections.forEach(section => { 
-        section.rows = section.rows.filter(row => row.inputs.length > 0);
-      })
-    })
-  }
-  
-  function setSectionAttr(name, attr, value) {
-    props.config.sectionGroups.forEach(sg => {
-      sg.sections.forEach(s => {
-        if (s.Title==name) {
-          s[attr] = value
-        }
-      })
-    })
-  }
-  
-  function setFieldAttr(name, attr, value) {
-    props.config.sectionGroups.forEach(g => {
-      g.sections.forEach(s => {
-        s.rows.forEach((row) => {
-          row.inputs.forEach((input) => {
-            if (input.field == name) input[attr] = value;
-          })
-        })
-      })
-    })
-  }
-  
-  watch(
-    () => props.modelValue,
-    (newValue) => {
-      emit("recordChange", newValue);
-    },
-    { deep: true }
-  );
-  
-  onMounted(() => {
-    calcChangeFields();
-    if (
-      props.autoFocus &&
-      inputs.value.length > 0 &&
-      typeof inputs.value[0].focus == "function"
-    )
-      inputs.value[0].focus();
+    });
+    if (found) return;
   });
-  </script>
+  return resInput;
+}
+
+function getSection(name) {
+  let found = false;
+  let section = undefined;
+
+  props.config.sectionGroups.forEach((g) => {
+    g.sections.forEach((s) => {
+      if (s.Title == name) {
+        found = true;
+        section = s;
+      }
+      if (found) return;
+    });
+    if (found) return;
+  });
+  return section;
+}
+
+function getField(name) {
+  let field;
+  let found;
+  props.config.sectionGroups.forEach((g) => {
+    if (found) return;
+    g.sections.forEach((section) => {
+      if (found) return;
+      section.rows.forEach((row) => {
+        if (found) return;
+        row.inputs.forEach((input) => {
+          if (found) return;
+
+          if (input.field == name) {
+            found = true;
+            field = input;
+          }
+        });
+      });
+    });
+  });
+
+  if (found) return field;
+}
+
+function removeField(name) {
+  props.config.sectionGroups.forEach((g) => {
+    g.sections.forEach((section) => {
+      section.rows.forEach((row) => {
+        row.inputs = row.inputs.filter((input) => input.field != name);
+      });
+    });
+  });
+
+  props.config.sectionGroups.forEach((g) => {
+    g.sections.forEach((section) => {
+      section.rows = section.rows.filter((row) => row.inputs.length > 0);
+    });
+  });
+}
+
+function setSectionAttr(name, attr, value) {
+  props.config.sectionGroups.forEach((sg) => {
+    sg.sections.forEach((s) => {
+      if (s.Title == name) {
+        s[attr] = value;
+      }
+    });
+  });
+}
+
+function setFieldAttr(name, attr, value) {
+  props.config.sectionGroups.forEach((g) => {
+    g.sections.forEach((s) => {
+      s.rows.forEach((row) => {
+        row.inputs.forEach((input) => {
+          if (input.field == name) input[attr] = value;
+        });
+      });
+    });
+  });
+}
+
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    emit("recordChange", newValue);
+  },
+  { deep: true }
+);
+
+onMounted(() => {
+  calcChangeFields();
+  if (
+    props.autoFocus &&
+    inputs.value.length > 0 &&
+    typeof inputs.value[0].focus == "function"
+  )
+    inputs.value[0].focus();
+});
+</script>
   
   <style scope>
   .gridCol1 {@apply grid-cols-1}
