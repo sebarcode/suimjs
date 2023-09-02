@@ -152,8 +152,11 @@
   import SGridColumn from './SGridColumn.vue'
   import SModal from './SModal.vue'
   import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
-  import util from '../scripts/util';
-import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
+  import util from '../scripts/util'
+  import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
+  import { useRoute } from 'vue-router'
+
+  const route = useRoute();
   
   const props = defineProps({
     modelValue: { type: Array, default: () => [] },
@@ -248,7 +251,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
         return;
       }
     }
-   
+  
     data.recordChanged = false;
   }
   
@@ -500,7 +503,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     setSortDirection,
     setLoading,
     setRecords
-   })
+  })
   
   onMounted(() => {
     refreshData()
@@ -511,4 +514,7 @@ import { mdiEmoticon, mdiWindowShutter } from '@mdi/js'
     data.items = nv;
   });
   
+  watch(() => route.query, () => {
+    data.keyword = '';
+  });
   </script>
