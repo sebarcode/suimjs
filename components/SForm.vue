@@ -453,7 +453,7 @@ function getSection(name) {
 
   props.config.sectionGroups.forEach((g) => {
     g.sections.forEach((s) => {
-      if (s.Title == name) {
+      if (s.title == name) {
         found = true;
         section = s;
       }
@@ -507,7 +507,7 @@ function removeField(name) {
 function setSectionAttr(name, attr, value) {
   props.config.sectionGroups.forEach((sg) => {
     sg.sections.forEach((s) => {
-      if (s.Title == name) {
+      if (s.title == name) {
         s[attr] = value;
       }
     });
