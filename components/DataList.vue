@@ -195,6 +195,11 @@
           {{ tabName }}
         </slot>
       </template>
+      
+      <template #form_header="{item, config}">
+        <slot name="form_header" :item="item" :config="config"></slot>
+      </template>
+
 
       <template #buttons>
         <slot name="form_buttons"></slot>
