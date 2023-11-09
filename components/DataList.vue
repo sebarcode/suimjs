@@ -151,6 +151,18 @@
       @fieldChange="handleFormFieldChange"
       @recordChange="handleFormRecordChange"
     >
+
+      <template
+        v-for="name in formFieldInputHeaderSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :item="slotData.item"
+          :config="slotData.config"
+        ></slot>
+      </template>
+
       <template
         v-for="name in formFieldInputSlotNames"
         v-slot:[name]="slotData"
@@ -161,6 +173,20 @@
           :config="slotData.config"
         ></slot>
       </template>
+
+
+
+      <template
+        v-for="name in formFieldInputFooterSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :item="slotData.item"
+          :config="slotData.config"
+        ></slot>
+      </template>
+
 
       <template
         v-for="name in formFieldInputOptionSlotNames"
@@ -404,6 +430,22 @@ const formFieldInputSlotNames = computed({
   get() {
     return props.formFields.map((el) => {
       return "input_" + el;
+    });
+  },
+});
+
+const formFieldInputHeaderSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_header";
+    });
+  },
+});
+
+const formFieldInputFooterSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_footer";
     });
   },
 });
