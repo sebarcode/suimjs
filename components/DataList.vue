@@ -162,6 +162,26 @@
         ></slot>
       </template>
 
+      <template
+        v-for="name in formFieldInputOptionSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :option="slotData.option" 
+        ></slot>
+      </template>
+
+      <template
+        v-for="name in formFieldInputSelectedOptionSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :option="slotData.option" 
+        ></slot>
+      </template>
+
       <template v-for="tabName in formTabNames" v-slot:[tabName]="{ item }">
         <slot
           :name="'form_' + tabName"
@@ -379,6 +399,22 @@ const formFieldInputSlotNames = computed({
   get() {
     return props.formFields.map((el) => {
       return "input_" + el;
+    });
+  },
+});
+
+const formFieldInputOptionSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_option";
+    });
+  },
+});
+
+const formFieldInputSelectedOptionSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_selected-option";
     });
   },
 });
@@ -641,6 +677,8 @@ function getControlMode() {
 }
 
 function setGridRecords(items) {
+  console.log(items);
+  console.log(data.listCfg.setting, props.gridMode);
   gridCtl.value.setRecords(items);
 }
 

@@ -193,7 +193,14 @@
                       v-model="value[input.field]"
                       :class="{checkboxOffset: input.kind=='checkbox'}"
                       ref="inputs"
-                    />
+                    >
+                      <template v-if="input.useList === true" #option="{option}">
+                        <slot  :name="'input_' + input.field + '_option'" :option="option"></slot>
+                      </template>
+                      <template v-if="input.useList  === true" #selected-option="{option}">
+                        <slot  :name="'input_' + input.field + '_selected-option'"  :option="option"> </slot>
+                      </template>
+                    </s-input>
                   </slot>
                   <slot
                     :name="'input_' + input.field + '_footer'"
