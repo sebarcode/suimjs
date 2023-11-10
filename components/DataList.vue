@@ -225,7 +225,7 @@
       <template #form_header="{item, config}">
         <slot name="form_header" :item="item" :config="config"></slot>
       </template>
-      
+
       <template #loader>
         <slot name="form_loader"></slot>
       </template>
@@ -770,6 +770,9 @@ function setFormLoading(loading){
 function getFormLoading(){
   return formCtl.value.getLoading()
 }
+function formValidate(){
+  return formCtl.value.validate()
+}
 
 defineExpose({
   getGridRecords,
@@ -807,7 +810,8 @@ defineExpose({
   getGridSortDirection,
   setGridSortDirection,
   setFormLoading,
-  getFormLoading
+  getFormLoading, 
+  formValidate
 });
 
 onMounted(() => {
