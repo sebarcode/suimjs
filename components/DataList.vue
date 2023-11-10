@@ -225,7 +225,10 @@
       <template #form_header="{item, config}">
         <slot name="form_header" :item="item" :config="config"></slot>
       </template>
-
+      
+      <template #loader>
+        <slot name="form_loader"></slot>
+      </template>
 
       <template #buttons>
         <slot name="form_buttons"></slot>
@@ -761,6 +764,13 @@ function getGridSelected() {
   return gridCtl.value.getSelected;
 }
 
+function setFormLoading(loading){
+  formCtl.value.setLoading(loading)
+}
+function getFormLoading(){
+  return formCtl.value.getLoading()
+}
+
 defineExpose({
   getGridRecords,
   getGridRecord,
@@ -796,6 +806,8 @@ defineExpose({
   setGridSortField,
   getGridSortDirection,
   setGridSortDirection,
+  setFormLoading,
+  getFormLoading
 });
 
 onMounted(() => {
