@@ -1,5 +1,12 @@
 <template>
-   <div class="suim_form" :class="[focus ? 'focus' :'']">
+   <div class="suim_form" :class="[focus ? 'focus' :'', data.inSubmission || data.loading ? 'loading' :''] ">
+      
+      <template v-if="data.inSubmission || data.loading" >
+        <slot name="loader">
+          <div class="loader"></div>
+        </slot> 
+      </template>
+
       <div v-if="config && config.setting">
         <h1 v-if="config.setting.showTitle && config.setting.title != ''" class="title grow">
           {{ config.setting.title }}
@@ -33,7 +40,7 @@
 
           <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="grow form_button_top"
               :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
-              :only-icon="onlyIconTop" :disable-submit="data.inSubmission"
+              :only-icon="onlyIconTop" :disable-submit="data.inSubmission || data.loading"
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
               @submit-click="onSubmitForm" @cancel-click="onCancelForm">
               <template #buttons_1="item"><slot name="buttons_1" :item="value"></slot></template>
@@ -123,6 +130,7 @@
                       @change="handleChange"
                       :disabled="
                         data.inSubmission ||
+                        data.loading ||
                         inputIsDisabled(input) ||
                         input.readOnly ||
                         mode == 'view'
@@ -162,6 +170,7 @@
                       @change="handleChange"
                       :disabled="
                         data.inSubmission ||
+                        data.loading ||
                         inputIsDisabled(input) ||
                         input.readOnly ||
                         mode == 'view'
@@ -193,7 +202,14 @@
                       v-model="value[input.field]"
                       :class="{checkboxOffset: input.kind=='checkbox'}"
                       ref="inputs"
-                    />
+                    >
+                      <template v-if="input.useList === true" #option="{option}">
+                        <slot  :name="'input_' + input.field + '_option'" :option="option"></slot>
+                      </template>
+                      <template v-if="input.useList  === true" #selected-option="{option}">
+                        <slot  :name="'input_' + input.field + '_selected-option'"  :option="option"> </slot>
+                      </template>
+                    </s-input>
                   </slot>
                   <slot
                     :name="'input_' + input.field + '_footer'"
@@ -216,7 +232,7 @@
           <div class="mt-2">
             <s-form-buttons v-if="buttonsOnBottom" ref="buttonsBottomCtl" class="form_button_bottom"
                 :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
-                :only-icon="onlyIconBottom" :disable-submit="data.inSubmission" 
+                :only-icon="onlyIconBottom" :disable-submit="data.inSubmission || data.loading" 
                 :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
                 @submit-click="onSubmitForm" @cancel-click="onCancelForm">
                 <template #buttons_1="item"><slot name="buttons_1" :item="item"></slot></template>
@@ -242,9 +258,9 @@
   
       <s-loader v-else />
     </div>
-  </template>
+</template>
   
-  <script setup>
+<script setup>
 import { ref, reactive, computed, onMounted, watch, nextTick } from "vue";
 import SFormButtons from "./SFormButtons.vue";
 import SLoader from "./SLoader.vue";
@@ -302,12 +318,15 @@ defineExpose({
   removeField,
   setFieldAttr,
   submit: onSubmitForm,
+  setLoading,
+  getLoading
 });
 
 //const inputValidities = ref({});
 
 const data = reactive({
   inSubmission: false,
+  loading: false,
   showSubmitError: false,
   submitErrorTxt: "",
   currentTab: props.initialTab,
@@ -446,7 +465,7 @@ function getSection(name) {
 
   props.config.sectionGroups.forEach((g) => {
     g.sections.forEach((s) => {
-      if (s.Title == name) {
+      if (s.title == name) {
         found = true;
         section = s;
       }
@@ -500,7 +519,7 @@ function removeField(name) {
 function setSectionAttr(name, attr, value) {
   props.config.sectionGroups.forEach((sg) => {
     sg.sections.forEach((s) => {
-      if (s.Title == name) {
+      if (s.title == name) {
         s[attr] = value;
       }
     });
@@ -519,6 +538,12 @@ function setFieldAttr(name, attr, value) {
   });
 }
 
+function setLoading(loading){
+  data.loading = loading
+}
+function getLoading(){
+  return data.loading
+}
 watch(
   () => props.modelValue,
   (newValue) => {

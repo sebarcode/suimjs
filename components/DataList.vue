@@ -1,55 +1,102 @@
 <template>
-    <s-card :title="title" class="w-full bg-white suim_datalist" hide-footer :no-gap="noGap" :hide-title="hideTitle">
-      <div v-if="data.listCfg.setting && gridMode == 'list'" v-show="data.controlMode == 'grid'">
-          <s-list ref="gridCtl" class="w-full" :read-url="data.gridReadUrl" :delete-url="data.gridDeleteUrl"
-              :hide-search="gridHideSearch" :hide-control="gridHideControl" :hide-sort="gridHideSort"
-              :hide-delete-button="gridHideDelete" :hide-refresh-button="gridHideRefresh"
-              :hide-new-button="gridHideNew" v-if="data.listCfg.setting" :config="data.listCfg"
-              @select-data="selectData" @new-data="newData">
-              <template v-slot:item="item">
-                  <slot name="list_item" :item="item" :config="data.listCfg">
-                      {{ item }}
-                  </slot>
-              </template>
-              <template #grid_item_buttons_1="item">
-                  <slot name="list_item_buttons_1" :item="item"></slot>
-              </template>
-              <template #grid_item_buttons="item">
-                  <slot name="list_item_buttons" :item="item"></slot>
-              </template>
-              <template #grid_item_buttons_2="item">
-                  <slot name="list_item_buttons_2" :item="item"></slot>
-              </template>
-          </s-list>
-        </div>
+  <s-card
+    :title="title"
+    class="w-full bg-white suim_datalist"
+    hide-footer
+    :no-gap="noGap"
+    :hide-title="hideTitle"
+  >
+    <div
+      v-if="data.listCfg.setting && gridMode == 'list'"
+      v-show="data.controlMode == 'grid'"
+    >
+      <s-list
+        ref="gridCtl"
+        class="w-full"
+        :read-url="data.gridReadUrl"
+        :delete-url="data.gridDeleteUrl"
+        :hide-search="gridHideSearch"
+        :hide-control="gridHideControl"
+        :hide-sort="gridHideSort"
+        :hide-delete-button="gridHideDelete"
+        :hide-refresh-button="gridHideRefresh"
+        :hide-new-button="gridHideNew"
+        v-if="data.listCfg.setting"
+        :config="data.listCfg"
+        @select-data="selectData"
+        @new-data="newData"
+      >
+        <template v-slot:item="item">
+          <slot name="list_item" :item="item" :config="data.listCfg">
+            {{ item }}
+          </slot>
+        </template>
+        <template #grid_item_buttons_1="item">
+          <slot name="list_item_buttons_1" :item="item"></slot>
+        </template>
+        <template #grid_item_buttons="item">
+          <slot name="list_item_buttons" :item="item"></slot>
+        </template>
+        <template #grid_item_buttons_2="item">
+          <slot name="list_item_buttons_2" :item="item"></slot>
+        </template>
+      </s-list>
+    </div>
 
-        <div v-if="data.listCfg.setting && gridMode == 'grid'" v-show="data.controlMode == 'grid'">
-            <s-grid ref="gridCtl" class="w-full" :hide-select="gridHideSelect" :editor="gridEditor"
-                :read-url="data.gridReadUrl" :update-url="data.gridUpdateUrl" :delete-url="data.gridDeleteUrl"
-                :config="data.listCfg" :hide-search="gridHideSearch" :hide-control="gridHideControl"
-                :hide-detail="gridHideDetail"
-                :hide-sort="gridHideSort" :hide-delete-button="gridHideDelete" :label-method="gridLabelMethod"
-                :hide-refresh-button="gridHideRefresh" :hide-new-button="gridHideNew" 
-                :custom-filter="gridCustomFilter" :no-confirm-delete="gridNoConfirmDelete"
-                :auto-commit-line="gridAutoCommitLine"
-                @select-data="selectData" @new-data="newData" @get-data="getData"  @delete-data="handleGridRowDelete"
-                @row-updated="gridRowUpdated" @row-field-changed="handleGridFieldChanged" @save-row-data="handleGridRowSave"
-                @row-deleted="handleGridRowDeleted" @grid-refreshed="handleGridRefreshed">
-                <template #header_search="{config}">
-                    <slot name="grid_header_search" :config="config"></slot>
-                </template>
-                <template #header_buttons_1="{ config }">
-                    <slot name="grid_header_buttons_1" :config="config"></slot>
-                </template>
-                <template #header_buttons="{ config }">
-                    <slot name="grid_header_buttons" :config="config"></slot>
-                </template>
-                <template #header_buttons_2="{ config }">
-                    <slot name="grid_header_buttons_2" :config="config"></slot>
-                </template>
-                <template #item_buttons_1="prop">
-                    <slot name="grid_item_buttons_1" :item="prop.item" :config="prop.config" />
-                </template>
+    <div
+      v-if="data.listCfg.setting && gridMode == 'grid'"
+      v-show="data.controlMode == 'grid'"
+    >
+      <s-grid
+        ref="gridCtl"
+        class="w-full"
+        :hide-select="gridHideSelect"
+        :editor="gridEditor"
+        :read-url="data.gridReadUrl"
+        :update-url="data.gridUpdateUrl"
+        :delete-url="data.gridDeleteUrl"
+        :config="data.listCfg"
+        :hide-search="gridHideSearch"
+        :hide-control="gridHideControl"
+        :hide-detail="gridHideDetail"
+        :hide-sort="gridHideSort"
+        :hide-delete-button="gridHideDelete"
+        :label-method="gridLabelMethod"
+        :hide-refresh-button="gridHideRefresh"
+        :hide-new-button="gridHideNew"
+        :custom-filter="gridCustomFilter"
+        :no-confirm-delete="gridNoConfirmDelete"
+        :auto-commit-line="gridAutoCommitLine"
+        :total-url="gridTotalUrl"
+        @select-data="selectData"
+        @new-data="newData"
+        @get-data="getData"
+        @delete-data="handleGridRowDelete"
+        @row-updated="gridRowUpdated"
+        @row-field-changed="handleGridFieldChanged"
+        @save-row-data="handleGridRowSave"
+        @row-deleted="handleGridRowDeleted"
+        @grid-refreshed="handleGridRefreshed"
+      >
+        <template #header_search="{ config }">
+          <slot name="grid_header_search" :config="config"></slot>
+        </template>
+        <template #header_buttons_1="{ config }">
+          <slot name="grid_header_buttons_1" :config="config"></slot>
+        </template>
+        <template #header_buttons="{ config }">
+          <slot name="grid_header_buttons" :config="config"></slot>
+        </template>
+        <template #header_buttons_2="{ config }">
+          <slot name="grid_header_buttons_2" :config="config"></slot>
+        </template>
+        <template #item_buttons_1="prop">
+          <slot
+            name="grid_item_buttons_1"
+            :item="prop.item"
+            :config="prop.config"
+          />
+        </template>
 
         <template #item_buttons="prop">
           <slot
@@ -77,6 +124,10 @@
             :config="slotData.config"
           ></slot>
         </template>
+
+        <template #grid_total="prop">
+          <slot name="grid_item_total" :item="prop.item"></slot>
+        </template>
       </s-grid>
     </div>
 
@@ -100,6 +151,18 @@
       @fieldChange="handleFormFieldChange"
       @recordChange="handleFormRecordChange"
     >
+
+      <template
+        v-for="name in formFieldInputHeaderSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :item="slotData.item"
+          :config="slotData.config"
+        ></slot>
+      </template>
+
       <template
         v-for="name in formFieldInputSlotNames"
         v-slot:[name]="slotData"
@@ -108,6 +171,40 @@
           :name="'form_' + name"
           :item="slotData.item"
           :config="slotData.config"
+        ></slot>
+      </template>
+
+
+
+      <template
+        v-for="name in formFieldInputFooterSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :item="slotData.item"
+          :config="slotData.config"
+        ></slot>
+      </template>
+
+
+      <template
+        v-for="name in formFieldInputOptionSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :option="slotData.option" 
+        ></slot>
+      </template>
+
+      <template
+        v-for="name in formFieldInputSelectedOptionSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :option="slotData.option" 
         ></slot>
       </template>
 
@@ -123,6 +220,14 @@
         >
           {{ tabName }}
         </slot>
+      </template>
+      
+      <template #form_header="{item, config}">
+        <slot name="form_header" :item="item" :config="config"></slot>
+      </template>
+
+      <template #loader>
+        <slot name="form_loader"></slot>
       </template>
 
       <template #buttons>
@@ -203,6 +308,7 @@ const props = defineProps({
   gridRead: { type: String, default: "" },
   gridUpdate: { type: String, default: "" },
   gridDelete: { type: String, default: "" },
+  gridTotalUrl: { type: String, default: "" },
   stayOnFormAfterSave: { type: Boolean, default: false },
   formTabsNew: { type: Array, default: () => [] },
   formTabsEdit: { type: Array, default: () => [] },
@@ -327,6 +433,38 @@ const formFieldInputSlotNames = computed({
   get() {
     return props.formFields.map((el) => {
       return "input_" + el;
+    });
+  },
+});
+
+const formFieldInputHeaderSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_header";
+    });
+  },
+});
+
+const formFieldInputFooterSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_footer";
+    });
+  },
+});
+
+const formFieldInputOptionSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_option";
+    });
+  },
+});
+
+const formFieldInputSelectedOptionSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_selected-option";
     });
   },
 });
@@ -589,6 +727,8 @@ function getControlMode() {
 }
 
 function setGridRecords(items) {
+  console.log(items);
+  console.log(data.listCfg.setting, props.gridMode);
   gridCtl.value.setRecords(items);
 }
 
@@ -622,6 +762,16 @@ function setGridSortDirection(d) {
 
 function getGridSelected() {
   return gridCtl.value.getSelected;
+}
+
+function setFormLoading(loading){
+  formCtl.value.setLoading(loading)
+}
+function getFormLoading(){
+  return formCtl.value.getLoading()
+}
+function formValidate(){
+  return formCtl.value.validate()
 }
 
 defineExpose({
@@ -659,6 +809,9 @@ defineExpose({
   setGridSortField,
   getGridSortDirection,
   setGridSortDirection,
+  setFormLoading,
+  getFormLoading, 
+  formValidate
 });
 
 onMounted(() => {
