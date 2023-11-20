@@ -774,6 +774,19 @@ function formValidate(){
   return formCtl.value.validate()
 }
 
+function setFormCurrentTab(formCurrentTab){
+  if (formCtl.value == undefined) { 
+    return;
+  }
+  formCtl.value.setCurrentTab(formCurrentTab)
+}
+function getFormCurrentTab(){
+  if (formCtl.value == undefined) { 
+    return;
+  }
+  return formCtl.value.getCurrentTab()
+}
+
 defineExpose({
   getGridRecords,
   getGridRecord,
@@ -811,7 +824,9 @@ defineExpose({
   setGridSortDirection,
   setFormLoading,
   getFormLoading, 
-  formValidate
+  formValidate,
+  setFormCurrentTab,
+  getFormCurrentTab
 });
 
 onMounted(() => {

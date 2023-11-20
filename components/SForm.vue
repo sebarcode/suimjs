@@ -319,7 +319,9 @@ defineExpose({
   setFieldAttr,
   submit: onSubmitForm,
   setLoading,
-  getLoading
+  getLoading,  
+  setCurrentTab,
+  getCurrentTab
 });
 
 //const inputValidities = ref({});
@@ -331,6 +333,7 @@ const data = reactive({
   submitErrorTxt: "",
   currentTab: props.initialTab,
   changeFields: [],
+
 });
 
 const inputIsDisabled = (input) => {
@@ -544,6 +547,15 @@ function setLoading(loading){
 function getLoading(){
   return data.loading
 }
+
+function setCurrentTab(tabIdx){
+  if(props.tabs.length > 1) data.currentTab = isNaN(parseInt(tabIdx)) ? 0 : parseInt(tabIdx)
+
+}
+function getCurrentTab(){
+  return data.currentTab
+}
+
 watch(
   () => props.modelValue,
   (newValue) => {
