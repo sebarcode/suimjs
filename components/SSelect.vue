@@ -15,7 +15,14 @@
       @search:focus="onFocus"
       v-model="value"
       ref="vs"
-    />
+    >
+      <template #selected-option="option">
+        <slot name="selected" :item="option"> </slot>
+      </template>
+      <template #option="option"> 
+        <slot name="option" :option="option" ></slot>
+      </template>
+    </v-select>
 
     <v-select
       v-else
@@ -27,7 +34,7 @@
       @option:selected="selectItem"
       :multiple="multiple"
       :taggable="allowAdd"
-      :filterable="false"
+      :filterable="!allowAdd"
       :options="data.options"
       :select-on-key-codes="[188, 13]"
       :reduce="reduceItem"
@@ -35,7 +42,14 @@
       @search:focus="onFocus"
       v-model="value"
       ref="vs"
-    />
+    >
+        <template #selected-option="option">
+          <slot name="selected-option" :option="option"> </slot>
+        </template>    
+        <template #option="option"> 
+          <slot name="option" :option="option" ></slot>
+        </template>
+    </v-select>
   </div>
   <div v-else>
     <div class="border-b border-slate-300 py-1">
@@ -193,6 +207,7 @@ function fetchOptions(search, loading) {
         return {
           key: d[props.lookupKey],
           text: getValue2(d),
+          item: {...d}
         };
       });
 

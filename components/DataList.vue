@@ -151,6 +151,18 @@
       @fieldChange="handleFormFieldChange"
       @recordChange="handleFormRecordChange"
     >
+
+      <template
+        v-for="name in formFieldInputHeaderSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :item="slotData.item"
+          :config="slotData.config"
+        ></slot>
+      </template>
+
       <template
         v-for="name in formFieldInputSlotNames"
         v-slot:[name]="slotData"
@@ -159,6 +171,40 @@
           :name="'form_' + name"
           :item="slotData.item"
           :config="slotData.config"
+        ></slot>
+      </template>
+
+
+
+      <template
+        v-for="name in formFieldInputFooterSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :item="slotData.item"
+          :config="slotData.config"
+        ></slot>
+      </template>
+
+
+      <template
+        v-for="name in formFieldInputOptionSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :option="slotData.option" 
+        ></slot>
+      </template>
+
+      <template
+        v-for="name in formFieldInputSelectedOptionSlotNames"
+        v-slot:[name]="slotData"
+      >
+        <slot
+          :name="'form_' + name"
+          :option="slotData.option" 
         ></slot>
       </template>
 
@@ -174,6 +220,14 @@
         >
           {{ tabName }}
         </slot>
+      </template>
+      
+      <template #form_header="{item, config}">
+        <slot name="form_header" :item="item" :config="config"></slot>
+      </template>
+
+      <template #loader>
+        <slot name="form_loader"></slot>
       </template>
 
       <template #buttons>
@@ -379,6 +433,38 @@ const formFieldInputSlotNames = computed({
   get() {
     return props.formFields.map((el) => {
       return "input_" + el;
+    });
+  },
+});
+
+const formFieldInputHeaderSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_header";
+    });
+  },
+});
+
+const formFieldInputFooterSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_footer";
+    });
+  },
+});
+
+const formFieldInputOptionSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_option";
+    });
+  },
+});
+
+const formFieldInputSelectedOptionSlotNames = computed({
+  get() {
+    return props.formFields.map((el) => {
+      return "input_" + el + "_selected-option";
     });
   },
 });
@@ -641,6 +727,8 @@ function getControlMode() {
 }
 
 function setGridRecords(items) {
+  console.log(items);
+  console.log(data.listCfg.setting, props.gridMode);
   gridCtl.value.setRecords(items);
 }
 
@@ -674,6 +762,29 @@ function setGridSortDirection(d) {
 
 function getGridSelected() {
   return gridCtl.value.getSelected;
+}
+
+function setFormLoading(loading){
+  formCtl.value.setLoading(loading)
+}
+function getFormLoading(){
+  return formCtl.value.getLoading()
+}
+function formValidate(){
+  return formCtl.value.validate()
+}
+
+function setFormCurrentTab(formCurrentTab){
+  if (formCtl.value == undefined) { 
+    return;
+  }
+  formCtl.value.setCurrentTab(formCurrentTab)
+}
+function getFormCurrentTab(){
+  if (formCtl.value == undefined) { 
+    return;
+  }
+  return formCtl.value.getCurrentTab()
 }
 
 defineExpose({
@@ -711,6 +822,11 @@ defineExpose({
   setGridSortField,
   getGridSortDirection,
   setGridSortDirection,
+  setFormLoading,
+  getFormLoading, 
+  formValidate,
+  setFormCurrentTab,
+  getFormCurrentTab
 });
 
 onMounted(() => {

@@ -90,7 +90,14 @@
           :disabled="disabled"
           :multiple="multiple"
           @focus="onFocus"
-        />
+        >
+          <template #option="{option}">
+            <slot name="option" :option="option" ></slot>
+          </template>
+          <template #selected-option="{option}">
+            <slot name="selected-option" :option="option"></slot>
+          </template>
+        </s-select>
       </div>
 
       <!-- html -->
