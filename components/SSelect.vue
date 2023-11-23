@@ -34,7 +34,7 @@
       @option:selected="selectItem"
       :multiple="multiple"
       :taggable="allowAdd"
-      :filterable="false"
+      :filterable="!allowAdd"
       :options="data.options"
       :select-on-key-codes="[188, 13]"
       :reduce="reduceItem"
