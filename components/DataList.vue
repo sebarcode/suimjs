@@ -626,7 +626,7 @@ function setFormFieldAttr(name, attr, value) {
   if (formCtl.value == undefined) {
     console.warn("calling setFormFieldAttr when form is not yet initiated");
     return;
-  }
+  } 
   formCtl.value.setFieldAttr(name, attr, value);
 }
 
@@ -786,6 +786,13 @@ function getFormCurrentTab(){
   }
   return formCtl.value.getCurrentTab()
 }
+function getFormAllField(){
+  if (formCtl.value == undefined) { 
+    return []
+  }
+  return formCtl.value.getAllField()
+  
+}
 
 defineExpose({
   getGridRecords,
@@ -826,7 +833,8 @@ defineExpose({
   getFormLoading, 
   formValidate,
   setFormCurrentTab,
-  getFormCurrentTab
+  getFormCurrentTab,
+  getFormAllField
 });
 
 onMounted(() => {

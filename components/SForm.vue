@@ -321,7 +321,8 @@ defineExpose({
   setLoading,
   getLoading,  
   setCurrentTab,
-  getCurrentTab
+  getCurrentTab,
+  getAllField
 });
 
 //const inputValidities = ref({});
@@ -498,9 +499,23 @@ function getField(name) {
         });
       });
     });
-  });
+  }); 
 
   if (found) return field;
+}
+
+function getAllField(){
+  let fields = []
+  props.config.sectionGroups.forEach((g) => {
+    g.sections.forEach((section) => {
+      section.rows.forEach((row) => {
+        row.inputs.forEach((input) => {
+          fields.push(input)
+        });
+      });
+    });
+  });
+  return fields
 }
 
 function removeField(name) {
