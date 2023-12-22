@@ -77,6 +77,8 @@
         @save-row-data="handleGridRowSave"
         @row-deleted="handleGridRowDeleted"
         @grid-refreshed="handleGridRefreshed"
+        @checkUncheckAll="onCheckUncheckAll"
+        @checkUncheck="onCheckUncheck"
       >
         <template #header_search="{ config }">
           <slot name="grid_header_search" :config="config"></slot>
@@ -151,7 +153,6 @@
       @fieldChange="handleFormFieldChange"
       @recordChange="handleFormRecordChange"
     >
-
       <template
         v-for="name in formFieldInputHeaderSlotNames"
         v-slot:[name]="slotData"
@@ -174,8 +175,6 @@
         ></slot>
       </template>
 
-
-
       <template
         v-for="name in formFieldInputFooterSlotNames"
         v-slot:[name]="slotData"
@@ -187,25 +186,18 @@
         ></slot>
       </template>
 
-
       <template
         v-for="name in formFieldInputOptionSlotNames"
         v-slot:[name]="slotData"
       >
-        <slot
-          :name="'form_' + name"
-          :option="slotData.option" 
-        ></slot>
+        <slot :name="'form_' + name" :option="slotData.option"></slot>
       </template>
 
       <template
         v-for="name in formFieldInputSelectedOptionSlotNames"
         v-slot:[name]="slotData"
       >
-        <slot
-          :name="'form_' + name"
-          :option="slotData.option" 
-        ></slot>
+        <slot :name="'form_' + name" :option="slotData.option"></slot>
       </template>
 
       <template v-for="tabName in formTabNames" v-slot:[tabName]="{ item }">
@@ -221,8 +213,8 @@
           {{ tabName }}
         </slot>
       </template>
-      
-      <template #form_header="{item, config}">
+
+      <template #form_header="{ item, config }">
         <slot name="form_header" :item="item" :config="config"></slot>
       </template>
 
@@ -339,6 +331,8 @@ const emit = defineEmits({
   gridRowFieldChanged: null,
   controlModeChanged: null,
   formModeChanged: null,
+  gridCheckUncheckAll: null,
+  gridCheckUncheck: null,
 });
 
 const data = reactive({
@@ -626,7 +620,7 @@ function setFormFieldAttr(name, attr, value) {
   if (formCtl.value == undefined) {
     console.warn("calling setFormFieldAttr when form is not yet initiated");
     return;
-  } 
+  }
   formCtl.value.setFieldAttr(name, attr, value);
 }
 
@@ -764,34 +758,41 @@ function getGridSelected() {
   return gridCtl.value.getSelected;
 }
 
-function setFormLoading(loading){
-  formCtl.value.setLoading(loading)
+function setFormLoading(loading) {
+  formCtl.value.setLoading(loading);
 }
-function getFormLoading(){
-  return formCtl.value.getLoading()
+function getFormLoading() {
+  return formCtl.value.getLoading();
 }
-function formValidate(){
-  return formCtl.value.validate()
+function formValidate() {
+  return formCtl.value.validate();
 }
 
-function setFormCurrentTab(formCurrentTab){
-  if (formCtl.value == undefined) { 
+function setFormCurrentTab(formCurrentTab) {
+  if (formCtl.value == undefined) {
     return;
   }
-  formCtl.value.setCurrentTab(formCurrentTab)
+  formCtl.value.setCurrentTab(formCurrentTab);
 }
-function getFormCurrentTab(){
-  if (formCtl.value == undefined) { 
+function getFormCurrentTab() {
+  if (formCtl.value == undefined) {
     return;
   }
-  return formCtl.value.getCurrentTab()
+  return formCtl.value.getCurrentTab();
 }
-function getFormAllField(){
-  if (formCtl.value == undefined) { 
-    return []
+function getFormAllField() {
+  if (formCtl.value == undefined) {
+    return [];
   }
-  return formCtl.value.getAllField()
-  
+  return formCtl.value.getAllField();
+}
+
+function onCheckUncheckAll(checked) {
+  emit("gridCheckUncheckAll", checked);
+}
+
+function onCheckUncheck(val) {
+  emit("gridCheckUncheck", val);
 }
 
 defineExpose({
@@ -830,11 +831,11 @@ defineExpose({
   getGridSortDirection,
   setGridSortDirection,
   setFormLoading,
-  getFormLoading, 
+  getFormLoading,
   formValidate,
   setFormCurrentTab,
   getFormCurrentTab,
-  getFormAllField
+  getFormAllField,
 });
 
 onMounted(() => {

@@ -96,7 +96,13 @@
               @dblclick="selectData(r, 'detail', true)"
             >
               <td class="w-[30px] text-center" v-if="!hideSelect">
-                <input type="checkbox" v-model="r.isSelected" />
+                <!-- <input type="checkbox" v-model="r.isSelected" /> -->
+                <slot name="checkbox" :item="r"
+                  ><input
+                    type="checkbox"
+                    v-model="r.isSelected"
+                    @change="checkUncheck(r)"
+                /></slot>
               </td>
 
               <td
@@ -345,6 +351,8 @@ const emit = defineEmits({
   gridRefreshed: null,
   "update:modelValue": null,
   refreshTotal: null,
+  checkUncheckAll: null,
+  checkUncheck: null,
 });
 
 const data = reactive({
@@ -456,6 +464,7 @@ function setLoading(loading) {
 function checkUncheckAll(ev) {
   const checked = ev.target.checked;
   data.items.forEach((i) => (i.isSelected = checked));
+  emit("checkUncheckAll", checked);
 }
 
 function changeSortDirection() {
@@ -669,6 +678,9 @@ function getSelected() {
   return selecteds;
 }
 
+function checkUncheck(item) {
+  emit("checkUncheck", item);
+}
 defineExpose({
   getCurrentIndex,
   getRecords,
