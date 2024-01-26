@@ -1,4 +1,4 @@
-<template>
+<template> 
   <s-card
     :title="title"
     class="w-full bg-white suim_datalist"
@@ -21,6 +21,8 @@
         :hide-delete-button="gridHideDelete"
         :hide-refresh-button="gridHideRefresh"
         :hide-new-button="gridHideNew"
+        :sort-field="gridSortField"
+        :sort-direction="gridSortDirection"
         v-if="data.listCfg.setting"
         :config="data.listCfg"
         @select-data="selectData"
@@ -68,6 +70,8 @@
         :no-confirm-delete="gridNoConfirmDelete"
         :auto-commit-line="gridAutoCommitLine"
         :total-url="gridTotalUrl"
+        :sort-field="gridSortField"
+        :sort-direction="gridSortDirection"
         @select-data="selectData"
         @new-data="newData"
         @get-data="getData"
@@ -287,6 +291,8 @@ const props = defineProps({
   gridHideNew: { type: Boolean, default: false },
   gridHideRefresh: { type: Boolean, default: false },
   gridHideDelete: { type: Boolean, default: false },
+  gridSortField: {type: String, default:""},
+  gridSortDirection: {type: String, default:""},
   gridCustomFilter: { type: Object, default: () => {} },
   gridNoConfirmDelete: { type: Boolean, default: false },
   formFields: { type: Array, default: () => [] },
