@@ -28,6 +28,9 @@
             </div>
             <div v-else>&nbsp;</div>
         </div>
+        <div v-else-if="columnConfig.field=='_id' && record[columnConfig.field].length>20">
+            {{ record[columnConfig.field].substr(record[columnConfig.field].length-8,8) }}
+        </div>
         <div v-else>
             {{ record[columnConfig.field] }}
         </div>
@@ -71,7 +74,7 @@ function getLabel() {
 }
 
 onMounted(() => {
-    getLabel()
+    // getLabel()
 })
 
 </script>
