@@ -270,7 +270,7 @@ const props = defineProps({
   },
   bgColor: { type: String, default: "bg-transparent" },
   multiRow: { type: Number, default: 1 },
-  allowAdd: { type: Boolean, default: true },
+  allowAdd: { type: Boolean, default: false },
   required: { type: Boolean, default: false },
   readOnly: { type: Boolean },
   hideLabel: { type: Boolean },
