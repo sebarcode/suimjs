@@ -1,28 +1,49 @@
 <template>
-  <button class="flex gap-1 btn items-center" :disabled="disabled" @click="emit('click')">
+  <button class="flex gap-1 btn items-center" :disabled="disableBtn" @click="clickBtn">
     <mdicon width="14" :name="icon" v-if="icon != ''" />
     <div class="mt-0" v-if="label!=''">{{ label }}</div>
   </button>
 </template>
 
 <script setup>
-//import { reactive, ref, computed } from "vue";
+import { getCurrentInstance } from 'vue';
+import { reactive } from 'vue';
+import { computed } from 'vue';
 
 const props = defineProps({
   label: { type: String, default: "" },
   icon: { type: String, default: "" },
   disabled: { type: Boolean, default: false },
-  /*
-  bgColor: { type: String, default: "primary" },
-  textColor: { type: String, default: "" },
-  rounded: { type: String, default: "" },
-  kind: { type: String, default: "button" }, // kind: button, link, fab, icon
-  */
+  disableWhenClicked: { type: Boolean, default: false },
 });
+
+const data = reactive({
+  disabled: false
+})
 
 const emit = defineEmits({
   click: null,
+  clickAndDisable: null
 });
+
+function clickBtn() {
+  if (props.disableWhenClicked) {
+    data.disabled = true;
+    emit("clickAndDisable", () => {
+      data.disabled = false;
+    });
+  } else {
+    emit("click");
+  }
+}
+
+const disableBtn = computed({
+  get() {
+    return props.disabled || data.disabled;
+  }
+})
+
+
 </script>
 
 <style scoped>

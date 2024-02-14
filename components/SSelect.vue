@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, reactive, ref } from "vue";
+import { computed, inject, onMounted, reactive, ref, watch } from "vue";
 import util from '../scripts/util';
 
 const props = defineProps({
@@ -100,6 +100,12 @@ const data = reactive({
       : props.items.map((el) => {
           return typeof el == "object" ? el : { key: el, text: el };
         }),
+});
+
+watch(() => props.items, (nv) => {
+  data.options = nv.map((el) => {
+      return typeof el == "object" ? el : { key: el, text: el };
+    });
 });
 
 const vs = ref(null);

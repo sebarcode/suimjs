@@ -289,6 +289,7 @@ const props = defineProps({
   gridNoConfirmDelete: { type: Boolean, default: false },
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
+  formConfigNew: { type: [String, Object], default: () => {} },
   formDefaultMode: { type: String, default: "edit" },
   formRead: { type: String, default: "" },
   formInsert: { type: String, default: "" },
@@ -593,7 +594,7 @@ function refreshList() {
       emit("alterGridConfig", r);
       data.listCfg = r;
     },
-    (e) => util.showError(e)
+    //(e) => util.showError(e)
   );
   if (typeof props.gridRead == "string") data.gridReadUrl = props.gridRead;
 }
@@ -605,7 +606,7 @@ function refreshForm() {
       emit("alterFormConfig", r);
       data.formCfg = r;
     },
-    (e) => util.showError(e)
+    //(e) => util.showError(e)
   );
 }
 
@@ -727,8 +728,6 @@ function getControlMode() {
 }
 
 function setGridRecords(items) {
-  console.log(items);
-  console.log(data.listCfg.setting, props.gridMode);
   gridCtl.value.setRecords(items);
 }
 

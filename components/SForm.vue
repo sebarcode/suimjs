@@ -39,9 +39,10 @@
           </div>
 
           <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="grow form_button_top"
-              :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
+              :hide-buttons="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit" 
               :only-icon="onlyIconTop" :disable-submit="data.inSubmission || data.loading"
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
+              :tab="data.currentTab"
               @submit-click="onSubmitForm" @cancel-click="onCancelForm">
               <template #buttons_1="item"><slot name="buttons_1" :item="value"></slot></template>
               <template #buttons="item"><slot name="buttons" :item="value"></slot></template>
@@ -231,9 +232,10 @@
   
           <div class="mt-2">
             <s-form-buttons v-if="buttonsOnBottom" ref="buttonsBottomCtl" class="form_button_bottom"
-                :hide-buttoms="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
+                :hide-buttons="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
                 :only-icon="onlyIconBottom" :disable-submit="data.inSubmission || data.loading" 
                 :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
+                :tab="data.currentTab"
                 @submit-click="onSubmitForm" @cancel-click="onCancelForm">
                 <template #buttons_1="item"><slot name="buttons_1" :item="item"></slot></template>
                 <template #buttons="item"><slot name="buttons" :item="item"></slot></template>
