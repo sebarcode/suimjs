@@ -1,5 +1,5 @@
 <template>
-  <div class="has-tooltip relative flex flex-col items-center group">
+  <div class="has_suim_tooltip relative flex flex-col items-center group">
     <button
       class="flex gap-1 btn items-center"
       :disabled="disableBtn"
@@ -10,13 +10,13 @@
     </button>
     <div
       v-if="isTooltip"
-      class="tooltip absolute flex flex-col items-center group-hover:flex rounded"
+      class="suim_tooltip absolute flex flex-col items-center group-hover:flex rounded"
     >
       <span
         class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
         >{{ label ? label : tooltip }}</span
       >
-      <div class="w-3 h-3 -mt-2 rotate-45 bg-black arrow-bottom"></div>
+      <div class="rotate-45 bg-black arrow-bottom"></div>
     </div>
   </div>
 </template>
@@ -73,14 +73,14 @@ const disableBtn = computed({
   height: 2rem;
 }
 
-.tooltip {
+.suim_tooltip {
   visibility: hidden;
   background-color: #333333;
   top: -50px;
   z-index: 100;
   width: max-content;
 }
-.has-tooltip:hover .tooltip {
+.has_suim_tooltip:hover .suim_tooltip {
   visibility: visible;
 }
 .arrow-bottom {
