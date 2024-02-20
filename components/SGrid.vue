@@ -355,6 +355,7 @@ const emit = defineEmits({
   refreshTotal: null,
   checkUncheckAll: null,
   checkUncheck: null,
+  resetCustomFilter:null,
 });
 
 const data = reactive({
@@ -374,6 +375,10 @@ const data = reactive({
 });
 
 const deleteModal = ref(null);
+
+function resetCustomFilter(){
+  emit("resetCustomFilter")
+}
 
 function rowFieldFocus(name, v1, v2, ctlRef) {
   const prevIndex = data.currentIndex;
@@ -525,7 +530,11 @@ function queryParam() {
   }
   return param;
 }
+function resetFilter(){
+  data.keyword ="";
+  resetCustomFilter()
 
+}
 function refreshData(callBackFn) {
   if (props.readUrl == undefined || props.readUrl == "") {
     emit("getData", data.keyword);
@@ -701,6 +710,7 @@ defineExpose({
   setLoading,
   setRecords,
   setTotal,
+  resetFilter,
 });
 
 onMounted(() => {

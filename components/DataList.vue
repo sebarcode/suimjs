@@ -27,6 +27,7 @@
         :config="data.listCfg"
         @select-data="selectData"
         @new-data="newData"
+        @resetCustomFilter="handleGridResetCustomFilter"
       >
         <template v-slot:item="item">
           <slot name="list_item" :item="item" :config="data.listCfg">
@@ -83,6 +84,7 @@
         @grid-refreshed="handleGridRefreshed"
         @checkUncheckAll="onCheckUncheckAll"
         @checkUncheck="onCheckUncheck"
+        @resetCustomFilter="handleGridResetCustomFilter"
       >
         <template #header_search="{ config }">
           <slot name="grid_header_search" :config="config"></slot>
@@ -340,6 +342,7 @@ const emit = defineEmits({
   formModeChanged: null,
   gridCheckUncheckAll: null,
   gridCheckUncheck: null,
+  gridResetCustomFilter:null,
 });
 
 const data = reactive({
@@ -371,7 +374,9 @@ watch(
     emit("formModeChanged", nv);
   }
 );
-
+function handleGridResetCustomFilter(){ 
+  emit("gridResetCustomFilter")
+}
 function handleFormFieldChange(name, v1, v2, old) {
   emit("formFieldChange", name, v1, v2, old, data.record);
 }
@@ -563,7 +568,7 @@ function save(saveData, cbOK, cbFalse) {
       emit("gridRowUpdated", record);
       if (!props.stayOnFormAfterSave) {
         data.controlMode = "grid";
-        nextTick(() => {
+        nextTick(() => { 
           gridCtl.value.refreshData();
         });
       } else {
@@ -791,7 +796,9 @@ function getFormAllField() {
   }
   return formCtl.value.getAllField();
 }
-
+function gridResetFilter(){
+  gridCtl.value.resetFilter();
+}
 function onCheckUncheckAll(checked) {
   emit("gridCheckUncheckAll", checked);
 }
@@ -841,6 +848,7 @@ defineExpose({
   setFormCurrentTab,
   getFormCurrentTab,
   getFormAllField,
+  gridResetFilter
 });
 
 onMounted(() => {
