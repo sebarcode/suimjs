@@ -569,7 +569,10 @@ function save(saveData, cbOK, cbFalse) {
       if (!props.stayOnFormAfterSave) {
         data.controlMode = "grid";
         nextTick(() => { 
-          gridCtl.value.refreshData();
+          gridCtl.value.resetFilter()
+          nextTick(() => {
+            gridCtl.value.refreshData();
+          })
         });
       } else {
         util.showInfo("data has been saved");
