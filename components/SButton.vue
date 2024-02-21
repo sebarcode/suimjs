@@ -1,29 +1,40 @@
 <template>
-  <button class="flex gap-1 btn items-center" :disabled="disableBtn" @click="clickBtn">
-    <mdicon width="14" :name="icon" v-if="icon != ''" />
-    <div class="mt-0" v-if="label!=''">{{ label }}</div>
-  </button>
+  <s-tooltip :no-tooltip="noTooltip" :tooltip="label ? label : tooltip">
+    <template #content>
+      <button
+        class="flex gap-1 btn items-center"
+        :disabled="disableBtn"
+        @click="clickBtn"
+      >
+        <mdicon width="14" :name="icon" v-if="icon != ''" />
+        <div class="mt-0" v-if="label != ''">{{ label }}</div>
+      </button>
+    </template>
+  </s-tooltip>
 </template>
 
 <script setup>
-import { getCurrentInstance } from 'vue';
-import { reactive } from 'vue';
-import { computed } from 'vue';
+import STooltip from "./STooltip.vue";
+import { getCurrentInstance } from "vue";
+import { reactive } from "vue";
+import { computed } from "vue";
 
 const props = defineProps({
   label: { type: String, default: "" },
   icon: { type: String, default: "" },
   disabled: { type: Boolean, default: false },
   disableWhenClicked: { type: Boolean, default: false },
+  tooltip: { type: String, default: "tooltip" },
+  noTooltip: { type: String, default: false },
 });
 
 const data = reactive({
-  disabled: false
-})
+  disabled: false,
+});
 
 const emit = defineEmits({
   click: null,
-  clickAndDisable: null
+  clickAndDisable: null,
 });
 
 function clickBtn() {
@@ -40,16 +51,13 @@ function clickBtn() {
 const disableBtn = computed({
   get() {
     return props.disabled || data.disabled;
-  }
-})
-
-
+  },
+});
 </script>
 
 <style scoped>
-
 .btn {
-  @apply hover:opacity-60 
+  @apply hover:opacity-60
     disabled:opacity-30
     border-none normal-case px-2 font-normal
     rounded-sm;

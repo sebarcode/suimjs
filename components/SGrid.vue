@@ -38,12 +38,14 @@
           <s-button
             icon="refresh"
             class="btn_primary refresh_btn"
+            tooltip="refresh"
             @click="refreshData"
             v-if="!hideRefreshButton"
           />
           <s-button
             icon="plus"
             class="btn_primary new_btn"
+            tooltip="add new"
             @click="newData"
             v-if="!hideNewButton"
             :disabled="data.recordChanged && !hideSaveButton"
@@ -320,8 +322,8 @@ const props = defineProps({
   pageSize: { type: Number, default: 25 },
   hideHeader: { type: Boolean, default: false },
   editor: { type: Boolean, default: false },
-  sortField:{ type: String, default:""},
-  sortDirection: { type: String, default:""},
+  sortField: { type: String, default: "" },
+  sortDirection: { type: String, default: "" },
   autoCommitLine: { type: Boolean, default: false },
   labelMethod: { type: String, default: "database" },
   noConfirmDelete: { type: Boolean },
@@ -362,8 +364,13 @@ const data = reactive({
   items: props.modelValue == undefined ? [] : props.modelValue,
   recordCount: props.modelValue == undefined ? 0 : props.modelValue.length,
   currentPage: 1,
-  sortField: props.sortField == undefined || props.sortField == '' ? "_id" : props.sortField,
-  sortDirection: ["asc","desc"].includes(props.sortField) ?  props.sortDirection : "desc",
+  sortField:
+    props.sortField == undefined || props.sortField == ""
+      ? "_id"
+      : props.sortField,
+  sortDirection: ["asc", "desc"].includes(props.sortField)
+    ? props.sortDirection
+    : "desc",
   pageSize: props.pageSize,
   deleteFn: undefined,
   loading: false,
