@@ -179,6 +179,7 @@ const props = defineProps({
   col: { type: Number, default: 1 },
   gap: { type: Number, default: 0 },
   modelValue: { type: Array, default: () => [] },
+  customFilter: { type: Object, default: () => {} },
   config: { type: Object, default: () => {} },
   readUrl: { type: String, default: "" },
   deleteUrl: { type: String, default: "" },
@@ -205,6 +206,7 @@ const emit = defineEmits({
   selectData: null,
   deleteData: null,
   "modelValue:update": null,
+  resetCustomFilter:null,
 });
 
 const data = reactive({
@@ -295,8 +297,9 @@ function queryParam() {
     Take: data.pageSize,
   };
 
-  if (keywordFields.length > 0) {
-    const where = {
+  const filters = [];
+  if (keywordFields.length > 0 && data.keyword && data.keyword != "") {
+    filters.push({
       Op: "$or",
       Items: keywordFields.map((k) => {
         return {
@@ -305,9 +308,15 @@ function queryParam() {
           Value: [data.keyword],
         };
       }),
-    };
-    param.Where = where;
+    });
   }
+
+  if (props.customFilter && props.customFilter.Op != "")
+    filters.push(props.customFilter);
+  if (filters.length > 0)
+    param.Where =
+      filters.length === 1 ? filters[0] : { Op: "$and", Items: filters };
+
 
   if (data.sortField != "") {
     if (data.sortDirection == "asc") {
