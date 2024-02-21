@@ -253,20 +253,20 @@
         <slot name="form_buttons"></slot>
       </template>
 
-      <template #buttons_1="{ item, config }">
-        <slot name="form_buttons_1" :item="item" :config="config"></slot>
+      <template #buttons_1="{ item, config,inSubmission,loading }">
+        <slot name="form_buttons_1" :item="item" :config="config" :in-submission="inSubmission" :loading="loading"></slot>
       </template>
 
       <template #buttons_2="{ item, config }">
-        <slot name="form_buttons_2" :item="item" :config="config"></slot>
+        <slot name="form_buttons_2" :item="item" :config="config" :in-submission="inSubmission" :loading="loading"></slot>
       </template>
 
       <template v-slot:footer_1="{ item, config }">
-        <slot name="form_footer_1" :item="item" :config="config"></slot>
+        <slot name="form_footer_1" :item="item" :config="config" :in-submission="inSubmission" :loading="loading"></slot>
       </template>
 
       <template v-slot:footer_2="{ item, config }">
-        <slot name="form_footer_2" :item="item" :config="config"></slot>
+        <slot name="form_footer_2" :item="item" :config="config" :in-submission="inSubmission" :loading="loading"></slot>
       </template>
     </s-form>
   </s-card>
