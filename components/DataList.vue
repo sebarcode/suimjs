@@ -43,6 +43,15 @@
         <template #grid_item_buttons_2="item">
           <slot name="list_item_buttons_2" :item="item"></slot>
         </template>
+        <template #footer_1="prop">
+          <slot name="grid_footer_1" :items="prop.items" :recordCount="prop.recordCount" :currentPage="prop.currentPage" :pageCount="prop.pageCount"></slot>
+        </template>
+        <template #paging="prop">
+          <slot name="grid_paging" :items="prop.items" :recordCount="prop.recordCount" :currentPage="prop.currentPage" :pageCount="prop.pageCount"></slot>
+        </template>
+        <template #footer_2="prop">
+          <slot name="grid_footer_2" :items="prop.items" :recordCount="prop.recordCount" :currentPage="prop.currentPage" :pageCount="prop.pageCount"></slot>
+        </template>
       </s-list>
     </div>
 
@@ -133,9 +142,21 @@
           ></slot>
         </template>
 
+        
         <template #grid_total="prop">
           <slot name="grid_item_total" :item="prop.item"></slot>
         </template>
+
+        <template #footer_1="prop">
+            <slot name="grid_footer_1" :items="prop.items" :recordCount="prop.recordCount" :currentPage="prop.currentPage" :pageCount="prop.pageCount"></slot>
+        </template>
+        <template #paging="prop">
+          <slot name="grid_paging" :items="prop.items" :recordCount="prop.recordCount" :currentPage="prop.currentPage" :pageCount="prop.pageCount"></slot>
+        </template>
+        <template #footer_2="prop">
+          <slot name="grid_footer_2" :items="prop.items" :recordCount="prop.recordCount" :currentPage="prop.currentPage" :pageCount="prop.pageCount"></slot>
+        </template>
+          
       </s-grid>
     </div>
 
