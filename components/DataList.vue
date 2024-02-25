@@ -6,6 +6,13 @@
     :no-gap="noGap"
     :hide-title="hideTitle"
   >
+    <template v-if="data.loadingGridCfg || data.loadingSelectData" >
+      <slot name="loader">
+        <div class="loader"></div>
+      </slot> 
+    </template>
+
+
     <div
       v-if="data.listCfg.setting && gridMode == 'list'"
       v-show="data.controlMode == 'grid'"
@@ -377,6 +384,8 @@ const data = reactive({
   record: {
     Enable: true,
   },
+  loadingGridCfg: false,
+  loadingSelectData: false,
 });
 
 const gridCtl = ref(null);
@@ -518,9 +527,12 @@ function selectData(dt, index) {
     });
     return;
   }
-
+  
+  data.loadingSelectData =true
   axios.post(props.formRead, [dt._id]).then(
     (r) => {
+      
+     data.loadingSelectData = false
       emit("formEditData", r.data);
       data.controlMode = "form";
       data.formMode = props.formDefaultMode;
@@ -530,6 +542,7 @@ function selectData(dt, index) {
       });
     },
     (e) => {
+      data.loadingSelectData = false
       util.showError(e);
     }
   );
@@ -617,13 +630,14 @@ function refreshList() {
     gridCtl.value.refreshData();
     return;
   }
-
+  data.loadingGridCfg = true
   loadGridConfig(axios, props.gridConfig).then(
     (r) => {
       emit("alterGridConfig", r);
       data.listCfg = r;
+      data.loadingGridCfg = false
     },
-    //(e) => util.showError(e)
+    (e) => data.loadingGridCfg = false
   );
   if (typeof props.gridRead == "string") data.gridReadUrl = props.gridRead;
 }
