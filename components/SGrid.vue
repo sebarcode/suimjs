@@ -94,7 +94,7 @@
               v-for="(r, rIdx) in data.items"
               :key="'grid_item_' + rIdx"
               class="cursor-pointer border-b-[1px] border-slate-200 last:border-non hover:bg-slate-200"
-              :class="{ 'even:bg-slate-100': !editor, 'hover:none pointer-events-none ':hideDetail}"
+              :class="{ 'even:bg-slate-100': !editor, 'hover:none pointer-events-none ':hideEdit}"
               @dblclick="selectData(r, 'detail', true)"
             >
               <td class="w-[30px] text-center" v-if="!hideSelect">
@@ -189,7 +189,7 @@
                   </a>
                   <a
                     href="#"
-                    v-if="!hideDetail && !hideEditButton"
+                    v-if="!hideDetail && !hideEdit"
                     @click="selectData(r, rIdx)"
                     class="edit_action"
                   >
@@ -335,7 +335,7 @@ const props = defineProps({
   hideRefreshButton: { type: Boolean, default: false },
   hideNewButton: { type: Boolean, default: false },
   hideSaveButton: { type: Boolean },
-  hideEditButton: { type: Boolean, default: false },
+  hideEdit: { type: Boolean, default: false },
   hideDeleteButton: { type: Boolean, default: false },
   hideFooter: { type: Boolean, default: false },
   hideSelect: { type: Boolean, default: false },
@@ -621,7 +621,7 @@ function confirmDelete() {
 }
 
 function selectData(data, index, dblclick) {
-  if(props.hideDetail) return
+  if(props.hideEdit) return
   if (dblclick && props.editor) return;
   data.currentIndex = index;
   emit("selectData", data, index);
