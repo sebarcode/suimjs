@@ -85,7 +85,7 @@
               <div class="p-2 flex">
                 <div
                   class="grow cursor-pointer hover:text-primary"
-                  :class="{ 'hover:none pointer-events-none ':hideDetail}"
+                  :class="{ 'hover:none pointer-events-none ':hideEdit}"
                   @click="selectData(record, 'detail')"
                 >
                   <slot name="item" :item="record">
@@ -192,7 +192,7 @@ const props = defineProps({
   hideSearch: { type: Boolean },
   hideSort: { type: Boolean },
   hideButtons: { type: Boolean, default: false },
-  hideDetail: { type: Boolean, default: false },
+  hideEdit: { type: Boolean, default: false },
   hideRefreshButton: { type: Boolean, default: false },
   hideNewButton: { type: Boolean, default: false },
   hideDeleteButton: { type: Boolean, default: false },
@@ -385,7 +385,7 @@ function confirmDelete() {
 }
 
 function selectData(data, op) {
-  if(props.hideDetail) return
+  if(props.hideEdit) return
   emit("selectData", data, op);
 }
 
