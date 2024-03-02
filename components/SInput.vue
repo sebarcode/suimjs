@@ -317,9 +317,11 @@ const value = computed({
   get() {
     switch (props.kind) {
       case "date":
-        return moment(props.modelValue).local().format("YYYY-MM-DD");
+        if (props.modelValue) return moment(props.modelValue).local().format("YYYY-MM-DD")
+          else return null;
       case ("datetime", "timestamp"):
-        return moment(props.modelValue).local().format("YYYY-MM-DDTHH:mm:ssZ");
+        if (props.modelValue)  return moment(props.modelValue).local().format("YYYY-MM-DDTHH:mm:ssZ")
+          else return null;
       default:
         return props.modelValue;
     }
@@ -328,9 +330,9 @@ const value = computed({
   set(v) {
     switch (props.kind) {
       case "date":
-        v = moment(v).format("YYYY-MM-DDT00:00:00Z");
+        if (v) v = moment(v).format("YYYY-MM-DDT00:00:00Z");
       case ("datetime", "timestamp"):
-        v = moment(v).format("YYYY-MM-DDThh:mm:ssZ");
+        if (v) v = moment(v).format("YYYY-MM-DDThh:mm:ssZ");
     }
 
     handleChange(v, value2(v), props.modelValue, props.ctlRef);
@@ -367,10 +369,14 @@ onMounted(() => {
 });
 
 function handleChange(v1, v2, old, ctlRef) {
-  //console.log(v1,v2,old)
-  if (v1 == undefined) v1 = value;
-  if (v2 == undefined) v2 = value2(v1);
+  if (props.kind=="date" && v1=="") {
+    v1 = null;
+  } 
+  
+  if (v1 == undefined) v1 = null;
+  if (v2 == undefined) v2 = null;
   if (old == undefined) old = "";
+  
   emit("change", props.field, v1, v2, old, props.ctlRef);
 }
 

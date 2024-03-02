@@ -132,9 +132,7 @@
                       :disabled="
                         data.inSubmission ||
                         data.loading ||
-                        inputIsDisabled(input) ||
-                        input.readOnly ||
-                        mode == 'view'
+                        inputIsDisabled(input)
                       "
                       :caption="input.caption"
                       :hint="input.hint"
@@ -172,9 +170,7 @@
                       :disabled="
                         data.inSubmission ||
                         data.loading ||
-                        inputIsDisabled(input) ||
-                        input.readOnly ||
-                        mode == 'view'
+                        inputIsDisabled(input) 
                       "
                       :caption="input.caption"
                       :hint="input.hint"
@@ -340,7 +336,7 @@ const data = reactive({
 });
 
 const inputIsDisabled = (input) => {
-  if (props.mode == "view") return true;
+  if (props.mode == "view") return input.disabled===false ? false : true;
 
   if (props.mode == "new" && input.readOnlyOnNew) return true;
   if (props.mode == "edit" && input.readOnlyOnEdit) return true;
@@ -352,7 +348,6 @@ function validate() {
   let isValid = true;
   inputs.value.forEach((el) => {
     if (!el.validate()) {
-      //el.debug()
       isValid = false;
     }
   });
@@ -394,15 +389,20 @@ function onSubmitForm() {
 function showError() {}
 
 function handleChange(name, value1, value2, oldValue) {
-  //console.log(name,"is changed from",oldValue,"to",value1,value2)
   const v = props.modelValue;
   const input = getConfigInputByName(name);
   if (input == undefined) return;
 
-  if (input.labelField && input.labelField != "") {
+  if ((input.kind=="date" || input.kind=="datetime") && (value1=="" || value1==null || value1==undefined)) {
+    v[name] = null;
+  } else {
     v[name] = value1;
+  } 
+  
+  if (input.labelField && input.labelField != "") {
     v[input.labelField] = value2;
   }
+  
   emit("update:modelValue", v);
   nextTick(() => {
     emit("fieldChange", name, value1, value2, oldValue);
@@ -506,7 +506,7 @@ function getField(name) {
   if (found) return field;
 }
 
-function getAllField(){
+function getAllField() {
   let fields = []
   props.config.sectionGroups.forEach((g) => {
     g.sections.forEach((section) => {
@@ -558,18 +558,19 @@ function setFieldAttr(name, attr, value) {
   });
 }
 
-function setLoading(loading){
+function setLoading(loading) {
   data.loading = loading
 }
-function getLoading(){
+
+function getLoading() {
   return data.loading
 }
 
-function setCurrentTab(tabIdx){
+function setCurrentTab(tabIdx) {
   if(props.tabs.length > 1) data.currentTab = isNaN(parseInt(tabIdx)) ? 0 : parseInt(tabIdx)
 
 }
-function getCurrentTab(){
+function getCurrentTab() {
   return data.currentTab
 }
 
