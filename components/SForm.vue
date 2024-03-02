@@ -44,9 +44,9 @@
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
               :tab="data.currentTab"
               @submit-click="onSubmitForm" @cancel-click="onCancelForm">
-              <template #buttons_1="item"><slot name="buttons_1" :item="value"></slot></template>
-              <template #buttons="item"><slot name="buttons" :item="value"></slot></template>
-              <template #buttons_2="item"><slot name="buttons_2" :item="value"></slot></template>
+              <template #buttons_1="item"><slot name="buttons_1" :item="value" :in-submission="data.inSubmission" :loading="data.loading"></slot></template>
+              <template #buttons="item"><slot name="buttons" :item="value" :in-submission="data.inSubmission" :loading="data.loading"></slot></template>
+              <template #buttons_2="item"><slot name="buttons_2" :item="value" :in-submission="data.inSubmission" :loading="data.loading"></slot></template>
           </s-form-buttons>
         </div>
         
