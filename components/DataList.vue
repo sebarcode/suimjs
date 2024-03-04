@@ -806,7 +806,7 @@ function setGridSortDirection(d) {
 }
 
 function getGridSelected() {
-  return gridCtl.value.getSelected;
+  return gridCtl.value.getSelected();
 }
 
 function setFormLoading(loading) {
