@@ -475,6 +475,9 @@ const pageCount = computed({
 function setLoading(loading) {
   data.loading = loading;
 }
+function getLoading(){
+  return data.loading
+}
 
 function checkUncheckAll(ev) {
   const checked = ev.target.checked;
@@ -717,6 +720,7 @@ defineExpose({
   getSortDirection,
   setSortDirection,
   setLoading,
+  getLoading,
   setRecords,
   setTotal,
   resetFilter,

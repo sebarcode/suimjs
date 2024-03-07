@@ -815,6 +815,14 @@ function setFormLoading(loading) {
 function getFormLoading() {
   return formCtl.value.getLoading();
 }
+
+function setGridLoading(loading) {
+  gridCtl.value.setLoading(loading);
+}
+function getGridLoading() {
+  return gridCtl.value.getLoading();
+}
+
 function formValidate() {
   return formCtl.value.validate();
 }
@@ -885,6 +893,8 @@ defineExpose({
   setGridSortDirection,
   setFormLoading,
   getFormLoading,
+  setGridLoading,
+  getGridLoading,
   formValidate,
   setFormCurrentTab,
   getFormCurrentTab,
