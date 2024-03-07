@@ -147,7 +147,7 @@
           <slot
             :name="slotname.gridSlotName"
             :item="slotData.item"
-            :config="slotData.config"
+            :header="slotData.header"
           ></slot>
         </template>
 
