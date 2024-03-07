@@ -94,7 +94,7 @@
               v-for="(r, rIdx) in data.items"
               :key="'grid_item_' + rIdx"
               class="cursor-pointer border-b-[1px] border-slate-200 last:border-non hover:bg-slate-200"
-              :class="{ 'even:bg-slate-100': !editor, 'hover:none pointer-events-none ':hideEdit}"
+              :class="{ 'even:bg-slate-100': !editor, 'hover:none':hideEdit}"
               @dblclick="selectData(r, 'detail', true)"
             >
               <td class="w-[30px] text-center" v-if="!hideSelect">
