@@ -56,7 +56,7 @@
     </div>
 
     <div v-if="!data.loading">
-      <div v-if="data.items.length > 0">
+      <div v-if="data.items.length > 0" class="suim_area_table">
         <table class="w-full table-auto suim_table">
           <!-- header -->
           <thead name="grid_header">
