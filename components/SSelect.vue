@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!disabled">
+  <div v-if="!disabled" @mouseover="onFocus">
     <v-select
       v-if="lookupUrl == ''"
       class="p-0 m-0 border border-white s-select-style h-[30px]"
@@ -12,7 +12,7 @@
       :reduce="reduceItem"
       :select-on-key-codes="[188, 13]"
       :disabled="disabled"
-      @search:focus="onFocus"
+      @search:focus="onFocus" 
       v-model="value"
       ref="vs"
     >
@@ -110,7 +110,7 @@ watch(() => props.items, (nv) => {
 
 const vs = ref(null);
 
-function onFocus() {
+function onFocus() { 
   emit("focus");
 }
 
@@ -131,6 +131,10 @@ const value = computed({
 
 // methods
 function fetchOptions(search, loading) {
+  if(['/bagong/sitesetup/find','/fico/vendorjournaltype/find'].includes(props.lookupUrl)){
+    console.log(props.lookupUrl)
+  }
+  console.log()
   let qp = {}
   if (props.lookupPayloadBuilder==undefined || props.lookupPayloadBuilder==null) {
     if (search != "") data.filterTxt = search;
