@@ -56,7 +56,7 @@
     </div>
 
     <div v-if="!data.loading">
-      <div v-if="data.items.length > 0">
+      <div v-if="data.items.length > 0" class="suim_area_table">
         <table class="w-full table-auto suim_table">
           <!-- header -->
           <thead name="grid_header">
@@ -94,7 +94,7 @@
               v-for="(r, rIdx) in data.items"
               :key="'grid_item_' + rIdx"
               class="cursor-pointer border-b-[1px] border-slate-200 last:border-non hover:bg-slate-200"
-              :class="{ 'even:bg-slate-100': !editor, 'hover:none pointer-events-none ':hideEdit}"
+              :class="{ 'even:bg-slate-100': !editor, 'hover:none':hideEdit}"
               @dblclick="selectData(r, 'detail', true)"
             >
               <td class="w-[30px] text-center" v-if="!hideSelect">
@@ -475,6 +475,9 @@ const pageCount = computed({
 function setLoading(loading) {
   data.loading = loading;
 }
+function getLoading(){
+  return data.loading
+}
 
 function checkUncheckAll(ev) {
   const checked = ev.target.checked;
@@ -717,6 +720,7 @@ defineExpose({
   getSortDirection,
   setSortDirection,
   setLoading,
+  getLoading,
   setRecords,
   setTotal,
   resetFilter,

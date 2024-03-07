@@ -2,7 +2,7 @@
   <s-tooltip :no-tooltip="noTooltip" :tooltip="label ? label : tooltip">
     <template #content>
       <button
-        class="flex gap-1 btn items-center"
+        class="flex gap-1 btn items-center w-full justify-center"
         :disabled="disableBtn"
         @click="clickBtn"
       >
