@@ -370,7 +370,7 @@ const data = reactive({
     props.sortField == undefined || props.sortField == ""
       ? "_id"
       : props.sortField,
-  sortDirection: ["asc", "desc"].includes(props.sortField)
+  sortDirection: ["asc", "desc"].includes(props.sortDirection)
     ? props.sortDirection
     : "desc",
   pageSize: props.pageSize,
