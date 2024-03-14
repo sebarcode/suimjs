@@ -17,6 +17,7 @@ import SListEditor from "./components/SListEditor.vue";
 import DataList from "./components/DataList.vue";
 import SModal from "./components/SModal.vue";
 import STooltip from "./components/STooltip.vue";
+import SPagination from "./components/SPagination.vue";
 
 export {
   formConfig,
@@ -38,4 +39,5 @@ export {
   DataList,
   SModal,
   STooltip,
+  SPagination
 };

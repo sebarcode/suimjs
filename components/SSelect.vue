@@ -15,6 +15,7 @@
       @search:focus="onFocus" 
       v-model="value"
       ref="vs"
+      :clearable="showClearButton"
     >
       <template #selected-option="option">
         <slot name="selected" :item="option"> </slot>
@@ -41,6 +42,7 @@
       :disabled="disabled"
       @search:focus="onFocus"
       v-model="value"
+      :clearable="showClearButton"
       ref="vs"
     >
         <template #selected-option="option">

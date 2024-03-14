@@ -67,6 +67,7 @@
           "
         >
           {{ label }}
+          
           <span v-if="required" class="is_required font-extrabold text-yellow-200">*</span>
         </div>
         <div v-else>&nbsp;</div>
@@ -80,7 +81,7 @@
           class="w-[100%]"
           ref="control"
           :label="caption != '' ? caption : label != '' ? label : field"
-          :show-clear-button="true"
+          :show-clear-button="showClearButton"
           :allow-add="allowAdd"
           :lookup-url="lookupUrl"
           :lookup-key="lookupKey"
@@ -294,6 +295,7 @@ const props = defineProps({
   disableValidateOnChange: { type: Boolean, default: false },
   keepErrorSection: { type: Boolean, default: false },
   width: { type: String, default: "" },
+  showClearButton:{ type: Boolean, default: true },
 });
 
 const emit = defineEmits({
