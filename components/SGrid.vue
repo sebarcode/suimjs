@@ -236,7 +236,7 @@
               items: data.items,
               recordCount: data.recordCount,
               currentPage: data.currentPage,
-              pageCount: pageCount,
+              pageCount: pageCount, 
             }"
           >
           </slot>
@@ -246,31 +246,17 @@
               items: data.items,
               recordCount: data.recordCount,
               currentPage: data.currentPage,
-              pageCount: pageCount,
+              pageCount: pageCount, 
             }"
           >
-            <div
-              v-if="pageCount > 1"
-              class="flex gap-2 justify-center pagination"
-            >
-              <mdicon
-                name="arrow-left"
-                class="cursor-pointer"
-                :class="{
-                  'opacity-25': data.currentPage == 1,
-                }"
-                @click="changePage(data.currentPage - 1)"
-              />
-              <div class="pagination_info">
-                Page {{ data.currentPage }} of {{ pageCount }}
-              </div>
-              <mdicon
-                name="arrow-right"
-                class="cursor-pointer"
-                :class="{ 'opacity-25': data.currentPage == pageCount }"
-                @click="changePage(data.currentPage + 1)"
-              />
-            </div>
+            <s-pagination
+              :recordCount="data.recordCount"
+              :pageCount="pageCount"
+              :current-page="data.currentPage"
+              :page-size="data.pageSize"
+              @changePage="changePage"
+              @changePageSize="changePageSize"
+            ></s-pagination> 
           </slot>
           <slot
             name="footer_2"
@@ -278,7 +264,7 @@
               items: data.items,
               recordCount: data.recordCount,
               currentPage: data.currentPage,
-              pageCount: pageCount,
+              pageCount: pageCount,  
             }"
           >
           </slot>
@@ -305,6 +291,7 @@ import SButton from "./SButton.vue";
 import SInput from "./SInput.vue";
 import SGridColumn from "./SGridColumn.vue";
 import SModal from "./SModal.vue";
+import SPagination from "./SPagination.vue";
 import { computed, inject, onMounted, reactive, ref, watch } from "vue";
 import util from "../scripts/util";
 import { mdiEmoticon, mdiWindowShutter } from "@mdi/js";
@@ -319,7 +306,7 @@ const props = defineProps({
   readUrl: { type: String, default: "" },
   updateUrl: { type: String, default: "" },
   deleteUrl: { type: String, default: "" },
-  pageSize: { type: Number, default: 25 },
+  pageSize: { type: Number, default: 15 },
   hideHeader: { type: Boolean, default: false },
   editor: { type: Boolean, default: false },
   sortField: { type: String, default: "" },
@@ -629,7 +616,11 @@ function selectData(data, index, dblclick) {
   data.currentIndex = index;
   emit("selectData", data, index);
 }
-
+function changePageSize(pageSize){
+  data.pageSize = pageSize
+  data.currentPage = 1; 
+  refreshData();
+}
 function changePage(page) {
   data.currentPage = page;
   refreshData();

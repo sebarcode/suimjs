@@ -18,6 +18,7 @@
       <button @click="changeSortDirection" v-if="!hideSort"  class="sort_btn">
         <mdicon :name="sortIcon" size="18" />
       </button>
+      
       <select
         v-model="data.sortField"
         class="bg-transparent border-b border-slate-300 text-[0.8em] pt-1 pb-1 sort_select "
@@ -129,23 +130,15 @@
               pageCount: pageCount,
             }"
           >
-            <div v-if="pageCount > 1" class="flex gap-2 justify-center pagination">
-              <mdicon
-                name="arrow-left"
-                class="cursor-pointer"
-                :class="{
-                  'opacity-25': data.currentPage == 1,
-                }"
-                @click="changePage(data.currentPage - 1)"
-              />
-              <div class="pagination_info">Page {{ data.currentPage }} of {{ pageCount }}</div>
-              <mdicon
-                name="arrow-right"
-                class="cursor-pointer"
-                :class="{ 'opacity-25': data.currentPage == pageCount }"
-                @click="changePage(data.currentPage + 1)"
-              />
-            </div>
+            <s-pagination
+              :recordCount="data.recordCount"
+              :pageCount="pageCount"
+              :current-page="data.currentPage"
+              :page-size="data.pageSize"
+              @changePage="changePage"
+              @changePageSize="changePageSize"
+            ></s-pagination>
+           
           </slot>
           <slot
             name="footer_2"
@@ -174,6 +167,7 @@
 import { computed, inject, onMounted, reactive, ref } from "vue";
 import SButton from "./SButton.vue";
 import SModal from './SModal.vue';
+import SPagination from "./SPagination.vue";
 import util from "../scripts/util";
 
 const props = defineProps({
@@ -217,7 +211,7 @@ const data = reactive({
   recordCount: props.modelValue == undefined ? 0 : props.modelValue.length,
   currentPage: 1,
   sortField: props.sortField == undefined || props.sortField == '' ? "_id" : props.sortField,
-  sortDirection: ["asc","desc"].includes(props.sortField) ?  props.sortDirection : "desc",
+  sortDirection: ["asc","desc"].includes(props.sortDirection) ?  props.sortDirection : "desc",
   pageSize: props.pageSize,
   deleteFn: undefined,
   loading: false,
@@ -388,7 +382,11 @@ function selectData(data, op) {
   if(props.hideEdit) return
   emit("selectData", data, op);
 }
-
+function changePageSize(pageSize){
+  data.pageSize = pageSize
+  data.currentPage = 1; 
+  refreshData();
+}
 function changePage(page) {
   data.currentPage = page;
   refreshData();
