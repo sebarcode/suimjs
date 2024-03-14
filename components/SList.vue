@@ -138,23 +138,7 @@
               @changePage="changePage"
               @changePageSize="changePageSize"
             ></s-pagination>
-            <!-- <div v-if="pageCount > 1" class="flex gap-2 justify-center pagination">
-              <mdicon
-                name="arrow-left"
-                class="cursor-pointer"
-                :class="{
-                  'opacity-25': data.currentPage == 1,
-                }"
-                @click="changePage(data.currentPage - 1)"
-              />
-              <div class="pagination_info">Page {{ data.currentPage }} of {{ pageCount }}</div>
-              <mdicon
-                name="arrow-right"
-                class="cursor-pointer"
-                :class="{ 'opacity-25': data.currentPage == pageCount }"
-                @click="changePage(data.currentPage + 1)"
-              />
-            </div> -->
+           
           </slot>
           <slot
             name="footer_2"
