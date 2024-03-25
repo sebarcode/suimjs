@@ -133,10 +133,7 @@ const value = computed({
 
 // methods
 function fetchOptions(search, loading) {
-  if(['/bagong/sitesetup/find','/fico/vendorjournaltype/find'].includes(props.lookupUrl)){
-    console.log(props.lookupUrl)
-  }
-  console.log()
+  
   let qp = {}
   if (props.lookupPayloadBuilder==undefined || props.lookupPayloadBuilder==null) {
     if (search != "") data.filterTxt = search;

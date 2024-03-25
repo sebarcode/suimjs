@@ -611,7 +611,7 @@ function confirmDelete() {
 }
 
 function selectData(data, index, dblclick) {
-  if(props.hideEdit) return
+
   if (dblclick && props.editor) return;
   data.currentIndex = index;
   emit("selectData", data, index);

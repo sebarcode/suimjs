@@ -44,13 +44,13 @@
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
               :tab="data.currentTab"
               @submit-click="onSubmitForm" @cancel-click="onCancelForm">
-              <template #buttons_1="item"><slot name="buttons_1" :item="value" :in-submission="data.inSubmission" :loading="data.loading"></slot></template>
-              <template #buttons="item"><slot name="buttons" :item="value" :in-submission="data.inSubmission" :loading="data.loading"></slot></template>
-              <template #buttons_2="item"><slot name="buttons_2" :item="value" :in-submission="data.inSubmission" :loading="data.loading"></slot></template>
+              <template #buttons_1="item"><slot name="buttons_1" :item="value" :in-submission="data.inSubmission" :loading="data.loading" :mode="mode"></slot></template>
+              <template #buttons="item"><slot name="buttons" :item="value" :in-submission="data.inSubmission" :loading="data.loading" :mode="mode"></slot></template>
+              <template #buttons_2="item"><slot name="buttons_2" :item="value" :in-submission="data.inSubmission" :loading="data.loading" :mode="mode"></slot></template>
           </s-form-buttons>
         </div>
         
-        <div id="form_inputs" v-if="data.currentTab == 0">
+        <div id="form_inputs" v-show="data.currentTab == 0">
           <slot name="form_header" :item="value" :config="config" />
           
           <div class="flex section_group_container" :class="{'flex-col':config.setting.sectionDirection=='row'}">
@@ -76,6 +76,7 @@
               :name="'section_' + section.title.replace(' ', '') + '_header'"
               :item="value"
               :config="config"
+              :mode="mode"
             ></slot>
             <div class="flex flex-col gap-4">
               <div
@@ -116,11 +117,13 @@
                     :name="'input_' + input.field + '_header'"
                     :item="value"
                     :config="input"
+                    :mode="mode"
                   ></slot>
                   <slot
                     :name="'input_' + input.field"
                     :item="value"
                     :config="input"
+                    :mode="mode"
                   >
                     <div v-if="input.kind == 'space'">&nbsp;</div>
                     <s-input
@@ -201,10 +204,10 @@
                       ref="inputs"
                     >
                       <template v-if="input.useList === true" #option="{option}">
-                        <slot  :name="'input_' + input.field + '_option'" :option="option"></slot>
+                        <slot  :name="'input_' + input.field + '_option'" :option="option"  :mode="mode"></slot>
                       </template>
                       <template v-if="input.useList  === true" #selected-option="{option}">
-                        <slot  :name="'input_' + input.field + '_selected-option'"  :option="option"> </slot>
+                        <slot  :name="'input_' + input.field + '_selected-option'"  :option="option"  :mode="mode"> </slot>
                       </template>
                     </s-input>
                   </slot>
@@ -212,6 +215,7 @@
                     :name="'input_' + input.field + '_footer'"
                     :item="value"
                     :config="input"
+                    :mode="mode"
                   ></slot>
                 </div>
               </div>
@@ -220,11 +224,12 @@
               :name="'section_' + section.title.replace(' ', '') + '_footer'"
               :item="value"
               :config="config"
+              :mode="mode"
             ></slot>
           </div>
           </div>
           </div>
-          <slot name="footer_1" :item="value" :config="config" />
+          <slot name="footer_1" :item="value" :config="config" :mode="mode"/>
   
           <div class="mt-2">
             <s-form-buttons v-if="buttonsOnBottom" ref="buttonsBottomCtl" class="form_button_bottom"
@@ -239,7 +244,7 @@
             </s-form-buttons>
           </div>
   
-          <slot name="footer_2" :item="value" :config="config" />
+          <slot name="footer_2" :item="value" :config="config" :mode="mode"/>
         </div>
   
         <div
@@ -247,7 +252,7 @@
           v-for="(tabName, tabIdx) in tabs.slice(1, tabs.length)"
         >
           <div v-show="data.currentTab == tabIdx + 1">
-            <slot :name="'tab_' + tabName.replace(' ', '_')" :item="modelValue">
+            <slot :name="'tab_' + tabName.replace(' ', '_')" :item="modelValue" :mode="mode">
               {{ tabName }}
             </slot>
           </div>
@@ -551,7 +556,10 @@ function setFieldAttr(name, attr, value) {
     g.sections.forEach((s) => {
       s.rows.forEach((row) => {
         row.inputs.forEach((input) => {
-          if (input.field == name) input[attr] = value;
+          if (input.field == name) {
+            console.log(input, attr)
+            input[attr] = value;
+          }
         });
       });
     });
