@@ -184,7 +184,7 @@
       :initialTab="formInitialTab"
       @cancelForm="cancelForm"
       :hide-buttons="formHideButtons"
-      :hide-submit="formHideSubmit"
+      :hide-submit="['edit','view'].includes(data.formMode) && gridHideEdit && !data.isAfterSave ? true : formHideSubmit"
       :hide-cancel="formHideCancel"
       @fieldChange="handleFormFieldChange"
       @recordChange="handleFormRecordChange"
@@ -197,6 +197,7 @@
           :name="'form_' + name"
           :item="slotData.item"
           :config="slotData.config"
+          :mode="slotData.mode"
         ></slot>
       </template>
 
@@ -208,6 +209,7 @@
           :name="'form_' + name"
           :item="slotData.item"
           :config="slotData.config"
+          :mode="slotData.mode"
         ></slot>
       </template>
 
@@ -219,6 +221,7 @@
           :name="'form_' + name"
           :item="slotData.item"
           :config="slotData.config"
+          :mode="slotData.mode"
         ></slot>
       </template>
 
@@ -226,32 +229,34 @@
         v-for="name in formFieldInputOptionSlotNames"
         v-slot:[name]="slotData"
       >
-        <slot :name="'form_' + name" :option="slotData.option"></slot>
+        <slot :name="'form_' + name" :option="slotData.option" :mode="slotData.mode"></slot>
       </template>
 
       <template
         v-for="name in formFieldInputSelectedOptionSlotNames"
         v-slot:[name]="slotData"
       >
-        <slot :name="'form_' + name" :option="slotData.option"></slot>
+        <slot :name="'form_' + name" :option="slotData.option" :mode="slotData.mode"></slot>
       </template>
 
-      <template v-for="tabName in formTabNames" v-slot:[tabName]="{ item }">
+      <template v-for="tabName in formTabNames" v-slot:[tabName]="slotData">
+        
         <slot
           :name="'form_' + tabName"
-          :item="item"
+          :item="slotData.item"
           :config="{
             formMode: data.formMode,
             appMode: data.controlMode,
             formCfg: data.formCfg,
-          }"
+          }" 
+          :mode="slotData.mode"
         >
           {{ tabName }}
         </slot>
       </template>
 
-      <template #form_header="{ item, config }">
-        <slot name="form_header" :item="item" :config="config"></slot>
+      <template #form_header="{ item, config, mode}">
+        <slot name="form_header" :item="item" :config="config"  :mode="mode"></slot>
       </template>
 
       <template #loader>
@@ -262,20 +267,20 @@
         <slot name="form_buttons"></slot>
       </template>
 
-      <template #buttons_1="{ item, config,inSubmission,loading }">
-        <slot name="form_buttons_1" :item="item" :config="config" :in-submission="inSubmission" :loading="loading"></slot>
+      <template #buttons_1="{ item, config,inSubmission,loading, mode}">
+        <slot name="form_buttons_1" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
       </template>
 
-      <template #buttons_2="{ item, config }">
-        <slot name="form_buttons_2" :item="item" :config="config" :in-submission="inSubmission" :loading="loading"></slot>
+      <template #buttons_2="{ item, config,inSubmission,loading,  mode }">
+        <slot name="form_buttons_2" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
       </template>
 
-      <template v-slot:footer_1="{ item, config }">
-        <slot name="form_footer_1" :item="item" :config="config" :in-submission="inSubmission" :loading="loading"></slot>
+      <template v-slot:footer_1="{ item, config, mode}">
+        <slot name="form_footer_1" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
       </template>
 
-      <template v-slot:footer_2="{ item, config }">
-        <slot name="form_footer_2" :item="item" :config="config" :in-submission="inSubmission" :loading="loading"></slot>
+      <template v-slot:footer_2="{ item, config, mode}">
+        <slot name="form_footer_2" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
       </template>
     </s-form>
   </s-card>
@@ -389,11 +394,13 @@ const data = reactive({
   },
   loadingGridCfg: false,
   loadingSelectData: false,
+  isAfterSave: false
 });
 
 const gridCtl = ref(null);
 const formCtl = ref(null);
 
+ 
 watch(
   () => data.controlMode,
   (nv) => {
@@ -519,7 +526,8 @@ const gridFieldInputSlotNames = computed({
   },
 });
 
-function selectData(dt, index) {
+function selectData(dt, index, isAfterSave = false) {
+ 
   if (props.formRead == "") {
     data.record = dt;
     emit("formEditData", data.record);
@@ -538,7 +546,13 @@ function selectData(dt, index) {
      data.loadingSelectData = false
       emit("formEditData", r.data);
       data.controlMode = "form";
-      data.formMode = props.formDefaultMode;
+      if(isAfterSave){
+        data.formMode = 'edit'
+      }else{
+        data.formMode = props.formDefaultMode;
+      }
+      data.isAfterSave = isAfterSave
+      
       data.record = r.data;
       nextTick(() => {
         emit("formLoaded", data.record);
@@ -613,7 +627,7 @@ function save(saveData, cbOK, cbFalse) {
         });
       } else {
         util.showInfo("data has been saved");
-        selectData(data.record, "detail");
+        selectData(data.record, "detail", true);
       }
       cbOK();
     },
