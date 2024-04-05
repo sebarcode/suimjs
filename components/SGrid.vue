@@ -115,7 +115,10 @@
                 :key="'grid_col_' + hdrIndex"
               >
                 <slot :name="'item_' + hdr.field" :item="r" :header="hdr">
-                  <div v-if="editor && !hdr.input.readOnly">
+                  <div v-if="editor && !(
+                        hdr.input.readOnly || 
+                        (hdr.input.readOnlyOnEdit && (r.suimRowMode=='edit' || r.suimRowMode==undefined))
+                    )">
                     <s-input
                       hide-label
                       :ctl-ref="{ rowIndex: rIdx }"
@@ -202,7 +205,7 @@
                   </a>
                   <a
                     href="#"
-                    v-if="!hideDeleteButton"
+                    v-if="!(hideDeleteButton || data.recordChanged)"
                     @click="deleteData(r, rIdx)"
                     class="delete_action"
                   >
@@ -350,7 +353,12 @@ const emit = defineEmits({
 
 const data = reactive({
   keyword: "",
-  items: props.modelValue == undefined ? [] : props.modelValue,
+  items: props.modelValue == undefined ? [] : 
+    props.modelValue.map(el => {
+      el.suimRecordChange = false;
+      el.suimRowMode = "edit";
+      return el;
+    }),
   recordCount: props.modelValue == undefined ? 0 : props.modelValue.length,
   currentPage: 1,
   sortField:
@@ -401,6 +409,7 @@ function saveRowData(r, rowIndex) {
     (r) => {
       r = r.data;
       r.suimRecordChange = false;
+      r.suimRowMode = "edit";
       data.items[rowIndex] = r;
       emit("rowUpdated", r);
       updateRecordChanged();
@@ -567,6 +576,8 @@ function newData() {
 }
 
 function addData(dt) {
+  dt.suimRowMode="new";
+  dt.suimRecordChange = true;
   data.items.push(dt);
   emit("modelValue:update", data.items);
   emit("rowUpdated", dt);
@@ -611,7 +622,6 @@ function confirmDelete() {
 }
 
 function selectData(data, index, dblclick) {
-
   if (dblclick && props.editor) return;
   data.currentIndex = index;
   emit("selectData", data, index);

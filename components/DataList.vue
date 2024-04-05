@@ -741,6 +741,10 @@ function getFormRecord() {
   return data.record;
 }
 
+function gridAddData(dt) {
+  gridCtl.value.addData(dt);
+}
+
 function setFormRecord(record) {
   data.record = record;
 }
@@ -913,7 +917,8 @@ defineExpose({
   setFormCurrentTab,
   getFormCurrentTab,
   getFormAllField,
-  gridResetFilter
+  gridResetFilter,
+  gridAddData
 });
 
 onMounted(() => {
