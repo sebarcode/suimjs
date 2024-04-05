@@ -25,7 +25,7 @@ const props = defineProps({
   disabled: { type: Boolean, default: false },
   disableWhenClicked: { type: Boolean, default: false },
   tooltip: { type: String, default: "tooltip" },
-  noTooltip: { type: String, default: false },
+  noTooltip: { type: Boolean, default: false },
 });
 
 const data = reactive({
