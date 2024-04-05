@@ -636,14 +636,16 @@ function getRecord(recordIndex) {
 
 function setRecord(recordIndex, record) {
   data.items[recordIndex] = record;
+  updateRecordChanged();
 }
 
 function setRecordByID(record) {
   data.items.forEach((dt, index) => {
     if (dt._id == record._id) {
-      data.items[index] = record;
+      data.items[index] = record;   
     }
   });
+  updateRecordChanged();
 }
 
 function setTotal() {
@@ -666,6 +668,7 @@ function getActiveIndex() {
 
 function setRecords(newDataSet) {
   data.items = newDataSet;
+  updateRecordChanged();
 }
 
 function getCurrentIndex() {
