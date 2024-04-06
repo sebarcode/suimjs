@@ -50,7 +50,7 @@
           </s-form-buttons>
         </div>
         
-        <div id="form_inputs" v-show="data.currentTab == 0">
+        <div class="form_inputs" v-show="data.currentTab == 0">
           <slot name="form_header" :item="value" :config="config" />
           
           <div class="flex section_group_container" :class="{'flex-col':config.setting.sectionDirection=='row'}">
