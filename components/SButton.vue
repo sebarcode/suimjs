@@ -23,8 +23,8 @@ const props = defineProps({
   icon: { type: String, default: "" },
   disabled: { type: Boolean, default: false },
   disableWhenClicked: { type: Boolean, default: false },
-  tooltip: { type: String, default: "" },
-  noTooltip: { type: String, default: false },
+  tooltip: { type: String, default: "tooltip" },
+  noTooltip: { type: Boolean, default: false },
 });
 
 const data = reactive({
