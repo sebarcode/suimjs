@@ -595,7 +595,7 @@ function cancelForm() {
   });
 }
 
-function save(saveData, cbOK, cbFalse) {
+function save(saveData, cbOK, cbFalse, disableNotif) {
   emit("preSave", saveData);
   const saveEndPoint =
     data.formMode == "new" ? props.formInsert : props.formUpdate;
@@ -605,7 +605,7 @@ function save(saveData, cbOK, cbFalse) {
     if (!props.stayOnFormAfterSave) {
       data.controlMode = "grid";
     } else {
-      util.showInfo("data has been saved");
+      if (disableNotif!==true) util.showInfo("data has been saved");
     }
     cbOK();
     return;
@@ -626,7 +626,7 @@ function save(saveData, cbOK, cbFalse) {
           })
         });
       } else {
-        util.showInfo("data has been saved");
+        if (disableNotif!==true) util.showInfo("data has been saved");
         selectData(data.record, "detail", true);
       }
       cbOK();

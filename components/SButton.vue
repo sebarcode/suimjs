@@ -1,5 +1,5 @@
 <template>
-  <s-tooltip :no-tooltip="noTooltip" :tooltip="label ? label : tooltip">
+  <s-tooltip :no-tooltip="noTooltip" :tooltip="tooltip=='' ? label : tooltip">
     <template #content>
       <button
         class="flex gap-1 btn items-center w-full justify-center"
@@ -15,7 +15,6 @@
 
 <script setup>
 import STooltip from "./STooltip.vue";
-import { getCurrentInstance } from "vue";
 import { reactive } from "vue";
 import { computed } from "vue";
 
@@ -24,7 +23,7 @@ const props = defineProps({
   icon: { type: String, default: "" },
   disabled: { type: Boolean, default: false },
   disableWhenClicked: { type: Boolean, default: false },
-  tooltip: { type: String, default: "tooltip" },
+  tooltip: { type: String, default: "" },
   noTooltip: { type: String, default: false },
 });
 
@@ -62,7 +61,7 @@ const disableBtn = computed({
     border-none normal-case px-2 font-normal
     rounded-sm;
 
-  min-height: 20px !important;
-  height: 2rem;
+  min-height: 18px !important;
+  height: 1.8rem;
 }
 </style>

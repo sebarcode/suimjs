@@ -557,7 +557,6 @@ function setFieldAttr(name, attr, value) {
       s.rows.forEach((row) => {
         row.inputs.forEach((input) => {
           if (input.field == name) {
-            console.log(input, attr)
             input[attr] = value;
           }
         });
