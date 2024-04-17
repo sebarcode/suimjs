@@ -253,6 +253,7 @@
             }"
           >
             <s-pagination
+              v-if="!hidePaging"
               :recordCount="data.recordCount"
               :pageCount="pageCount"
               :current-page="data.currentPage"
@@ -328,6 +329,7 @@ const props = defineProps({
   hideEdit: { type: Boolean, default: false },
   hideDeleteButton: { type: Boolean, default: false },
   hideFooter: { type: Boolean, default: false },
+  hidePaging: { type: Boolean, default: false },
   hideSelect: { type: Boolean, default: false },
   hideDetail: { type: Boolean, default: false },
   hideAction: { type: Boolean, default: false },

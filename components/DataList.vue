@@ -29,6 +29,7 @@
         :hide-refresh-button="gridHideRefresh"
         :hide-edit="gridHideEdit"
         :hide-new-button="gridHideNew"
+        :hide-paging="gridHidePaging"
         :sort-field="gridSortField"
         :sort-direction="gridSortDirection"
         v-if="data.listCfg.setting"
@@ -54,7 +55,7 @@
         <template #footer_1="prop">
           <slot name="grid_footer_1" :items="prop.items" :recordCount="prop.recordCount" :currentPage="prop.currentPage" :pageCount="prop.pageCount"></slot>
         </template>
-        <template #paging="prop">
+        <template #paging="prop" v-if="!gridHidePaging">
           <slot name="grid_paging" :items="prop.items" :recordCount="prop.recordCount" :currentPage="prop.currentPage" :pageCount="prop.pageCount"></slot>
         </template>
         <template #footer_2="prop">
@@ -81,6 +82,7 @@
         :hide-detail="gridHideDetail"
         :hide-sort="gridHideSort"
         :hide-edit="gridHideEdit"
+        :hide-paging="gridHidePaging"
         :hide-delete-button="gridHideDelete"
         :label-method="gridLabelMethod"
         :hide-refresh-button="gridHideRefresh"
@@ -121,7 +123,7 @@
             name="grid_item_buttons_1"
             :item="prop.item"
             :config="prop.config"
-          />
+          ></slot>
         </template>
 
         <template #item_buttons="prop">
@@ -316,7 +318,8 @@ const props = defineProps({
   gridHideSearch: { type: Boolean, default: false },
   gridHideSelect: { type: Boolean, default: false },
   gridHideDetail: { type: Boolean },
-  gridHideSort: { type: Boolean },
+  gridHideSort: { type: Boolean, default: false },
+  gridHidePaging: { type: Boolean },
   gridHideNew: { type: Boolean, default: false },
   gridHideRefresh: { type: Boolean, default: false },
   gridHideDelete: { type: Boolean, default: false },
