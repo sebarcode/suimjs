@@ -157,6 +157,28 @@
         <template #grid_total="prop">
           <slot name="grid_item_total" :item="prop.item"></slot>
         </template>
+        
+        <template #item_button_recordchange="prop">
+          <slot
+            name="grid_item_button_recordchange"
+            :item="prop.item"
+            :config="prop.config"
+          />
+        </template>
+        <template #item_button_edit="prop">
+          <slot
+            name="grid_item_button_edit"
+            :item="prop.item"
+            :config="prop.config"
+          />
+        </template>
+        <template #item_button_delete="prop">
+          <slot
+            name="grid_item_button_delete"
+            :item="prop.item"
+            :config="prop.config"
+          />
+        </template>
 
         <template #footer_1="prop">
             <slot name="grid_footer_1" :items="prop.items" :recordCount="prop.recordCount" :currentPage="prop.currentPage" :pageCount="prop.pageCount"></slot>
