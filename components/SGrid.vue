@@ -172,50 +172,56 @@
               <td class="row_action" v-if="!hideAction">
                 <slot name="item_buttons_1" :item="r" :config="config"></slot>
                 <slot name="item_buttons" :item="r" :config="config">
-                  <a
-                    href="#"
-                    v-if="
-                      editor &&
-                      r.suimRecordChange === true &&
-                      !hideSaveButton &&
-                      !autoCommitLine
-                    "
-                    @click="saveRowData(r, rIdx)"
-                    class="save_action"
-                  >
-                    <mdicon
-                      name="content-save"
-                      width="16"
-                      alt="edit"
-                      class="cursor-pointer hover:text-primary"
-                    />
-                  </a>
-                  <a
-                    href="#"
-                    v-if="!hideDetail && !hideEdit"
-                    @click="selectData(r, rIdx)"
-                    class="edit_action"
-                  >
-                    <mdicon
-                      name="pencil"
-                      width="16"
-                      alt="edit"
-                      class="cursor-pointer hover:text-primary"
-                    />
-                  </a>
-                  <a
-                    href="#"
-                    v-if="!(hideDeleteButton || data.recordChanged)"
-                    @click="deleteData(r, rIdx)"
-                    class="delete_action"
-                  >
-                    <mdicon
-                      name="delete"
-                      width="16"
-                      alt="delete"
-                      class="cursor-pointer hover:text-primary"
-                    />
-                  </a>
+                  <slot name="item_button_recordchange" :item="r" :config="config">
+                    <a
+                      href="#"
+                      v-if="
+                        editor &&
+                        r.suimRecordChange === true &&
+                        !hideSaveButton &&
+                        !autoCommitLine
+                      "
+                      @click="saveRowData(r, rIdx)"
+                      class="save_action"
+                    >
+                      <mdicon
+                        name="content-save"
+                        width="16"
+                        alt="edit"
+                        class="cursor-pointer hover:text-primary"
+                      />
+                    </a>
+                  </slot>
+                  <slot name="item_button_edit" :item="r" :config="config">
+                    <a
+                      href="#"
+                      v-if="!hideDetail && !hideEdit"
+                      @click="selectData(r, rIdx)"
+                      class="edit_action"
+                    >
+                      <mdicon
+                        name="pencil"
+                        width="16"
+                        alt="edit"
+                        class="cursor-pointer hover:text-primary"
+                      />
+                    </a>
+                  </slot>
+                  <slot name="item_button_delete" :item="r" :config="config">
+                    <a
+                      href="#"
+                      v-if="!(hideDeleteButton || data.recordChanged)"
+                      @click="deleteData(r, rIdx)"
+                      class="delete_action"
+                    >
+                      <mdicon
+                        name="delete"
+                        width="16"
+                        alt="delete"
+                        class="cursor-pointer hover:text-primary"
+                      />
+                    </a>
+                  </slot>
                 </slot>
                 <slot name="item_buttons_2" :item="r" :config="config"></slot>
               </td>
