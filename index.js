@@ -4,6 +4,7 @@ import formSection from "./scripts/form_section.js";
 import formRow from "./scripts/form_row.js";
 import formInput from "./scripts/form_input.js";
 import createFormConfig from "./scripts/create_form_config.js";
+import loadFormConfigFromData from "./scripts/load_form_config_from_data.js";
 import loadFormConfig from "./scripts/load_form_config.js";
 import loadGridConfig from "./scripts/load_grid_config.js";
 import rules from "./scripts/rules.js";
@@ -27,6 +28,7 @@ export {
   createFormConfig,
   loadFormConfig,
   loadGridConfig,
+  loadFormConfigFromData,
   rules,
   util,
   SInput,

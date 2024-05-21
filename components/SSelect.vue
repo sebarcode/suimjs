@@ -65,7 +65,7 @@ import { computed, inject, onMounted, reactive, ref, watch } from "vue";
 import util from '../scripts/util';
 
 const props = defineProps({
-  modelValue: { type: [String, Array], default: () => "" },
+  modelValue: { type: [String, Number, Array], default: () => "" },
   items: {
     type: Array,
     default: () => {
