@@ -140,6 +140,28 @@
           />
         </template>
 
+        <template #item_button_recordchange="prop">
+          <slot
+            name="grid_item_button_recordchange"
+            :item="prop.item"
+            :config="prop.config"
+          />
+        </template>
+        <template #item_button_edit="prop">
+          <slot
+            name="grid_item_button_edit"
+            :item="prop.item"
+            :config="prop.config"
+          />
+        </template>
+        <template #item_button_delete="prop">
+          <slot
+            name="grid_item_button_delete"
+            :item="prop.item"
+            :config="prop.config"
+          />
+        </template>
+
         <template
           v-for="slotname in gridFieldInputSlotNames"
           v-slot:[slotname.itemSlotName]="slotData"
@@ -550,7 +572,7 @@ function selectData(dt, index, isAfterSave = false) {
         data.formMode = 'edit'
       }else{
         data.formMode = props.formDefaultMode;
-      }
+      } 
       data.isAfterSave = isAfterSave
       
       data.record = r.data;
