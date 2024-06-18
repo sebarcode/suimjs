@@ -300,11 +300,11 @@
       </template>
 
       <template v-slot:footer_1="{ item, config, mode}">
-        <slot name="form_footer_1" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
+        <slot name="form_footer_1" :item="item" :config="config" :mode="mode"></slot>
       </template>
 
       <template v-slot:footer_2="{ item, config, mode}">
-        <slot name="form_footer_2" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
+        <slot name="form_footer_2" :item="item" :config="config" :mode="mode"></slot>
       </template>
     </s-form>
   </s-card>
@@ -393,6 +393,7 @@ const emit = defineEmits({
   alterGridConfig: null,
   alterFormConfig: null,
   gridRefreshed: null,
+  gridGetData: null,
   gridRowAdd: null,
   gridRowUpdated: null,
   gridRowDeleted: null,

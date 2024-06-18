@@ -346,6 +346,7 @@ const axios = inject("axios");
 
 const emit = defineEmits({
   newData: null,
+  getData: null,
   selectData: null,
   deleteData: null,
   rowUpdated: null,

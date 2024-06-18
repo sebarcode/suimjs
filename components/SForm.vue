@@ -65,7 +65,7 @@
                 gridCol5: config.setting.sectionDirection=='row' && g.sections.length==5,
                 gridCol6: config.setting.sectionDirection=='row' && g.sections.length==6,
               }">
-              <div v-for="section in g.sections" v-show="section.visible" :key="section.id" class="section grow">    
+              <div v-for="(section, sectionIdx) in g.sections" v-show="section.visible" :key="section.id" class="section grow">    
             <div
               v-if="section.showTitle && section.title != ''"
               class="title section_title"
