@@ -190,10 +190,9 @@ function fetchOptions(search, loading) {
                   return { Field: props.lookupKey, Op: "$eq", Value: el };
                 }),
               };
-              
-        if(props.modelValue.length > 20){
-          qp.Take = props.modelValue.length + 1
-        }
+               
+        qp.Take += props.modelValue.length
+       
 
         if(qp.Where != undefined){
           qp.Where = { Op: "$or", items: [qp.Where, whereExisting] };
@@ -268,7 +267,7 @@ function addItem(opt) {
   }
 
   opts.push(opt);
-  data.options = opts;
+  data.options = opts; 
 
   emit("addItem", opt);
 }

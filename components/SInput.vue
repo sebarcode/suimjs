@@ -91,6 +91,7 @@
           :disabled="disabled"
           :multiple="multiple"
           @focus="onFocus"
+          @addItem="onAddItem"
         >
           <template #option="{option}">
             <slot name="option" :option="option" ></slot>
@@ -302,6 +303,7 @@ const emit = defineEmits({
   validate: null,
   "update:modelValue": null,
   focus: null,
+  addItem :null,
   change: null,
 });
 
@@ -438,6 +440,9 @@ function searchText () {
     return control.value.searchText();
   return "";
 }
+function onAddItem(v){
+  emit("addItem", props.field, v)
 
+}
 defineExpose({ validate, focus, debug, value2, isValid, searchText});
 </script>
