@@ -32,6 +32,7 @@
         :hide-paging="gridHidePaging"
         :sort-field="gridSortField"
         :sort-direction="gridSortDirection"
+        :page-size="gridPageSize"
         v-if="data.listCfg.setting"
         :config="data.listCfg"
         @select-data="selectData"
@@ -93,6 +94,7 @@
         :total-url="gridTotalUrl"
         :sort-field="gridSortField"
         :sort-direction="gridSortDirection"
+        :page-size="gridPageSize"
         @select-data="selectData"
         @new-data="newData"
         @get-data="getData"
@@ -350,6 +352,7 @@ const props = defineProps({
   gridSortDirection: {type: String, default:""},
   gridCustomFilter: { type: Object, default: () => {} },
   gridNoConfirmDelete: { type: Boolean, default: false },
+  gridPageSize: { type: Number, default: 15 },
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => {} },
