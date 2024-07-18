@@ -6,15 +6,18 @@
     </s-modal>
     
     <div class="flex gap-2 justify-center header" v-if="!hideControl">
-      <input
-        type="text"
-        class="grow bg-transparent outline-none border-b border-slate-300 text-slate-500 text-sm py-2 search_input"
-        placeholder="enter search keyword"
-        v-model="data.keyword"
-        @keyup.enter="refreshData"
-        v-if="!hideSearch"
-      />
-      <div class="grow" v-else>&nbsp;</div>
+      <slot name="header_search" :config="config">
+        <input
+          type="text"
+          class="grow bg-transparent outline-none border-b border-slate-300 text-slate-500 text-sm py-2 search_input"
+          placeholder="enter search keyword"
+          v-model="data.keyword"
+          @keyup.enter="refreshData"
+          v-if="!hideSearch"
+        />
+        <div class="grow" v-else>&nbsp;</div>
+        
+      </slot>
       <button @click="changeSortDirection" v-if="!hideSort"  class="sort_btn">
         <mdicon :name="sortIcon" size="18" />
       </button>
@@ -203,6 +206,7 @@ const emit = defineEmits({
   deleteData: null,
   "modelValue:update": null,
   resetCustomFilter:null,
+  listRefreshed:null
 });
 
 const data = reactive({
@@ -285,8 +289,8 @@ function setLoading(loading) {
 }
 
 function queryParam() {
-  const keywordFields = props.config.setting
-    ? props.config.setting.keywordFields
+  const keywordFields = props.config?.setting
+    ? props.config.setting?.keywordFields
     : [];
   const param = {
     Skip: (data.currentPage - 1) * data.pageSize,
@@ -324,9 +328,11 @@ function queryParam() {
   return param;
 }
 
-function refreshData() {
+function refreshData(callBackFn) {
   if (props.readUrl == "") {
     emit("getData", data.keyword);
+    if (callBackFn && typeof callBackFn == "function") callBackFn();
+    emit("gridRefreshed");
     return;
   }
 
@@ -336,6 +342,7 @@ function refreshData() {
       data.items = r.data.data;
       data.recordCount = r.data.count;
       setLoading(false);
+      emit("listRefreshed", data.items);
     },
     (e) => {
       util.showError(e);

@@ -33,6 +33,7 @@
         :sort-field="gridSortField"
         :sort-direction="gridSortDirection"
         :page-size="gridPageSize"
+        @list-refreshed="handleGridRefreshed"
         v-if="data.listCfg.setting"
         :config="data.listCfg"
         @select-data="selectData"
@@ -139,28 +140,6 @@
         <template #item_buttons_2="prop">
           <slot
             name="grid_item_buttons_2"
-            :item="prop.item"
-            :config="prop.config"
-          />
-        </template>
-
-        <template #item_button_recordchange="prop">
-          <slot
-            name="grid_item_button_recordchange"
-            :item="prop.item"
-            :config="prop.config"
-          />
-        </template>
-        <template #item_button_edit="prop">
-          <slot
-            name="grid_item_button_edit"
-            :item="prop.item"
-            :config="prop.config"
-          />
-        </template>
-        <template #item_button_delete="prop">
-          <slot
-            name="grid_item_button_delete"
             :item="prop.item"
             :config="prop.config"
           />
