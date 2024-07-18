@@ -32,6 +32,7 @@
         :hide-paging="gridHidePaging"
         :sort-field="gridSortField"
         :sort-direction="gridSortDirection"
+        :page-size="gridPageSize"
         v-if="data.listCfg.setting"
         :config="data.listCfg"
         @select-data="selectData"
@@ -93,6 +94,7 @@
         :total-url="gridTotalUrl"
         :sort-field="gridSortField"
         :sort-direction="gridSortDirection"
+        :page-size="gridPageSize"
         @select-data="selectData"
         @new-data="newData"
         @get-data="getData"
@@ -178,6 +180,28 @@
         
         <template #grid_total="prop">
           <slot name="grid_item_total" :item="prop.item"></slot>
+        </template>
+        
+        <template #item_button_recordchange="prop">
+          <slot
+            name="grid_item_button_recordchange"
+            :item="prop.item"
+            :config="prop.config"
+          />
+        </template>
+        <template #item_button_edit="prop">
+          <slot
+            name="grid_item_button_edit"
+            :item="prop.item"
+            :config="prop.config"
+          />
+        </template>
+        <template #item_button_delete="prop">
+          <slot
+            name="grid_item_button_delete"
+            :item="prop.item"
+            :config="prop.config"
+          />
         </template>
 
         <template #footer_1="prop">
@@ -300,11 +324,11 @@
       </template>
 
       <template v-slot:footer_1="{ item, config, mode}">
-        <slot name="form_footer_1" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
+        <slot name="form_footer_1" :item="item" :config="config" :mode="mode"></slot>
       </template>
 
       <template v-slot:footer_2="{ item, config, mode}">
-        <slot name="form_footer_2" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
+        <slot name="form_footer_2" :item="item" :config="config" :mode="mode"></slot>
       </template>
     </s-form>
   </s-card>
@@ -350,6 +374,7 @@ const props = defineProps({
   gridSortDirection: {type: String, default:""},
   gridCustomFilter: { type: Object, default: () => {} },
   gridNoConfirmDelete: { type: Boolean, default: false },
+  gridPageSize: { type: Number, default: 15 },
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => {} },
@@ -393,6 +418,7 @@ const emit = defineEmits({
   alterGridConfig: null,
   alterFormConfig: null,
   gridRefreshed: null,
+  gridGetData: null,
   gridRowAdd: null,
   gridRowUpdated: null,
   gridRowDeleted: null,

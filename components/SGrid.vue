@@ -115,7 +115,10 @@
                 :key="'grid_col_' + hdrIndex"
               >
                 <slot :name="'item_' + hdr.field" :item="r" :header="hdr">
-                  <div v-if="editor && !hdr.input.readOnly">
+                  <div v-if="editor && !(
+                        hdr.input.readOnly || 
+                        (hdr.input.readOnlyOnEdit && (r.suimRowMode=='edit' || r.suimRowMode==undefined))
+                    )">
                     <s-input
                       hide-label
                       :ctl-ref="{ rowIndex: rIdx }"
@@ -189,7 +192,6 @@
                       />
                     </a>
                   </slot>
-
                   <slot name="item_button_edit" :item="r" :config="config">
                     <a
                       href="#"
@@ -204,11 +206,11 @@
                         class="cursor-pointer hover:text-primary"
                       />
                     </a>
-                  </slot> 
+                  </slot>
                   <slot name="item_button_delete" :item="r" :config="config">
                     <a
                       href="#"
-                      v-if="!hideDeleteButton"
+                      v-if="!(hideDeleteButton || data.recordChanged)"
                       @click="deleteData(r, rIdx)"
                       class="delete_action"
                     >
@@ -257,6 +259,7 @@
             }"
           >
             <s-pagination
+              v-if="!hidePaging"
               :recordCount="data.recordCount"
               :pageCount="pageCount"
               :current-page="data.currentPage"
@@ -332,6 +335,7 @@ const props = defineProps({
   hideEdit: { type: Boolean, default: false },
   hideDeleteButton: { type: Boolean, default: false },
   hideFooter: { type: Boolean, default: false },
+  hidePaging: { type: Boolean, default: false },
   hideSelect: { type: Boolean, default: false },
   hideDetail: { type: Boolean, default: false },
   hideAction: { type: Boolean, default: false },
@@ -342,6 +346,7 @@ const axios = inject("axios");
 
 const emit = defineEmits({
   newData: null,
+  getData: null,
   selectData: null,
   deleteData: null,
   rowUpdated: null,
@@ -357,7 +362,12 @@ const emit = defineEmits({
 
 const data = reactive({
   keyword: "",
-  items: props.modelValue == undefined ? [] : props.modelValue,
+  items: props.modelValue == undefined ? [] : 
+    props.modelValue.map(el => {
+      el.suimRecordChange = false;
+      el.suimRowMode = "edit";
+      return el;
+    }),
   recordCount: props.modelValue == undefined ? 0 : props.modelValue.length,
   currentPage: 1,
   sortField:
@@ -408,6 +418,7 @@ function saveRowData(r, rowIndex) {
     (r) => {
       r = r.data;
       r.suimRecordChange = false;
+      r.suimRowMode = "edit";
       data.items[rowIndex] = r;
       emit("rowUpdated", r);
       updateRecordChanged();
@@ -574,6 +585,8 @@ function newData() {
 }
 
 function addData(dt) {
+  dt.suimRowMode="new";
+  dt.suimRecordChange = true;
   data.items.push(dt);
   emit("modelValue:update", data.items);
   emit("rowUpdated", dt);
@@ -618,7 +631,6 @@ function confirmDelete() {
 }
 
 function selectData(data, index, dblclick) {
-
   if (dblclick && props.editor) return;
   data.currentIndex = index;
   emit("selectData", data, index);
@@ -643,14 +655,16 @@ function getRecord(recordIndex) {
 
 function setRecord(recordIndex, record) {
   data.items[recordIndex] = record;
+  updateRecordChanged();
 }
 
 function setRecordByID(record) {
   data.items.forEach((dt, index) => {
     if (dt._id == record._id) {
-      data.items[index] = record;
+      data.items[index] = record;   
     }
   });
+  updateRecordChanged();
 }
 
 function setTotal() {
@@ -673,6 +687,7 @@ function getActiveIndex() {
 
 function setRecords(newDataSet) {
   data.items = newDataSet;
+  updateRecordChanged();
 }
 
 function getCurrentIndex() {

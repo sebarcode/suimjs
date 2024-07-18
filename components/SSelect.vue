@@ -133,106 +133,120 @@ const value = computed({
 
 // methods
 function fetchOptions(search, loading) {
-  
-  let qp = {}
-  if (props.lookupPayloadBuilder==undefined || props.lookupPayloadBuilder==null) {
-    if (search != "") data.filterTxt = search;
-    qp.Take =20
-    qp.Sort = [props.lookupLabels[0]]
-    qp.Select = props.lookupLabels 
-    let idInSelect = false;
-    const selectedFields = props.lookupLabels.map(x => {
-      if (x==props.lookupKey) {
-        idInSelect = true;
+  util.nextTickN(1, ()=>{
+    let qp = {}
+    if (props.lookupPayloadBuilder==undefined || props.lookupPayloadBuilder==null) {
+      if (search != "") data.filterTxt = search;
+      qp.Take =20
+      qp.Sort = [props.lookupLabels[0]]
+      qp.Select = props.lookupLabels 
+      let idInSelect = false;
+      const selectedFields = props.lookupLabels.map(x => {
+        if (x==props.lookupKey) {
+          idInSelect = true;
+        }
+        return x;
+      });
+      if (!idInSelect) {
+        selectedFields.push(props.lookupKey);
       }
-      return x;
-    });
-    if (!idInSelect) {
-      selectedFields.push(props.lookupKey);
-    }
-    qp.Select = selectedFields;
+      qp.Select = selectedFields;
 
-    //setting search
-    if (search.length > 0 && props.lookupSearchs.length > 0) {
-      if (props.lookupSearchs.length == 1)
-        qp.Where = {
-          Field: props.lookupSearchs[0],
-          Op: "$contains",
-          Value: [search],
-        };
-      else
-        qp.Where = {
-          Op: "$or",
-          items: props.lookupSearchs.map((el) => {
-            return { Field: el, Op: "$contains", Value: [search] };
-          }),
-        };
-    }
-
-    if (
-      props.multiple &&
-      props.modelValue &&
-      props.modelValue.length > 0 &&
-      qp.Where != undefined
-    ) {
-      const whereExisting =
-        props.modelValue.length == 1
-          ? { Op: "$eq", Field: props.lookupKey, Value: props.modelValue[0] }
-          : {
-              Op: "$or",
-              items: props.modelValue.map((el) => {
-                return { Field: props.lookupKey, Op: "$eq", Value: el };
-              }),
-            };
-
-      qp.Where = { Op: "$or", items: [qp.Where, whereExisting] };
-    }
-  } else {
-    qp = props.lookupPayloadBuilder(search)
-  }
-  if (loading) loading(true);
-  axios.post(props.lookupUrl, qp).then(
-    (r) => {
-      if (r.data && r.data.error) {
-        if (loading) loading(false)
-        util.showError(r.data.error)
-        return
+      //setting search
+      if (search.length > 0 && props.lookupSearchs.length > 0) {
+        if (props.lookupSearchs.length == 1)
+          qp.Where = {
+            Field: props.lookupSearchs[0],
+            Op: "$contains",
+            Value: [search],
+          };
+        else
+          qp.Where = {
+            Op: "$or",
+            items: props.lookupSearchs.map((el) => {
+              return { Field: el, Op: "$contains", Value: [search] };
+            }),
+          };
+      } 
+      if(!props.multiple && props.modelValue){
+        const whereExisting =  { Op: "$eq", Field: props.lookupKey, Value:  props.modelValue }
+        if(qp.Where != undefined)
+          qp.Where = { Op: "$or", items: [qp.Where, whereExisting] };
+        else
+          qp.Where = { Op: "$or", items: [whereExisting] };
       }
+      else if (
+        props.multiple &&
+        props.modelValue &&
+        props.modelValue.length > 0 
+      ) {
+      
+        const whereExisting =
+          props.modelValue.length == 1
+            ? { Op: "$eq", Field: props.lookupKey, Value: props.modelValue[0] }
+            : {
+                Op: "$or",
+                items: props.modelValue.map((el) => {
+                  return { Field: props.lookupKey, Op: "$eq", Value: el };
+                }),
+              };
+               
+        qp.Take += props.modelValue.length
+       
 
-      const existingOptions = []
-      if (props.modelValue && data.options && data.options.length > 0) {
-        if (typeof props.modelValue==Array) {
-          props.modelValue.forEach(el => {
+        if(qp.Where != undefined){
+          qp.Where = { Op: "$or", items: [qp.Where, whereExisting] };
+        }else{
+          qp.Where = { Op: "$or", items: [whereExisting] };
+        }
+      }
+    } else {
+      qp = props.lookupPayloadBuilder(search)
+    }
+    if (loading) loading(true);
+    axios.post(props.lookupUrl, qp).then(
+      (r) => {
+        if (r.data && r.data.error) {
+          if (loading) loading(false)
+          util.showError(r.data.error)
+          return
+        }
+
+        const existingOptions = []
+        if (props.modelValue && data.options && data.options.length > 0) {
+          if (typeof props.modelValue==Array) {
+            props.modelValue.forEach(el => {
+              const opts = data.options.filter(el => el.key==props.modelValue)
+              if (opts.length > 0) existingOptions.push(...opts)
+            })
+          } else if (typeof props.modelValue=="string") {
             const opts = data.options.filter(el => el.key==props.modelValue)
             if (opts.length > 0) existingOptions.push(...opts)
-          })
-        } else if (typeof props.modelValue=="string") {
-          const opts = data.options.filter(el => el.key==props.modelValue)
-          if (opts.length > 0) existingOptions.push(...opts)
+          }
         }
+
+        data.options = r.data.map((d) => {
+          return {
+            key: d[props.lookupKey],
+            text: getValue2(d),
+            item: {...d}
+          };
+        });
+
+        existingOptions.forEach(el => {
+          const dataOptExists = data.options.filter(dtopt => el.key==dtopt.key)
+          if (dataOptExists==undefined || dataOptExists.length==0) {
+            data.options.push(el)
+          }
+        })
+        
+        if (loading) loading(false);
+      },
+      (e) => {
+        if (loading) loading(false);
       }
-
-      data.options = r.data.map((d) => {
-        return {
-          key: d[props.lookupKey],
-          text: getValue2(d),
-          item: {...d}
-        };
-      });
-
-      existingOptions.forEach(el => {
-        const dataOptExists = data.options.filter(dtopt => el.key==dtopt.key)
-        if (dataOptExists==undefined || dataOptExists.length==0) {
-          data.options.push(el)
-        }
-      })
-      
-      if (loading) loading(false);
-    },
-    (e) => {
-      if (loading) loading(false);
-    }
-  );
+    );
+  })
 }
 
 function selectOpen() {
@@ -253,7 +267,7 @@ function addItem(opt) {
   }
 
   opts.push(opt);
-  data.options = opts;
+  data.options = opts; 
 
   emit("addItem", opt);
 }
