@@ -1,6 +1,6 @@
 <template>
     <ul class="flex flex-col gap-2 justify-center suim_listeditor">
-       
+    
         <li class="flex gap-2 items-center" v-if="!hideHeader">
             <slot name="header"></slot>
         </li>
@@ -75,8 +75,7 @@ const value = computed({
     }
 })
 
-function addRecord() {
-        console.log(data.record)
+function addRecord() { 
     emit("preChange", data.record)
     emit("validateItem", data.record)
 
