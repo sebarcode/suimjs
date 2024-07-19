@@ -947,7 +947,8 @@ defineExpose({
   getFormCurrentTab,
   getFormAllField,
   gridResetFilter,
-  gridAddData
+  gridAddData,
+  selectData
 });
 
 onMounted(() => {
