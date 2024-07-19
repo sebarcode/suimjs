@@ -33,6 +33,7 @@
         :sort-field="gridSortField"
         :sort-direction="gridSortDirection"
         :page-size="gridPageSize"
+        @list-refreshed="handleGridRefreshed"
         v-if="data.listCfg.setting"
         :config="data.listCfg"
         @select-data="selectData"
@@ -579,7 +580,7 @@ function selectData(dt, index, isAfterSave = false) {
         data.formMode = 'edit'
       }else{
         data.formMode = props.formDefaultMode;
-      }
+      } 
       data.isAfterSave = isAfterSave
       
       data.record = r.data;

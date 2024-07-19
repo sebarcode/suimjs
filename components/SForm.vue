@@ -556,7 +556,7 @@ function setFieldAttr(name, attr, value) {
     g.sections.forEach((s) => {
       s.rows.forEach((row) => {
         row.inputs.forEach((input) => {
-          if (input.field == name) {
+          if (input.field == name) { 
             input[attr] = value;
           }
         });
