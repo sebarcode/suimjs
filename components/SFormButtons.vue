@@ -9,7 +9,7 @@
             v-if="mode == 'new' || mode == 'edit'"
             >
             <s-button
-                v-if="!hideSubmitButton && tab==0"
+                v-if="!hideSubmitButton"
                 :icon="submitIcon"
                 class="btn_primary submit_btn"
                 :label="onlyIcon ? '' : submitText || 'Save'"
