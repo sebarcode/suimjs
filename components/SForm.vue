@@ -269,6 +269,7 @@ import { ref, reactive, computed, onMounted, watch, nextTick } from "vue";
 import SFormButtons from "./SFormButtons.vue";
 import SLoader from "./SLoader.vue";
 import SInput from "./SInput.vue";
+import { onUnmounted } from "vue";
 
 const inputs = ref([]);
 
@@ -472,6 +473,20 @@ function getConfigInputByName(fieldName) {
   return resInput;
 }
 
+function nextTab() {
+  if (props.tabs.length > 1) {
+    data.currentTab = data.currentTab + 1;
+    if (data.currentTab >= props.tabs.length) data.currentTab = 0;
+  }
+}
+
+function prevTab() {
+  if (props.tabs.length > 1) {
+    data.currentTab = data.currentTab - 1;
+    if (data.currentTab < 0) data.currentTab = props.tabs.length - 1;
+  }
+}
+
 function getSection(name) {
   let found = false;
   let section = undefined;
@@ -598,8 +613,24 @@ onMounted(() => {
     inputs.value.length > 0 &&
     typeof inputs.value[0].focus == "function"
   )
-    inputs.value[0].focus();
+  inputs.value[0].focus();
+  document.addEventListener("keydown", handleKeyDown);
 });
+
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleKeyDown);
+})
+
+function handleKeyDown(event) {
+  if (event.altKey && event.key === "ArrowRight") {
+    event.preventDefault();
+    nextTab();
+  } else if (event.altKey && event.key === "ArrowLeft") {
+    event.preventDefault();
+    prevTab();
+  } 
+}
+
 </script>
   
   <style scope>

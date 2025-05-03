@@ -8,8 +8,9 @@
             :item="modelValue"
             v-if="mode == 'new' || mode == 'edit'"
             >
-            <s-button
+            <s-button 
                 v-if="!hideSubmitButton && buttonisVisible"
+                ref="submitBtn"
                 :icon="submitIcon"
                 class="btn_primary submit_btn"
                 :label="onlyIcon ? '' : submitText || 'Save'"
@@ -39,9 +40,11 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue';
+import { ref, reactive } from 'vue';
 import SButton from './SButton.vue'
 import { computed } from 'vue';
+import { onMounted } from 'vue';
+import { onUnmounted } from 'vue';
 
 const props = defineProps({
     mode: {type:String, default: 'edit'},
@@ -72,6 +75,8 @@ const data = reactive({
     submissionState: ''
 })
 
+const submitBtn = ref(null);
+
 const buttonisVisible = computed(() => {
     return (props.tab==0 && !props.showOnAllTabs) || props.showOnAllTabs
 })
@@ -89,6 +94,23 @@ function changeSubmissionState (state) {
     data.submissionState = state
 }
 
+onMounted(() => {
+    document.addEventListener('keydown', handleKeyDown);
+})
+
+onUnmounted(() => {
+    document.removeEventListener('keydown', handleKeyDown)
+})
+
+function handleKeyDown (event) {
+    if (event.altKey && event.key==="s") {
+        event.preventDefault();
+        onSubmitForm();
+    } else if (event.key==="Escape" || event.key==="Esc") {
+        event.preventDefault();
+        onCancelForm();
+    } 
+}
 </script>
 
 <style scoped>

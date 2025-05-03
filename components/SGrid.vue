@@ -210,7 +210,7 @@
                   <slot name="item_button_delete" :item="r" :config="config">
                     <a
                       href="#"
-                      v-if="!(hideDeleteButton || data.recordChanged)"
+                      v-if="!(hideDeleteButton || (data.recordChanged && !hideSaveButton))"
                       @click="deleteData(r, rIdx)"
                       class="delete_action"
                     >
@@ -306,6 +306,7 @@ import { computed, inject, onMounted, reactive, ref, watch } from "vue";
 import util from "../scripts/util";
 import { mdiEmoticon, mdiWindowShutter } from "@mdi/js";
 import { useRoute } from "vue-router";
+import { onUnmounted } from "vue";
 
 const route = useRoute();
 
@@ -741,8 +742,23 @@ defineExpose({
 });
 
 onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown);
   refreshData();
 });
+
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleKeyDown);
+});
+
+function handleKeyDown(event) {
+  if (event.altKey && event.key === "r") {
+    event.preventDefault();
+    refreshData();
+  } else if (event.altKey && event.key === "n") {
+    event.preventDefault();
+    newData();
+  }
+}
 
 watch(
   () => props.modelValue,
