@@ -386,6 +386,8 @@ const props = defineProps({
   gridUpdate: { type: String, default: "" },
   gridDelete: { type: String, default: "" },
   gridTotalUrl: { type: String, default: "" },
+  stayOnFormAfterInsert: { type: Boolean, default: false },
+  stayOnFormAfterUpdate: { type: Boolean, default: false },
   stayOnFormAfterSave: { type: Boolean, default: false },
   formShowButtonsOnAllTabs: { type: Boolean, default: false },
   formTabsNew: { type: Array, default: () => [] },
@@ -456,6 +458,15 @@ watch(
     emit("formModeChanged", nv);
   }
 );
+
+const stayOnForm = computed({
+  get() {
+    return props.stayOnFormAfterSave ||
+      (props.stayOnFormAfterInsert && data.formMode=="new") || 
+      (props.stayOnFormAfterUpdate && data.formMode=="edit");
+  },
+});
+
 function handleGridResetCustomFilter(){ 
   emit("gridResetCustomFilter")
 }
@@ -644,7 +655,7 @@ function save(saveData, cbOK, cbFalse, disableNotif) {
 
   if (saveEndPoint == "") {
     emit("postSave", saveData, data.currentIndex);
-    if (!props.stayOnFormAfterSave) {
+    if (!stayOnForm.value) {
       data.controlMode = "grid";
     } else {
       if (disableNotif!==true) util.showInfo("data has been saved");
@@ -659,7 +670,8 @@ function save(saveData, cbOK, cbFalse, disableNotif) {
       data.record = record;
       emit("postSave", record);
       emit("gridRowUpdated", record);
-      if (!props.stayOnFormAfterSave) {
+      
+      if (!stayOnForm.value) {
         data.controlMode = "grid";
         nextTick(() => { 
           gridCtl.value.resetFilter()
