@@ -9,7 +9,7 @@
             v-if="mode == 'new' || mode == 'edit'"
             >
             <s-button
-                v-if="!hideSubmitButton && tab==0"
+                v-if="!hideSubmitButton && buttonisVisible"
                 :icon="submitIcon"
                 class="btn_primary submit_btn"
                 :label="onlyIcon ? '' : submitText || 'Save'"
@@ -17,7 +17,7 @@
                 :disabled="disableSubmit"
             />
             <s-button
-                v-if="!hideCancelButton && tab==0"
+                v-if="!hideCancelButton && buttonisVisible"
                 :icon="cancelIcon" 
                 class="btn_warning back_btn"
                 :label="onlyIcon ? '' : cancelText"
@@ -26,7 +26,7 @@
             </slot>
             <slot v-else name="buttons">
             <s-button
-                v-if="(hideCancelButton == undefined || hideCancelButton === false) && tab==0"
+                v-if="(hideCancelButton == undefined || hideCancelButton === false) && buttonisVisible"
                 :icon="cancelIcon" 
                 class="btn_warning back_btn"
                 :label="onlyIcon ? '' : cancelText"
@@ -41,6 +41,7 @@
 <script setup>
 import { reactive } from 'vue';
 import SButton from './SButton.vue'
+import { computed } from 'vue';
 
 const props = defineProps({
     mode: {type:String, default: 'edit'},
@@ -52,6 +53,7 @@ const props = defineProps({
     hideSubmitButton: {type: Boolean, default: false},
     hideCancelButton: {type: Boolean, default: false},
     hideButtons: {type: Boolean, default: false},
+    showOnAllTabs: {type: Boolean, default: false},
     disableSubmit: {type: Boolean},
     onlyIcon: {type: Boolean, default: false},
     modelValue: {type: Object, default: ()=>{}},
@@ -68,6 +70,10 @@ defineExpose({
 
 const data = reactive({
     submissionState: ''
+})
+
+const buttonisVisible = computed(() => {
+    return (props.tab==0 && !props.showOnAllTabs) || props.showOnAllTabs
 })
 
 

@@ -225,13 +225,15 @@ function fetchOptions(search, loading) {
           }
         }
 
-        data.options = r.data.map((d) => {
-          return {
-            key: d[props.lookupKey],
-            text: getValue2(d),
-            item: {...d}
-          };
-        });
+        if (r.data && r.data.length >0) {
+          data.options = r.data.map((d) => {
+            return {
+              key: d[props.lookupKey],
+              text: getValue2(d),
+              item: {...d}
+            };
+          });
+        }
 
         existingOptions.forEach(el => {
           const dataOptExists = data.options.filter(dtopt => el.key==dtopt.key)

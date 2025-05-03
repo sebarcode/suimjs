@@ -66,6 +66,12 @@
       </s-list>
     </div>
 
+    <!--<div>
+      Grid debug:
+      gridMode: {{  data.gridMode }}<br/>
+      controlMode: {{ data.controlMode }}<br/>
+    </div>-->
+
     <div
       v-if="data.listCfg.setting && gridMode == 'grid'"
       v-show="data.controlMode == 'grid'"
@@ -85,6 +91,7 @@
         :hide-sort="gridHideSort"
         :hide-edit="gridHideEdit"
         :hide-paging="gridHidePaging"
+        :hide-save-button="gridHideSave"
         :hide-delete-button="gridHideDelete"
         :label-method="gridLabelMethod"
         :hide-refresh-button="gridHideRefresh"
@@ -96,6 +103,7 @@
         :sort-field="gridSortField"
         :sort-direction="gridSortDirection"
         :page-size="gridPageSize"
+        :single-color="gridSingleColor"
         @select-data="selectData"
         @new-data="newData"
         @get-data="getData"
@@ -207,6 +215,7 @@
       :auto-focus="formAutoFocus"
       :focus="formFocus"
       @submitForm="save"
+      :showButtonsOnAllTabs="formShowButtonsOnAllTabs"
       :tabs="formTabTitles"
       :initialTab="formInitialTab"
       @cancelForm="cancelForm"
@@ -338,6 +347,7 @@ const props = defineProps({
   hideTitle: { type: Boolean },
   gridEditor: { type: Boolean },
   gridEditorNoForm: { type: Boolean },
+  gridSingleColor: { type: Boolean },
   gridFields: { type: Array, default: () => [] },
   gridHideControl: { type: Boolean, default: false },
   gridHideSearch: { type: Boolean, default: false },
@@ -347,6 +357,7 @@ const props = defineProps({
   gridHidePaging: { type: Boolean },
   gridHideNew: { type: Boolean, default: false },
   gridHideRefresh: { type: Boolean, default: false },
+  gridHideSave: { type: Boolean, default: false },
   gridHideDelete: { type: Boolean, default: false },
   gridHideEdit: { type: Boolean, default: false },
   gridSortField: {type: String, default:""},
@@ -376,6 +387,7 @@ const props = defineProps({
   gridDelete: { type: String, default: "" },
   gridTotalUrl: { type: String, default: "" },
   stayOnFormAfterSave: { type: Boolean, default: false },
+  formShowButtonsOnAllTabs: { type: Boolean, default: false },
   formTabsNew: { type: Array, default: () => [] },
   formTabsEdit: { type: Array, default: () => [] },
   formTabsView: { type: Array, default: () => [] },

@@ -40,7 +40,6 @@ const props = defineProps({
 
 <style scoped>
 .cardTitleSeparator {
-  border-bottom: solid 1px var(--color-border);
 }
 
 .cardFooterSeparator {

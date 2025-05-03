@@ -43,6 +43,7 @@
               :only-icon="onlyIconTop" :disable-submit="data.inSubmission || data.loading"
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
               :tab="data.currentTab"
+              :showOnAllTabs="showButtonsOnAllTabs" 
               @submit-click="onSubmitForm" @cancel-click="onCancelForm">
               <template #buttons_1="item"><slot name="buttons_1" :item="value" :in-submission="data.inSubmission" :loading="data.loading" :mode="mode"></slot></template>
               <template #buttons="item"><slot name="buttons" :item="value" :in-submission="data.inSubmission" :loading="data.loading" :mode="mode"></slot></template>
@@ -236,7 +237,7 @@
                 :hide-buttons="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
                 :only-icon="onlyIconBottom" :disable-submit="data.inSubmission || data.loading" 
                 :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
-                :tab="data.currentTab"
+                :tab="data.currentTab" :showButtonsOnAllTabs="showButtonsOnAllTabs"
                 @submit-click="onSubmitForm" @cancel-click="onCancelForm">
                 <template #buttons_1="item"><slot name="buttons_1" :item="item"></slot></template>
                 <template #buttons="item"><slot name="buttons" :item="item"></slot></template>
@@ -289,6 +290,7 @@ const props = defineProps({
   buttonsOnTop: { type: Boolean, default: true },
   buttonsOnBottom: { type: Boolean },
   keepLabel: { type: Boolean },
+  showButtonsOnAllTabs: { type: Boolean, default: false },
   onlyIconTop: { type: Boolean, default: false },
   onlyIconBottom: { type: Boolean, default: false },
   loading: { type: Boolean },
