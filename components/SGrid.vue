@@ -750,6 +750,9 @@ onUnmounted(() => {
   document.removeEventListener("keydown", handleKeyDown);
 });
 
+const editActions =ref([]);
+const currentFocusIndex = ref(-1);
+
 function handleKeyDown(event) {
   if (event.altKey && event.key === "r") {
     event.preventDefault();
@@ -757,6 +760,16 @@ function handleKeyDown(event) {
   } else if (event.altKey && event.key === "n") {
     event.preventDefault();
     newData();
+  } else if (event.altKey && event.key === "1") {
+    event.preventDefault();
+    if (editActions.value.length == 0) {
+      editActions.value = document.querySelectorAll(".edit_action");
+    }
+    if (editActions.value.length > 0) {
+      const nextIndex = (currentFocusIndex.value + 1) % editActions.value.length;
+      editActions.value[nextIndex].focus();
+      currentFocusIndex.value = nextIndex;
+    }
   }
 }
 
