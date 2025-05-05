@@ -106,7 +106,7 @@ function handleKeyDown (event) {
     if (event.altKey && event.key==="s") {
         event.preventDefault();
         onSubmitForm();
-    } else if (event.key==="Escape" || event.key==="Esc") {
+    } else if (event.altKey && event.key==="q") {
         event.preventDefault();
         onCancelForm();
     } 
