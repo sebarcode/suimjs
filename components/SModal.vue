@@ -24,7 +24,7 @@
                 <slot name="buttons">
                     <slot name="buttons_2"></slot>
                     <s-button class="btn_warning" label="Cancel" @click="hide" v-if="!hideCancel" />
-                    <s-button class="btn_primary" label="Submit" @click="submit" v-if="!hideSubmit" />
+                    <s-button class="btn_primary" label="Submit" @click="submit" v-if="!hideSubmit" ref="cancelBtn" />
                     <slot name="buttons_1"></slot>
                 </slot>
             </div>
@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue';
+import { reactive, watch, ref } from 'vue';
 import SButton from './SButton.vue';
 
 
@@ -52,6 +52,8 @@ const data = reactive({
     displayModal: props.display
 })
 
+const cancelBtn = ref(null);
+
 watch(()=>props.display, (nv)=>{
     data.displayModal = nv
 })
@@ -64,6 +66,9 @@ const emit = defineEmits({
 
 function show () {
     data.displayModal = true
+    if (cancelBtn.value) {
+        cancelBtn.value.focus();
+    }
 }
 
 function hide () {

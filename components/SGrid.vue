@@ -317,7 +317,7 @@ const props = defineProps({
   readUrl: { type: String, default: "" },
   updateUrl: { type: String, default: "" },
   deleteUrl: { type: String, default: "" },
-  pageSize: { type: Number, default: 15 },
+  pageSize: { type: Number, default: 20 },
   hideHeader: { type: Boolean, default: false },
   editor: { type: Boolean, default: false },
   singleColor: { type: Boolean, default: false },
@@ -573,7 +573,7 @@ function refreshData(callBackFn) {
       if (props.totalUrl != "") {
         setTotal();
       }
-      if (callBackFn && typeof callBackFn == "function") callBackFn();
+      if (callBackFn && typeof callBackFn == "function") callBackFn(); 
     },
     (e) => {
       //util.showError(e);
@@ -590,7 +590,7 @@ function addData(dt) {
   dt.suimRowMode="new";
   dt.suimRecordChange = true;
   data.items.push(dt);
-  emit("modelValue:update", data.items);
+  emit("update:modelValue", data.items);
   emit("rowUpdated", dt);
   updateRecordChanged();
 }
@@ -603,7 +603,7 @@ function deleteData(record, dataIndex) {
         emit("rowDeleted", record);
         updateRecordChanged();
       });
-      return;
+      return; 
     } else {
       axios.post(props.deleteUrl, record).then(
         (r) => {
@@ -744,12 +744,12 @@ defineExpose({
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
   refreshData();
-  //console.log(`mounting grid ${props.config.title}`);
+  console.log(`mounting grid ${props.config.title}`);
 });
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleKeyDown);
-  //console.log(`unmounting grid ${props.config.title}`);
+  console.log(`unmounting grid ${props.config.title}`);
 });
 
 const editActions =ref([]);
@@ -764,13 +764,13 @@ function handleKeyDown(event) {
     newData();
   } else if (event.altKey && event.key === "1") {
     event.preventDefault();
-    if (editActions.value.length == 0) {
-      editActions.value = document.querySelectorAll(".edit_action");
-    }
+    editActions.value = document.querySelectorAll(".edit_action");
     if (editActions.value.length > 0) {
       const nextIndex = (currentFocusIndex.value + 1) % editActions.value.length;
       editActions.value[nextIndex].focus();
       currentFocusIndex.value = nextIndex;
+    } else {
+      console.log("no edit actions found");
     }
   }
 }

@@ -77,14 +77,14 @@ const props = defineProps({
   recordCount: { type: Number, default: 0 },
   pageCount: { type: Number, default: 0 },
   currentPage: { type: Number, default: 0 },
-  pageSize: { type: Number, default: 25 },
+  pageSize: { type: Number, default: 20 },
 });
 
 const emit = defineEmits({
   changePage: null,
   changePageSize:null,
 }); 
-const itemsPageSize = [5,10,15,25]
+const itemsPageSize = [5,10,15,20,25]
 itemsPageSize.push(props.pageSize) 
  
 const data = reactive({  

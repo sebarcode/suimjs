@@ -364,7 +364,7 @@ const props = defineProps({
   gridSortDirection: {type: String, default:""},
   gridCustomFilter: { type: Object, default: () => {} },
   gridNoConfirmDelete: { type: Boolean, default: false },
-  gridPageSize: { type: Number, default: 15 },
+  gridPageSize: { type: Number, default: 20 },
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => {} },

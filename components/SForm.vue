@@ -606,6 +606,8 @@ watch(
   { deep: true }
 );
 
+let formsInputs = ref([])
+
 onMounted(() => {
   calcChangeFields();
   if (
@@ -615,6 +617,11 @@ onMounted(() => {
   )
   inputs.value[0].focus();
   document.addEventListener("keydown", handleKeyDown);
+  formsInputs.value = Array.from(document.querySelectorAll(".suim_form input, .suim_form select, .suim_form textarea"))
+      .filter(input => !input.disabled);
+  if (formsInputs.value.length > 0) {
+    formsInputs.value[0].focus();
+  }
 });
 
 onUnmounted(() => {
