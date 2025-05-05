@@ -744,10 +744,12 @@ defineExpose({
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
   refreshData();
+  //console.log(`mounting grid ${props.config.title}`);
 });
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleKeyDown);
+  //console.log(`unmounting grid ${props.config.title}`);
 });
 
 const editActions =ref([]);

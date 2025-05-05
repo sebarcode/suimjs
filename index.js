@@ -8,6 +8,7 @@ import loadFormConfigFromData from "./scripts/load_form_config_from_data.js";
 import loadFormConfig from "./scripts/load_form_config.js";
 import loadGridConfig from "./scripts/load_grid_config.js";
 import rules from "./scripts/rules.js";
+import { keyHandlers, keyHandlerSetup } from "./scripts/keyhandler.js";
 import SInput from "./components/SInput.vue";
 import SButton from "./components/SButton.vue";
 import SCard from "./components/SCard.vue";
@@ -41,5 +42,7 @@ export {
   DataList,
   SModal,
   STooltip,
-  SPagination
+  SPagination,
+  keyHandlers,
+  keyHandlerSetup
 };
