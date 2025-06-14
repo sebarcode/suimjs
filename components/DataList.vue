@@ -85,11 +85,13 @@
         :update-url="data.gridUpdateUrl"
         :delete-url="data.gridDeleteUrl"
         :config="data.listCfg"
+        :hide-action="gridHideAction"
         :hide-search="gridHideSearch"
         :hide-control="gridHideControl"
         :hide-detail="gridHideDetail"
         :hide-sort="gridHideSort"
         :hide-edit="gridHideEdit"
+        :disable-dbl-click="gridDisableDblClick"
         :hide-paging="gridHidePaging"
         :hide-save-button="gridHideSave"
         :hide-delete-button="gridHideDelete"
@@ -276,7 +278,6 @@
       </template>
 
       <template v-for="tabName in formTabNames" v-slot:[tabName]="slotData">
-        
         <slot
           :name="'form_' + tabName"
           :item="slotData.item"
@@ -350,6 +351,7 @@ const props = defineProps({
   gridSingleColor: { type: Boolean },
   gridFields: { type: Array, default: () => [] },
   gridHideControl: { type: Boolean, default: false },
+  gridHideAction: { type: Boolean, default: false },
   gridHideSearch: { type: Boolean, default: false },
   gridHideSelect: { type: Boolean, default: false },
   gridHideDetail: { type: Boolean },
@@ -360,6 +362,7 @@ const props = defineProps({
   gridHideSave: { type: Boolean, default: false },
   gridHideDelete: { type: Boolean, default: false },
   gridHideEdit: { type: Boolean, default: false },
+  gridDisableDblClick: { type: Boolean, default: false },
   gridSortField: {type: String, default:""},
   gridSortDirection: {type: String, default:""},
   gridCustomFilter: { type: Object, default: () => {} },
@@ -580,7 +583,6 @@ const gridFieldInputSlotNames = computed({
 });
 
 function selectData(dt, index, isAfterSave = false) {
- 
   if (props.formRead == "") {
     data.record = dt;
     emit("formEditData", data.record);

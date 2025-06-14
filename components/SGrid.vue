@@ -23,6 +23,14 @@
       <button @click="changeSortDirection" v-if="!hideSort" class="sort_btn">
         <mdicon :name="sortIcon" size="18" />
       </button>
+      <button
+        v-if="props.inlineSearch"
+        @click="showInlineSearch = !showInlineSearch"
+        class="inline_search_btn"
+        :title="showInlineSearch ? 'Sembunyikan filter kolom' : 'Tampilkan filter kolom'"
+      >
+        <mdicon :name="showInlineSearch ? 'filter-off-outline' : 'filter-outline'" size="18" />
+      </button>
       <select
         v-model="data.sortField"
         class="sort_select border-b"
@@ -86,6 +94,27 @@
               >
                 Action
               </th>
+            </tr>
+            <tr v-if="showInlineSearch">
+              <td v-if="!hideSelect"></td>
+              <td
+                v-for="(hdr, hdrIndex) in config.fields.filter(
+                  (el) => el.readType == 'show' && (
+                    (filteredFields && filteredFields.length > 0 ? filteredFields.includes(el.field) : true) &&
+                    (unfilteredFields && unfilteredFields.length > 0 ? !unfilteredFields.includes(el.field) : true)
+                  )
+                )"
+                :key="'grid_inline_search_' + hdrIndex"
+              >
+                <s-input
+                  v-model="hdr.inlineSearchValue"
+                  :placeholder="'Cari ' + hdr.label"
+                  size="small"
+                  hide-label
+                  @keyup.enter="refreshData"
+                />
+              </td>
+              <td v-if="!hideAction"></td>
             </tr>
           </thead>
 
@@ -218,7 +247,7 @@
                         name="delete"
                         width="16"
                         alt="delete"
-                        class="cursor-pointer hover:text-primary"
+                        class=""
                       />
                     </a>
                   </slot>
@@ -342,6 +371,8 @@ const props = defineProps({
   hideDetail: { type: Boolean, default: false },
   hideAction: { type: Boolean, default: false },
   totalUrl: { type: String, default: "" },
+  inlineSearch: { type: Boolean, default: false },
+  disableDblClick: { type: Boolean, default: false },
 });
 
 const axios = inject("axios");
@@ -388,7 +419,19 @@ const data = reactive({
   total: [],
 });
 
+// Untuk menyimpan nilai inline search per kolom
+if (props.inlineSearch && props.config && props.config.fields) {
+  props.config.fields.forEach(f => {
+    if (f.readType === 'show') {
+      if (typeof f.inlineSearchValue === 'undefined') {
+        f.inlineSearchValue = '';
+      }
+    }
+  });
+}
+
 const deleteModal = ref(null);
+const showInlineSearch = ref(false);
 
 function resetCustomFilter(){
   emit("resetCustomFilter")
@@ -520,17 +563,32 @@ function queryParam() {
   };
 
   const filters = [];
-  if (keywordFields.length > 0 && data.keyword && data.keyword != "") {
-    filters.push({
-      Op: "$or",
-      Items: keywordFields.map((k) => {
-        return {
-          Field: k,
-          Op: "$contains",
-          Value: [data.keyword],
-        };
-      }),
-    });
+
+  // Custom && Inline search filter
+  if (props.config && props.config.fields) {
+    if (props.inlineSearch) {
+      const inlineFilters = props.config.fields
+        .filter(f => f.readType === 'show' && f.inlineSearchValue && f.inlineSearchValue !== '')
+        .map(f => ({
+          Field: f.field,
+          Op: '$contains',
+          Value: [f.inlineSearchValue],
+        }));
+      if (inlineFilters.length > 0) {
+        filters.push({ Op: '$and', Items: inlineFilters });
+      }
+    } else if (keywordFields.length > 0 && data.keyword && data.keyword != "") {
+      filters.push({
+        Op: "$or",
+        Items: keywordFields.map((k) => {
+          return {
+            Field: k,
+            Op: "$contains",
+            Value: [data.keyword],
+          };
+        }),
+      });
+    }
   }
 
   if (props.customFilter && props.customFilter.Op != "")
@@ -548,11 +606,13 @@ function queryParam() {
   }
   return param;
 }
+
 function resetFilter(){
   data.keyword ="";
   resetCustomFilter()
 
 }
+
 function refreshData(callBackFn) {
   if (props.readUrl == undefined || props.readUrl == "") {
     emit("getData", data.keyword);
@@ -633,6 +693,7 @@ function confirmDelete() {
 }
 
 function selectData(data, index, dblclick) {
+  if (dblclick && props.disableDblClick) return;
   if (dblclick && props.editor) return;
   data.currentIndex = index;
   emit("selectData", data, index);
