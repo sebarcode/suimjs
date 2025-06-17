@@ -133,8 +133,19 @@
       <!-- all other input type -->
       <div v-else>
         <input
-          v-if="multiRow <= 1 && kind != 'number'"
-          :type="kind"
+          v-if="kind=='datetime'"
+          type="datetime-local"
+          :placeholder="caption || label"
+          class="input_field"
+          :value="value"
+          @input="updateDateTimeValue($event.target.value)"
+          ref="control"
+          :disabled="disabled"
+          @focus="onFocus"
+        />
+        <input
+          v-else-if="multiRow <= 1 && kind != 'number'"
+          :type="kind=='datetime' ? 'datetime-local' : kind"
           :placeholder="caption || label"
           class="input_field"
           v-model="value"
@@ -145,7 +156,6 @@
         <input
           v-else-if="multiRow <= 1 && kind == 'number'"
           :type="kind"
-          :placeholder="caption || label"
           class="input_field text-right"
           v-model="value"
           ref="control"
@@ -187,7 +197,7 @@
     </label>
 
     <div class="bg-transparent" v-if="kind == 'datetime'">
-      {{ moment(value).local().format("DD-MMM-YYYY HH:mm:ss Z") }}
+      {{ moment(value).local().format("DD-MMM-YYYY HH:mm:ssZ") }}
     </div>
     <div class="bg-transparent" v-else-if="kind == 'date'">
       {{ moment(value).local().format("DD-MMM-YYYY") }}
@@ -321,11 +331,15 @@ const value = computed({
   get() {
     switch (props.kind) {
       case "date":
-        if (props.modelValue) return moment(props.modelValue).local().format("YYYY-MM-DD")
+        if (props.modelValue) return moment.utc(props.modelValue).local().format("YYYY-MM-DD")
           else return null;
-      case ("datetime", "timestamp"):
-        if (props.modelValue)  return moment(props.modelValue).local().format("YYYY-MM-DDTHH:mm:ssZ")
+
+      case "datetime":
+      case "timestamp":
+        if (props.modelValue)  
+          return moment.utc(props.modelValue).local().format("YYYY-MM-DDTHH:mm")
           else return null;
+
       default:
         return props.modelValue;
     }
@@ -334,9 +348,15 @@ const value = computed({
   set(v) {
     switch (props.kind) {
       case "date":
-        if (v) v = moment(v).format("YYYY-MM-DDT00:00:00Z");
-      case ("datetime", "timestamp"):
-        if (v) v = moment(v).format("YYYY-MM-DDThh:mm:ssZ");
+        if (v == null || v == "") {
+          v = null;
+        } else {
+          v = moment(v, "YYYY-MM-DD").utc().format();
+        }
+        break;
+    
+      default:
+        if (v == undefined) v = "";
     }
 
     handleChange(v, value2(v), props.modelValue, props.ctlRef);
@@ -346,6 +366,19 @@ const value = computed({
     });
   },
 });
+
+function updateDateTimeValue(value) {
+  if (value == null || value == "") {
+    value = null;
+  } else {
+    value = moment(value).utc().format();
+  }
+  handleChange(value, value2(value), props.modelValue, props.ctlRef);
+  emit("update:modelValue", value);
+  nextTick(() => {
+    if (!props.disableValidateOnChange) validate();
+  });
+}
 
 const errorsTxt = computed(() => {
   return state.errors.filter((x) => x != "").join(", ");

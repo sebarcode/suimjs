@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-4 suim_pagination justify-between mb-2">
+  <div id="pagingContainer" class="flex flex-wrap gap-4 suim_pagination justify-between mb-2">
     <div class="info_page">
        {{infoPage}}
     </div>
@@ -155,6 +155,35 @@ const infoPage = computed({
 .suim_pagination .pagesize .select-dropdown ul.vs__dropdown-menu{
     min-width: 80px !important;
     max-width: 80px !important
+}
+/* Responsive styles for pagingContainer */
+#pagingContainer {
+    /* Allow wrapping on small screens */
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Stack items vertically on small screens */
+@media (max-width: 640px) {
+    #pagingContainer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    #pagingContainer .info_page,
+    #pagingContainer .pagging,
+    #pagingContainer .pagesize {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 0.25rem;
+    }
+    #pagingContainer .pagging {
+        justify-content: flex-start;
+    }
+    #pagingContainer .pagesize {
+        justify-content: flex-end;
+    }
 }
 </style>
 <style scoped>
