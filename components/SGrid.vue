@@ -33,12 +33,19 @@
       </button>
       <select
         v-model="data.sortField"
-        class="sort_select border-b"
+        class="sort_select px-2 py-1 border-b border-gray-300 bg-white text-gray-700 text-sm focus:outline-none focus:border-primary hover:border-gray-400 cursor-pointer appearance-none min-w-[120px]"
         @change="refreshData"
         v-if="config.setting && !hideSort"
       >
-        <option value="">No Sort</option>
-        <option v-for="f in config.setting.sortable" :value="f">{{ f }}</option>
+        <option value="" class="text-gray-500">&nbsp;</option>
+        <option 
+          v-for="f in config.setting.sortable" 
+          :key="f"
+          :value="f" 
+          class="py-1"
+        >
+          {{ f }}
+        </option>
       </select>
       <div class="flex gap-[1px] header_button">
         <slot name="header_buttons_1" :config="config"></slot>
@@ -65,12 +72,12 @@
 
     <!--<div>data items: {{  data.items }}</div>-->
     <div v-if="!data.loading">
-      <div v-if="data.items.length > 0" class="suim_area_table">
-        <table class="w-full table-auto suim_table">
+      <div v-if="data.items.length > 0" class="suim_area_table overflow-x-auto">
+        <table class="w-full table-auto suim_table min-w-[600px]">
           <!-- header -->
           <thead name="grid_header">
             <tr class="border-b-[1px] border-slate-500">
-              <th class="row_select" v-if="!hideSelect">
+              <th class="row_select whitespace-nowrap px-2 py-1" v-if="!hideSelect">
                 <input type="checkbox" @change="checkUncheckAll" />
               </th>
               <th
@@ -78,7 +85,7 @@
                   (el) => el.readType == 'show'
                 )"
                 :key="'grid_col_' + hdrIndex"
-                class=""
+                class="whitespace-nowrap px-2 py-1 text-ellipsis overflow-hidden"
                 :class="{
                   'text-right': hdr.align == 'right' || hdr.kind == 'number',
                   'pr-4': hdr.align == 'right' || hdr.kind == 'number',
@@ -89,14 +96,14 @@
                 {{ hdr.label }}
               </th>
               <th
-                class="w-[50px] max-w-[180px] ml-[10px] border-l-[1px] border-white text-left text-sm font-semibold"
+                class="w-[50px] max-w-[180px] ml-[10px] border-l-[1px] border-white text-left text-sm font-semibold whitespace-nowrap px-2 py-1"
                 v-if="!hideAction"
               >
                 Action
               </th>
             </tr>
             <tr v-if="showInlineSearch">
-              <td v-if="!hideSelect"></td>
+              <td v-if="!hideSelect" class="whitespace-nowrap px-2 py-1"></td>
               <td
                 v-for="(hdr, hdrIndex) in config.fields.filter(
                   (el) => el.readType == 'show' && (
@@ -105,6 +112,7 @@
                   )
                 )"
                 :key="'grid_inline_search_' + hdrIndex"
+                class="whitespace-nowrap px-2 py-1"
               >
                 <s-input
                   v-model="hdr.inlineSearchValue"
@@ -114,7 +122,7 @@
                   @keyup.enter="refreshData"
                 />
               </td>
-              <td v-if="!hideAction"></td>
+              <td v-if="!hideAction" class="whitespace-nowrap px-2 py-1"></td>
             </tr>
           </thead>
 
@@ -127,7 +135,7 @@
               :class="{ 'even:bg-slate-100': !editor && !singleColor, 'hover:none':hideEdit}"
               @dblclick="selectData(r, 'detail', true)"
             >
-              <td class="w-[30px] text-center" v-if="!hideSelect">
+              <td class="w-[30px] text-center whitespace-nowrap px-2 py-1" v-if="!hideSelect">
                 <!-- <input type="checkbox" v-model="r.isSelected" /> -->
                 <slot name="checkbox" :item="r"
                   ><input
@@ -142,6 +150,7 @@
                   (el) => el.readType == 'show'
                 )"
                 :key="'grid_col_' + hdrIndex"
+                class="whitespace-nowrap px-2 py-1 text-ellipsis overflow-hidden max-w-[200px]"
               >
                 <slot :name="'item_' + hdr.field" :item="r" :header="hdr">
                   <div v-if="editor && !(
@@ -198,7 +207,7 @@
                 </slot>
               </td>
 
-              <td class="row_action" v-if="!hideAction">
+              <td class="row_action whitespace-nowrap px-2 py-1" v-if="!hideAction">
                 <slot name="item_buttons_1" :item="r" :config="config"></slot>
                 <slot name="item_buttons" :item="r" :config="config">
                   <slot name="item_button_recordchange" :item="r" :config="config">
@@ -851,3 +860,28 @@ watch(
   }
 );
 </script>
+<style scoped>
+/* ...existing code... */
+
+/* Responsive grid table */
+.suim_area_table {
+  overflow-x: auto;
+}
+
+/* Responsive th/td for small screens */
+@media (max-width: 640px) {
+  .suim_table th,
+  .suim_table td {
+    font-size: 0.85em;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .suim_table {
+    min-width: 480px;
+  }
+}
+</style>

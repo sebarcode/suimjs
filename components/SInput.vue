@@ -143,6 +143,7 @@
           :disabled="disabled"
           @focus="onFocus"
         />
+
         <input
           v-else-if="multiRow <= 1 && kind != 'number'"
           :type="kind=='datetime' ? 'datetime-local' : kind"

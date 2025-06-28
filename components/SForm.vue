@@ -345,10 +345,12 @@ const data = reactive({
 
 const inputIsDisabled = (input) => {
   if (props.mode == "view") return input.disabled===false ? false : true;
-
+  if (input.readOnly) return true;
+  if (input.disabled) return true;
+  
   if (props.mode == "new" && input.readOnlyOnNew) return true;
   if (props.mode == "edit" && input.readOnlyOnEdit) return true;
-
+  
   return false;
 };
 
