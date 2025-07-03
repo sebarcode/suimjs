@@ -699,16 +699,18 @@ function gridRowUpdated(dt) {
 }
 
 function refreshList() {
-  if (gridCtl.value) {
-    gridCtl.value.refreshData();
-    return;
-  }
   data.loadingGridCfg = true
   loadGridConfig(axios, props.gridConfig).then(
     (r) => {
-      emit("alterGridConfig", r);
-      data.listCfg = r;
+      let cfg = r;
+      emit("alterGridConfig", cfg);
+      data.listCfg = cfg;
       data.loadingGridCfg = false
+
+      if (gridCtl.value) {
+        gridCtl.value.refreshData();
+        return;
+      }
     },
     (e) => data.loadingGridCfg = false
   );
@@ -814,7 +816,7 @@ function getGridRecord(idx) {
 }
 
 function setGridRecord(idx, dt) {
-  return gridCtl.value.setRecord(idx, dt);
+  return gridCtl.value?.setRecord(idx, dt);
 }
 
 function setGridRecordByID(dt) {
@@ -848,7 +850,7 @@ function getControlMode() {
 }
 
 function setGridRecords(items) {
-  gridCtl.value.setRecords(items);
+  gridCtl.value?.setRecords(items);
 }
 
 watch(

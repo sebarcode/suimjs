@@ -2,7 +2,7 @@
   <div v-if="!disabled" @mouseover="onFocus">
     <v-select
       v-if="lookupUrl == ''"
-      class="p-0 m-0 border border-white s-select-style h-[30px]"
+      class="p-0 m-0 border border-white s-select-style"
       label="text"
       @option:created="addItem"
       @option:selected="selectItem"

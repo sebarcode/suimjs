@@ -85,7 +85,7 @@
                   (el) => el.readType == 'show'
                 )"
                 :key="'grid_col_' + hdrIndex"
-                class="whitespace-nowrap px-2 py-1 text-ellipsis overflow-hidden"
+                class="whitespace-nowrap px-2 py-1 text-ellipsis"
                 :class="{
                   'text-right': hdr.align == 'right' || hdr.kind == 'number',
                   'pr-4': hdr.align == 'right' || hdr.kind == 'number',
@@ -150,7 +150,7 @@
                   (el) => el.readType == 'show'
                 )"
                 :key="'grid_col_' + hdrIndex"
-                class="whitespace-nowrap px-2 py-1 text-ellipsis overflow-hidden max-w-[200px]"
+                class="whitespace-nowrap px-2 py-1 text-ellipsis"
               >
                 <slot :name="'item_' + hdr.field" :item="r" :header="hdr">
                   <div v-if="editor && !(
@@ -395,6 +395,7 @@ const emit = defineEmits({
   rowDeleted: null,
   rowFieldChanged: null,
   gridRefreshed: null,
+  saveRowData: null,
   "update:modelValue": null,
   refreshTotal: null,
   checkUncheckAll: null,
@@ -814,12 +815,12 @@ defineExpose({
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
   refreshData();
-  console.log(`mounting grid ${props.config.title}`);
+  //console.log(`mounting grid ${props.config.title}`);
 });
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleKeyDown);
-  console.log(`unmounting grid ${props.config.title}`);
+  //console.log(`unmounting grid ${props.config.title}`);
 });
 
 const editActions =ref([]);
@@ -877,9 +878,10 @@ watch(
     padding-right: 0.25rem;
     max-width: 120px;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible !important;
     text-overflow: ellipsis;
   }
+  
   .suim_table {
     min-width: 480px;
   }
