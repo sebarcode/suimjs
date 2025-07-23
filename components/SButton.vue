@@ -55,13 +55,23 @@ const disableBtn = computed({
 </script>
 
 <style scoped>
+/* Converted from Tailwind to regular CSS */
 .btn {
-  @apply hover:opacity-60
-    disabled:opacity-30
-    border-none normal-case px-2 font-normal
-    rounded-sm;
-
+  border: none;
+  text-transform: none;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  font-weight: 400;
+  border-radius: 0.2rem;
   min-height: 18px !important;
   height: 1.8rem;
+  transition: opacity 0.2s;
+}
+.btn:hover {
+  opacity: 0.6;
+}
+.btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
 }
 </style>

@@ -89,28 +89,48 @@ defineExpose({
 
 <style scoped>
 
+
 .modal_fullbg {
-    @apply absolute top-0 left-0 w-full h-full bg-black opacity-60 flex items-center justify-center z-30
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
 }
-
 .modal_container {
-    @apply bg-white shadow-md
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
-
 .modal_title {
-    @apply bg-primary text-slate-200 px-2 flex gap-2
+    background: var(--primary-color, #2563eb);
+    color: #e2e8f0;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
 }
-
 .modal_action {
-    @apply cursor-pointer hover:opacity-30
+    cursor: pointer;
+    transition: opacity 0.2s;
 }
-
+.modal_action:hover {
+    opacity: 0.3;
+}
 .modal_content {
-    @apply p-3
+    padding: 0.75rem;
 }
-
 .modal_buttons {
-    @apply p-2 flex flex-row-reverse gap-1 text-[0.8em]
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 0.25rem;
+    font-size: 0.8em;
 }
 
 </style>

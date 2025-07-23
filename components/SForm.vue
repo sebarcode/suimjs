@@ -13,9 +13,9 @@
         </h1>
 
         <!-- tab header -->
-        <div class="mb-2 flex header">
+        <div class="header">
           <div
-            class="flex tab_container grow"
+            class="tab_container"
             v-if="tabs.length > 1"
           >
             <div
@@ -28,9 +28,9 @@
             >
               {{ tabTitle }}
             </div>
-            <div class="flex gap-2 ml-2 mr-2 sform_tab_close">
+            <div class="sform_tab_close">
               <button
-                class="p-1 hover:bg-white hover:text-primary"
+                class="close-button"
                 @click="onCancelForm"
               >
                 <mdicon name="close" size="16"></mdicon>
@@ -38,13 +38,14 @@
             </div>
           </div>
 
-          <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="grow form_button_top"
+          <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="form_button_top"
               :hide-buttons="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit" 
               :only-icon="onlyIconTop" :disable-submit="data.inSubmission || data.loading"
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
               :tab="data.currentTab"
               :showOnAllTabs="showButtonsOnAllTabs" 
-              @submit-click="onSubmitForm" @cancel-click="onCancelForm">
+              @submit-click="onSubmitForm" 
+              @cancel-click="onCancelForm">
               <template #buttons_1="item"><slot name="buttons_1" :item="value" :in-submission="data.inSubmission" :loading="data.loading" :mode="mode"></slot></template>
               <template #buttons="item"><slot name="buttons" :item="value" :in-submission="data.inSubmission" :loading="data.loading" :mode="mode"></slot></template>
               <template #buttons_2="item"><slot name="buttons_2" :item="value" :in-submission="data.inSubmission" :loading="data.loading" :mode="mode"></slot></template>
@@ -52,182 +53,183 @@
         </div>
         
         <div class="form_inputs" v-show="data.currentTab == 0">
-          <slot name="form_header" :item="value" :config="config" />
+          <slot name="form_header" :item="value" :config="config"></slot>
           
-          <div class="flex section_group_container" :class="{'flex-col':config.setting.sectionDirection=='row'}">
-            <div v-for="g in config.sectionGroups" class="section_group" 
+          <div class="section_group_container" :class="{'flex-col':config.setting.sectionDirection=='row'}">
+            <div v-for="g in config.sectionGroups" 
+              class="section_group" 
               :class="{
-                'col flex-col grow': config.setting.sectionDirection=='col',
-                grid: config.setting.sectionDirection=='row',
-                gridCol1: config.setting.sectionDirection=='row' && g.sections.length==1,
+                'col flex-col w-full': config.setting.sectionDirection=='col' || 
+                    (config.setting.sectionDirection=='row' && g.sections.length==1),
+                grid: config.setting.sectionDirection=='row' && g.sections.length > 1,
                 gridCol2: config.setting.sectionDirection=='row' && g.sections.length==2,
                 gridCol3: config.setting.sectionDirection=='row' && g.sections.length==3,
                 gridCol4: config.setting.sectionDirection=='row' && g.sections.length==4,
                 gridCol5: config.setting.sectionDirection=='row' && g.sections.length==5,
                 gridCol6: config.setting.sectionDirection=='row' && g.sections.length==6,
               }">
-              <div v-for="(section, sectionIdx) in g.sections" v-show="section.visible" :key="section.id" class="section grow">    
-            <div
-              v-if="section.showTitle && section.title != ''"
-              class="title section_title"
-            >
-              {{ section.title }}
-            </div>
-            <slot
-              :name="'section_' + section.title.replace(' ', '') + '_header'"
-              :item="value"
-              :config="config"
-              :mode="mode"
-            ></slot>
-            <div class="flex flex-col gap-4">
+              <div v-for="(section, sectionIdx) in g.sections" v-show="section.visible" :key="section.id" class="section">    
               <div
-                v-for="(row, rowIdx) in section.rows"
-                :key="'form_section_' + sectionIdx + '_row_' + rowIdx"
-                class="w-full items-start gap-2 grid"
-                :class="{
-                  gridCol1: row.colCount == 1,
-                  gridCol2: row.colCount == 2,
-                  gridCol3: row.colCount == 3,
-                  gridCol4: row.colCount == 4,
-                  gridCol5: row.colCount == 5,
-                  gridCol6: row.colCount == 6,
-                }"
+                v-if="section.showTitle && section.title != ''"
+                class="title section_title"
               >
+                {{ section.title }}
+              </div>
+              <slot
+                :name="'section_' + section.title.replace(' ', '') + '_header'"
+                :item="value"
+                :config="config"
+                :mode="mode"
+              ></slot>
+              <div class="form-section-content">
                 <div
-                  v-for="(input, inputIdx) in row.inputs.filter((el) => !el.hide)"
-                  :key="
-                    'form_input_' + sectionIdx + '_' + rowIdx + '_' + inputIdx
-                  "
+                  v-for="(row, rowIdx) in section.rows"
+                  :key="'form_section_' + sectionIdx + '_row_' + rowIdx"
+                  class="form-row"
                   :class="{
-                    colSpan1: input.colSpan == 1,
-                    colSpan2: input.colSpan == 2,
-                    colSpan3: input.colSpan == 3,
-                    colSpan4: input.colSpan == 4,
-                    colSpan5: input.colSpan == 5,
-                    colSpan6: input.colSpan == 6,
-                    colSpan7: input.colSpan == 7,
-                    colSpan8: input.colSpan == 8,
-                    colSpan9: input.colSpan == 9,
-                    colSpan10: input.colSpan == 10,
-                    colSpan11: input.colSpan == 11,
-                    colSpan12: input.colSpan == 12,
-                    'col-auto': input.colSpan == undefined || input.colSpan == 0,
+                    gridCol1: row.colCount == 1,
+                    gridCol2: row.colCount == 2,
+                    gridCol3: row.colCount == 3,
+                    gridCol4: row.colCount == 4,
+                    gridCol5: row.colCount == 5,
+                    gridCol6: row.colCount == 6,
                   }"
                 >
-                  <slot
-                    :name="'input_' + input.field + '_header'"
-                    :item="value"
-                    :config="input"
-                    :mode="mode"
-                  ></slot>
-                  <slot
-                    :name="'input_' + input.field"
-                    :item="value"
-                    :config="input"
-                    :mode="mode"
+                  <div
+                    v-for="(input, inputIdx) in row.inputs.filter((el) => !el.hide)"
+                    :key="
+                      'form_input_' + sectionIdx + '_' + rowIdx + '_' + inputIdx
+                    "
+                    :class="{
+                      colSpan1: input.colSpan == 1,
+                      colSpan2: input.colSpan == 2,
+                      colSpan3: input.colSpan == 3,
+                      colSpan4: input.colSpan == 4,
+                      colSpan5: input.colSpan == 5,
+                      colSpan6: input.colSpan == 6,
+                      colSpan7: input.colSpan == 7,
+                      colSpan8: input.colSpan == 8,
+                      colSpan9: input.colSpan == 9,
+                      colSpan10: input.colSpan == 10,
+                      colSpan11: input.colSpan == 11,
+                      colSpan12: input.colSpan == 12,
+                      'col-auto': input.colSpan == undefined || input.colSpan == 0,
+                    }"
                   >
-                    <div v-if="input.kind == 'space'">&nbsp;</div>
-                    <s-input
-                      v-else-if="input.readOnly"
-                      :field="input.field"
-                      :kind="input.kind"
-                      :label="input.label"
-                      @change="handleChange"
-                      :disabled="
-                        data.inSubmission ||
-                        data.loading ||
-                        inputIsDisabled(input)
-                      "
-                      :caption="input.caption"
-                      :hint="input.hint"
-                      :multi-row="input.multiRow"
-                      :use-list="input.useList"
-                      :items="input.items"
-                      :rules="input.rules"
-                      :required="input.required"
-                      :read-only="input.readOnly"
-                      :lookup-url="input.lookupUrl"
-                      :lookup-key="input.lookupKey"
-                      :allow-add="input.allowAdd"
-                      :lookup-format1="input.lookupFormat1"
-                      :lookup-format2="input.lookupFormat2"
-                      :lookup-payload-builder="input.lookupPayloadBuilder"
-                      :decimal="input.decimal"
-                      :date-format="input.dateFormat"
-                      :multiple="input.multiple"
-                      :keep-label="keepLabel"
-                      :lookup-labels="input.lookupLabels"
-                      :lookup-searchs="
-                        input.lookupSearchs && input.lookupSearchs.length == 0
-                          ? input.lookupLabels
-                          : input.lookupSearchs
-                      "
-                      v-model="value[input.field]"
-                    />
-  
-                    <s-input
-                      v-else
-                      :field="input.field"
-                      :kind="input.kind"
-                      :label="input.label"
-                      @change="handleChange"
-                      :disabled="
-                        data.inSubmission ||
-                        data.loading ||
-                        inputIsDisabled(input) 
-                      "
-                      :caption="input.caption"
-                      :hint="input.hint"
-                      :multi-row="input.multiRow"
-                      :use-list="input.useList"
-                      :items="input.items"
-                      :rules="input.rules"
-                      :required="input.required"
-                      :read-only="input.readOnly"
-                      :lookup-url="input.lookupUrl"
-                      :lookup-key="input.lookupKey"
-                      :allow-add="input.allowAdd"
-                      :lookup-format1="input.lookupFormat1"
-                      :lookup-format2="input.lookupFormat2"
-                      :lookup-payload-builder="input.lookupPayloadBuilder"
-                      :decimal="input.decimal"
-                      :date-format="input.dateFormat"
-                      :multiple="input.multiple"
-                      :keep-label="keepLabel"
-                      :lookup-labels="input.lookupLabels"
-                      :lookup-searchs="
-                        input.lookupSearchs && input.lookupSearchs.length == 0
-                          ? input.lookupLabels
-                          : input.lookupSearchs
-                      "
-                      v-model="value[input.field]"
-                      :class="{checkboxOffset: input.kind=='checkbox'}"
-                      ref="inputs"
+                    <slot
+                      :name="'input_' + input.field + '_header'"
+                      :item="value"
+                      :config="input"
+                      :mode="mode"
+                    ></slot>
+                    <slot
+                      :name="'input_' + input.field"
+                      :item="value"
+                      :config="input"
+                      :mode="mode"
                     >
-                      <template v-if="input.useList === true" #option="{option}">
-                        <slot  :name="'input_' + input.field + '_option'" :option="option"  :mode="mode"></slot>
-                      </template>
-                      <template v-if="input.useList  === true" #selected-option="{option}">
-                        <slot  :name="'input_' + input.field + '_selected-option'"  :option="option"  :mode="mode"> </slot>
-                      </template>
-                    </s-input>
-                  </slot>
-                  <slot
-                    :name="'input_' + input.field + '_footer'"
-                    :item="value"
-                    :config="input"
-                    :mode="mode"
-                  ></slot>
+                      <div v-if="input.kind == 'space'">&nbsp;</div>
+                      <s-input
+                        v-else-if="input.readOnly"
+                        :field="input.field"
+                        :kind="input.kind"
+                        :label="input.label"
+                        @change="handleChange"
+                        :disabled="
+                          data.inSubmission ||
+                          data.loading ||
+                          inputIsDisabled(input)
+                        "
+                        :caption="input.caption"
+                        :hint="input.hint"
+                        :multi-row="input.multiRow"
+                        :use-list="input.useList"
+                        :items="input.items"
+                        :rules="input.rules"
+                        :required="input.required"
+                        :read-only="input.readOnly"
+                        :lookup-url="input.lookupUrl"
+                        :lookup-key="input.lookupKey"
+                        :allow-add="input.allowAdd"
+                        :lookup-format1="input.lookupFormat1"
+                        :lookup-format2="input.lookupFormat2"
+                        :lookup-payload-builder="input.lookupPayloadBuilder"
+                        :decimal="input.decimal"
+                        :date-format="input.dateFormat"
+                        :multiple="input.multiple"
+                        :keep-label="keepLabel"
+                        :lookup-labels="input.lookupLabels"
+                        :lookup-searchs="
+                          input.lookupSearchs && input.lookupSearchs.length == 0
+                            ? input.lookupLabels
+                            : input.lookupSearchs
+                        "
+                        v-model="value[input.field]"
+                      />
+    
+                      <s-input
+                        v-else
+                        :field="input.field"
+                        :kind="input.kind"
+                        :label="input.label"
+                        @change="handleChange"
+                        :disabled="
+                          data.inSubmission ||
+                          data.loading ||
+                          inputIsDisabled(input) 
+                        "
+                        :caption="input.caption"
+                        :hint="input.hint"
+                        :multi-row="input.multiRow"
+                        :use-list="input.useList"
+                        :items="input.items"
+                        :rules="input.rules"
+                        :required="input.required"
+                        :read-only="input.readOnly"
+                        :lookup-url="input.lookupUrl"
+                        :lookup-key="input.lookupKey"
+                        :allow-add="input.allowAdd"
+                        :lookup-format1="input.lookupFormat1"
+                        :lookup-format2="input.lookupFormat2"
+                        :lookup-payload-builder="input.lookupPayloadBuilder"
+                        :decimal="input.decimal"
+                        :date-format="input.dateFormat"
+                        :multiple="input.multiple"
+                        :keep-label="keepLabel"
+                        :lookup-labels="input.lookupLabels"
+                        :lookup-searchs="
+                          input.lookupSearchs && input.lookupSearchs.length == 0
+                            ? input.lookupLabels
+                            : input.lookupSearchs
+                        "
+                        v-model="value[input.field]"
+                        :class="{checkboxOffset: input.kind=='checkbox'}"
+                        ref="inputs"
+                      >
+                        <template v-if="input.useList === true" #option="{option}">
+                          <slot  :name="'input_' + input.field + '_option'" :option="option"  :mode="mode"></slot>
+                        </template>
+                        <template v-if="input.useList  === true" #selected-option="{option}">
+                          <slot  :name="'input_' + input.field + '_selected-option'"  :option="option"  :mode="mode"> </slot>
+                        </template>
+                      </s-input>
+                    </slot>
+                    <slot
+                      :name="'input_' + input.field + '_footer'"
+                      :item="value"
+                      :config="input"
+                      :mode="mode"
+                    ></slot>
+                  </div>
                 </div>
               </div>
+              <slot
+                :name="'section_' + section.title.replace(' ', '') + '_footer'"
+                :item="value"
+                :config="config"
+                :mode="mode"
+              ></slot>
             </div>
-            <slot
-              :name="'section_' + section.title.replace(' ', '') + '_footer'"
-              :item="value"
-              :config="config"
-              :mode="mode"
-            ></slot>
-          </div>
           </div>
           </div>
           <slot name="footer_1" :item="value" :config="config" :mode="mode"/>
@@ -642,31 +644,82 @@ function handleKeyDown(event) {
 
 </script>
   
-  <style scope>
-  .gridCol1 {@apply grid-cols-1}
-  .gridCol2 {@apply grid-cols-2}
-  .gridCol3 {@apply grid-cols-3}
-  .gridCol4 {@apply grid-cols-4}
-  .gridCol5 {@apply grid-cols-5}
-  .gridCol6 {@apply grid-cols-6}
-  .gridCol7 {@apply grid-cols-7}
-  .gridCol8 {@apply grid-cols-8}
-  .gridCol9 {@apply grid-cols-9}
-  .gridCol10 {@apply grid-cols-10}
-  .gridCol11 {@apply grid-cols-11}
-  .gridCol12 {@apply grid-cols-12}
+  <style scoped>
+  .header {
+    margin-bottom: 0.5rem;
+    display: flex;
+  }
 
-  .colSpan1 { @apply col-span-1 }
-  .colSpan2 { @apply col-span-2 }
-  .colSpan3 { @apply col-span-3 }
-  .colSpan4 { @apply col-span-4 }
-  .colSpan5 { @apply col-span-5 }
-  .colSpan6 { @apply col-span-6 }
-  .colSpan7 { @apply col-span-7 }
-  .colSpan8 { @apply col-span-8 }
-  .colSpan9 { @apply col-span-9 }
-  .colSpan10 { @apply col-span-10 }
-  .colSpan11 { @apply col-span-11 }
-  .colSpan12 { @apply col-span-12 }
+  .tab_container {
+    display: flex;
+    flex-grow: 1;
+  }
+
+  .sform_tab_close {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
+
+  .close-button {
+    padding: 0.25rem;
+  }
+
+  .close-button:hover {
+    background-color: white;
+    color: var(--primary-color);
+  }
+
+  .section_group_container {
+    display: flex;
+  }
+
+  .flex-col {
+    flex-direction: column;
+  }
+
+  .form_button_top {
+    flex-grow: 1;
+  }
+
+  .form-section-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-row {
+    width: 100%;
+    align-items: flex-start;
+    gap: 0.5rem;
+    display: grid;
+  }
+
+  .gridCol1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .gridCol2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gridCol3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .gridCol4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .gridCol5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .gridCol6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .gridCol7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .gridCol8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .gridCol9 { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+  .gridCol10 { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+  .gridCol11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+  .gridCol12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+  .colSpan1 { grid-column: span 1 / span 1; }
+  .colSpan2 { grid-column: span 2 / span 2; }
+  .colSpan3 { grid-column: span 3 / span 3; }
+  .colSpan4 { grid-column: span 4 / span 4; }
+  .colSpan5 { grid-column: span 5 / span 5; }
+  .colSpan6 { grid-column: span 6 / span 6; }
+  .colSpan7 { grid-column: span 7 / span 7; }
+  .colSpan8 { grid-column: span 8 / span 8; }
+  .colSpan9 { grid-column: span 9 / span 9; }
+  .colSpan10 { grid-column: span 10 / span 10; }
+  .colSpan11 { grid-column: span 11 / span 11; }
+  .colSpan12 { grid-column: span 12 / span 12; }
   </style>
   

@@ -39,18 +39,17 @@ const props = defineProps({
 </script>
 
 <style scoped>
+/* Converted from Tailwind to regular CSS */
 .cardTitleSeparator {
 }
-
 .cardFooterSeparator {
   border-top: solid 1px var(--color-border);
 }
-
 .card_title {
-  @apply text-primary
+  color: var(--primary-color, #2563eb);
 }
-
 .hasGap {
-  @apply px-[10px]
+  padding-left: 10px;
+  padding-right: 10px;
 }
 </style>

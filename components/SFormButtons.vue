@@ -114,9 +114,7 @@ function handleKeyDown (event) {
 </script>
 
 <style scoped>
-
 .hasGap {
-    @apply gap-1
+    gap: 0.25rem;
 }
-
 </style>

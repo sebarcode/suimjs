@@ -187,25 +187,39 @@ const infoPage = computed({
 }
 </style>
 <style scoped>
-.suim_pagination{
-    @apply text-xs;
+/* Converted from Tailwind to regular CSS */
+.suim_pagination {
+    font-size: 0.75rem;
 }
-.btn_pagination{
-    @apply flex items-center justify-center px-2 py-1 border-[1px] border-gray-300 cursor-pointer ;
+.btn_pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+    background: white;
+    transition: background 0.2s, color 0.2s;
 }
-.btn_pagination:hover{
-    @apply bg-slate-200;
+.btn_pagination:hover {
+    background: #e2e8f0;
 }
-.btn_pagination.disable{
-    @apply pointer-events-none text-slate-400;
+.btn_pagination.disable {
+    pointer-events: none;
+    color: #94a3b8;
 }
-.btn_pagination.active{
-    @apply font-bold bg-slate-200 pointer-events-none;
+.btn_pagination.active {
+    font-weight: bold;
+    background: #e2e8f0;
+    pointer-events: none;
 }
-.btn_pagination.number{
+.btn_pagination.number {
     border-left: none !important;
 }
-.btn_pagination.number:last-of-type{
+.btn_pagination.number:last-of-type {
     border-right: none !important;
 }
 </style>
