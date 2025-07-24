@@ -20,34 +20,7 @@
         />
         <div v-else class="grow">&nbsp;</div>
       </slot>
-      <button @click="changeSortDirection" v-if="!hideSort" class="sort_btn">
-        <mdicon :name="sortIcon" size="18" />
-      </button>
-      <button
-        v-if="props.inlineSearch"
-        @click="showInlineSearch = !showInlineSearch"
-        class="inline_search_btn"
-        :title="showInlineSearch ? 'Sembunyikan filter kolom' : 'Tampilkan filter kolom'"
-      >
-        <mdicon :name="showInlineSearch ? 'filter-off-outline' : 'filter-outline'" size="18" />
-      </button>
-      <select
-        v-model="data.sortField"
-        class="sort_select px-2 py-1 border-b border-gray-300 bg-white text-gray-700 text-sm focus:outline-none focus:border-primary hover:border-gray-400 cursor-pointer appearance-none min-w-[120px]"
-        @change="refreshData"
-        v-if="config.setting && !hideSort"
-      >
-        <option value="" class="text-gray-500">&nbsp;</option>
-        <option 
-          v-for="f in config.setting.sortable" 
-          :key="f"
-          :value="f" 
-          class="py-1"
-        >
-          {{ f }}
-        </option>
-      </select>
-      <div class="flex gap-[1px] header_button">
+      <div class="flex header_button">
         <slot name="header_buttons_1" :config="config"></slot>
         <slot name="header_buttons" :config="config">
           <s-button
@@ -85,7 +58,7 @@
                   (el) => el.readType == 'show'
                 )"
                 :key="'grid_col_' + hdrIndex"
-                class="whitespace-nowrap px-2 py-1 text-ellipsis"
+                class="whitespace-nowrap text-ellipsis"
                 :class="{
                   'text-right': hdr.align == 'right' || hdr.kind == 'number',
                   'pr-4': hdr.align == 'right' || hdr.kind == 'number',
@@ -93,10 +66,35 @@
                 }"
                 :style="hdr.width != '' ? `width:${hdr.width}` : ''"
               >
-                {{ hdr.label }}
+                <div class="flex w-full items-center justify-between">
+                  <div class="grow">{{ hdr.label }}</div>
+                  <div 
+                    class="items-end justify-end align-right flex flex-col"
+                    v-if="props.config.setting.sortable?.indexOf(hdr.field) >= 0 && !hideSort"
+                  >
+                    <svg 
+                      :class="data.sortField === hdr.field && data.sortDirection === 'asc' ? 'text-grey-300 disabled cursor-not-allowed' : 'text-white cursor-pointer'" 
+                      class="h-3 w-3 -mb-1 cursor-pointer" 
+                      @click="changeSortOpts(hdr.field, 'asc')"
+                      fill="currentColor"  
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M7,14L12,9L17,14H7Z" />
+                    </svg>
+                    <svg 
+                      :class="data.sortField === hdr.field && data.sortDirection === 'desc' ? 'text-grey-300 disabled cursor-not-allowed' : 'text-white cursor-pointer'" 
+                      class="h-3 w-3 cursor-pointer"
+                      fill="currentColor" 
+                      viewBox="0 0 24 24"
+                      @click="changeSortOpts(hdr.field, 'desc')"
+                    >
+                      <path d="M7,10L12,15L17,10H7Z" />
+                    </svg>
+                  </div>
+                </div>
               </th>
               <th
-                class="w-[50px] max-w-[180px] ml-[10px] border-l-[1px] border-white text-left text-sm font-semibold whitespace-nowrap px-2 py-1"
+                class="header_column_action"
                 v-if="!hideAction"
               >
                 Action
@@ -276,7 +274,7 @@
           </tbody>
         </table>
 
-        <div v-if="!props.hideFooter" class="mt-5 text-sm">
+        <div v-if="!props.hideFooter" class="footer">
           <slot
             name="footer_1"
             v-bind="{
@@ -285,8 +283,7 @@
               currentPage: data.currentPage,
               pageCount: pageCount, 
             }"
-          >
-          </slot>
+          ></slot>
           <slot
             name="paging"
             v-bind="{
@@ -314,8 +311,7 @@
               currentPage: data.currentPage,
               pageCount: pageCount,  
             }"
-          >
-          </slot>
+          ></slot>
         </div>
       </div>
 
@@ -545,22 +541,15 @@ function checkUncheckAll(ev) {
   emit("checkUncheckAll", checked);
 }
 
-function changeSortDirection() {
-  const sorts = ["asc", "desc"];
-  const sortCount = sorts.length;
-
-  let found = false;
-  for (let i = 0; i < sortCount; i++) {
-    if (found) {
-      data.sortDirection = sorts[i];
-      if (data.sortDirection != "") refreshData();
-      return;
-    }
-    if (sorts[i] == data.sortDirection) found = true;
+function changeSortOpts(field, direction) {
+  if (data.sortField == field && data.sortDirection == direction) {
+    data.sortField = "";
+    data.sortDirection = "";
+  } else {
+    data.sortField = field;
+    data.sortDirection = direction;
   }
-
-  data.sortDirection = "asc";
-  if (data.sortDirection != "") refreshData();
+  refreshData();
 }
 
 function queryParam() {
@@ -866,7 +855,6 @@ watch(
 
 /* Responsive grid table */
 .suim_area_table {
-  overflow-x: auto;
 }
 
 /* Responsive th/td for small screens */

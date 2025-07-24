@@ -8,7 +8,7 @@
       </template>
 
       <div v-if="config && config.setting">
-        <h1 v-if="config.setting.showTitle && config.setting.title != ''" class="title grow">
+        <h1 v-if="config.setting.showTitle && config.setting.title != ''" class="title">
           {{ config.setting.title }}
         </h1>
 
