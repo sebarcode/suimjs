@@ -61,7 +61,10 @@ export default {
     },
 
     sendNotif (kind, message) {
-        if (suimContext.notif==undefined || suimContext.notif==null) return
+        if (suimContext.notif==undefined || suimContext.notif==null) {
+            console.error("suimContext.notif is not set, call util.setNotifStore(store) first")
+            return
+        }
 
         suimContext.notif.add({kind: kind, message: message})
     },
