@@ -3,6 +3,7 @@
 </template>
 
 <script setup>
+    import Quill from 'quill';
     import { onMounted } from 'vue';
     import { ref } from "vue";
     import { reactive } from "vue";
