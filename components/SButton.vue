@@ -1,8 +1,8 @@
 <template>
-  <s-tooltip :no-tooltip="noTooltip" :tooltip="tooltip=='' ? label : tooltip">
+  <s-tooltip :no-tooltip="noTooltip || tooltip==''" :tooltip="tooltip=='' ? label : tooltip">
     <template #content>
       <button
-        class="flex gap-1 btn items-center w-full justify-center"
+        class="flex gap-1 btn items-center w-full justify-center cursor-pointer"
         :disabled="disableBtn"
         @click="clickBtn"
       >
@@ -23,7 +23,7 @@ const props = defineProps({
   icon: { type: String, default: "" },
   disabled: { type: Boolean, default: false },
   disableWhenClicked: { type: Boolean, default: false },
-  tooltip: { type: String, default: "tooltip" },
+  tooltip: { type: String, default: "" },
   noTooltip: { type: Boolean, default: false },
 });
 
