@@ -107,6 +107,11 @@
         <s-editor ref="control" v-model="value" />
       </div>
 
+      <!-- json -->
+      <div v-else-if="kind == 'json'" class="flex flex-col gap-0">
+        <s-json-editor ref="control" v-model="value" />
+      </div>
+
       <!-- password -->
       <div v-else-if="kind == 'password'" class="flex flex-row relative w-full">
         <input
@@ -262,6 +267,7 @@ import SSelect from "./SSelect.vue";
 import moment from "moment";
 import util from "../scripts/util";
 import SEditor from './SEditor.vue';
+import SJsonEditor from "./SJsonEditor.vue";
 
 const control = ref(null);
 const props = defineProps({

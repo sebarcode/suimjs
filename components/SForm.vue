@@ -3,7 +3,23 @@
       
       <template v-if="data.inSubmission || data.loading" >
         <slot name="loader">
-          <div class="loader"></div>
+          <div class="flex items-center space-x-4">
+            <svg class="w-6 h-6 text-indigo-600 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-medium text-gray-700">Processing your request...</div>
+                <div class="text-xs text-gray-500">Please wait</div>
+              </div>
+
+              <div class="mt-2 w-full bg-gray-200 rounded h-2 overflow-hidden">
+                <div class="h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-pulse" style="width:60%"></div>
+              </div>
+            </div>
+          </div>
         </slot> 
       </template>
 
@@ -261,15 +277,12 @@
           </div>
         </div>
       </div>
-  
-      <s-loader v-else />
     </div>
 </template>
   
 <script setup>
 import { ref, reactive, computed, onMounted, watch, nextTick } from "vue";
 import SFormButtons from "./SFormButtons.vue";
-import SLoader from "./SLoader.vue";
 import SInput from "./SInput.vue";
 import { onUnmounted } from "vue";
 
