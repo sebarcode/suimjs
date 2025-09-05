@@ -657,7 +657,7 @@ function addData(dt) {
 function deleteData(record, dataIndex) {
   data.deleteFn = () => {
     if (props.deleteUrl == "") {
-      emit("deleteData", data, dataIndex);
+      emit("deleteData", record, dataIndex);
       refreshData(() => {
         emit("rowDeleted", record);
         updateRecordChanged();
