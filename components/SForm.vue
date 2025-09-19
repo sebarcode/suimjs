@@ -341,9 +341,10 @@ defineExpose({
   submit: onSubmitForm,
   setLoading,
   getLoading,  
+  setSubmissionState,
   setCurrentTab,
   getCurrentTab,
-  getAllField
+  getAllField,
 });
 
 //const inputValidities = ref({});
@@ -379,7 +380,7 @@ function validate() {
   return isValid;
 }
 
-function onSubmitForm() {
+async function onSubmitForm() {
   let isValid = true;
   try {
     emit("preSubmitForm", props.modelValue);
@@ -389,11 +390,11 @@ function onSubmitForm() {
     return;
   }
 
-  data.inSubmission = true;
+  setSubmissionState(true);
   data.hasErrors = false;
 
   if (!isValid) {
-    data.inSubmission = false;
+    setSubmissionState(false);
     showError();
     return;
   }
@@ -402,13 +403,17 @@ function onSubmitForm() {
     "submitForm",
     props.modelValue,
     () => {
-      data.inSubmission = false;
+      setSubmissionState(false);
       emit("postSubmitForm", props.modelValue);
     },
     () => {
-      data.inSubmission = false;
+      setSubmissionState(false);
     }
   );
+}
+
+function setSubmissionState(state) {
+  data.inSubmission = state;
 }
 
 function showError() {}

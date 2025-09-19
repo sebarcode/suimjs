@@ -205,7 +205,8 @@
                 </slot>
               </td>
 
-              <td class="row_action whitespace-nowrap px-2 py-1" v-if="!hideAction">
+              <!-- sebelumnya ada class row_action -->
+              <td class="whitespace-nowrap px-2 py-1 align-middle items-center flex gap-[2px]" v-if="!hideAction">
                 <slot name="item_buttons_1" :item="r" :config="config"></slot>
                 <slot name="item_buttons" :item="r" :config="config">
                   <slot name="item_button_recordchange" :item="r" :config="config">
@@ -338,7 +339,6 @@ import SModal from "./SModal.vue";
 import SPagination from "./SPagination.vue";
 import { computed, inject, onMounted, reactive, ref, watch } from "vue";
 import util from "../scripts/util";
-import { mdiEmoticon, mdiWindowShutter } from "@mdi/js";
 import { useRoute } from "vue-router";
 import { onUnmounted } from "vue";
 
@@ -803,7 +803,7 @@ defineExpose({
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
-  refreshData();
+  //refreshData();
   //console.log(`mounting grid ${props.config.title}`);
 });
 

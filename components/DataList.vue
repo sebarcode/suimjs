@@ -218,6 +218,7 @@
       :focus="formFocus"
       @submitForm="save"
       :showButtonsOnAllTabs="formShowButtonsOnAllTabs"
+      :only-icon-top="formOnlyIcon"
       :tabs="formTabTitles"
       :initialTab="formInitialTab"
       @cancelForm="cancelForm"
@@ -372,6 +373,7 @@ const props = defineProps({
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => {} },
   formDefaultMode: { type: String, default: "edit" },
+  formOnlyIcon: { type: Boolean, default: false },
   formRead: { type: String, default: "" },
   formInsert: { type: String, default: "" },
   formUpdate: { type: String, default: "" },

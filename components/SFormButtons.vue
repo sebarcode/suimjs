@@ -1,6 +1,7 @@
 <template>
     <div class="suim_form_button">
-        <div class="flex items-center justify-end w-full" :class="{hasGap:!onlyIcon}" v-if="!hideButtons">
+        <div class="flex items-center justify-end w-full gap-[1px]" 
+            v-if="!hideButtons">
             <div class="grow">&nbsp;</div>
             <slot name="buttons_1" :item="modelValue"></slot>
             <slot
