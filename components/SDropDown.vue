@@ -6,7 +6,11 @@
                     {{ placeholder }}
                 </div>
                 <div class="sdd sdd_body" @click="bodyClick">
-                    <div v-if="!open && selectedLabel" class="sdd sdd_selected_label" @click="clickBody">{{ selectedLabel }}</div>
+                    <div v-if="!open && selectedLabel" 
+                        class="sdd sdd_selected_label" 
+                        @click="clickBody">
+                        {{ selectedLabel }}
+                    </div>
                     <input v-if="open && searchable" 
                         ref="searchInput" 
                         v-model="search" 
@@ -86,7 +90,7 @@
             </div>
         </transition>
 
-        <div class="flex flex-col gap-3" v-if="false">
+        <div class="flex flex-col gap-3" v-if="lookupUrl && !multiple && false">
             <div>selected: {{ selected }}</div>
             <div>filtered: {{ filtered }}</div>
             <div>data.items: {{ data.items }}</div>
@@ -174,44 +178,12 @@ async function fetchSelected(values) {
     try {
         const resp = await axios.post(props.lookupUrl, payload);
         if (resp.data) {
-            selected.value = normalizeList(resp.data);
+            selected.value = props.multiple ? normalizeList(resp.data) : normalizeList(resp.data)[0] || null;
         }
     } catch(error) {
         console.error('SDropDown: fetchSelected error', error);
     }
 } 
-
-// when modelValue changes, sync the internal selected representation
-watch(() => props.modelValue, async (nv) => {
-    await fetchSelected(nv);
-
-    if (props.multiple) {
-        const newSelected = [];
-        if (!nv || !Array.isArray(nv)) return;
-        for (const v of nv) {
-            // v is expected to be item.key
-            let found = data.items.find(it => it.key === v);
-            if (found) newSelected.push(found);
-
-            // not found in items, check if already in selected (possible if items changed)
-            if (!found) {
-               found = selected.value.find(it => it.key === v);
-               if (found) newSelected.push(found);
-            }
-
-            if (!found) newSelected.push({ _uid: `x_${newSelected.length}`, key: v, label: String(v), original: v });
-        }
-        selected.value = newSelected;
-        return;
-    }
-
-    // single-select behavior: nv is expected to be a key
-    // selected.value = null;
-    if (nv == null) return;
-    for (const it of data.items){
-        if (it.key === nv) { selected.value = it; break; }
-    }
-}, { immediate: true });
 
 const selectedLabel = computed(() => {
     if (props.multiple) {
@@ -323,7 +295,7 @@ function isSelected(it){
         return !!selected.value.find(s => s.key === it.key);
     }
     if (!selected.value) return false;
-    return selected.value._uid === it._uid;
+    return selected.value.key === it.key;
 }
 
 function highlight(idx){ highlighted.value = idx; }
@@ -587,6 +559,39 @@ async function fetchItems(nv) {
 
 watch(() => search.value, (nv) => {
     fetchItems(nv);
+}, { immediate: true });
+
+
+// when modelValue changes, sync the internal selected representation
+watch(() => props.modelValue, async (nv) => {
+    await fetchSelected(nv);
+
+    if (props.multiple) {
+        const newSelected = [];
+        if (!nv || !Array.isArray(nv)) return;
+        for (const v of nv) {
+            // v is expected to be item.key
+            let found = data.items.find(it => it.key === v);
+            if (found) newSelected.push(found);
+
+            // not found in items, check if already in selected (possible if items changed)
+            if (!found) {
+               found = selected.value.find(it => it.key === v);
+               if (found) newSelected.push(found);
+            }
+
+            if (!found) newSelected.push({ _uid: `x_${newSelected.length}`, key: v, label: String(v), original: v });
+        }
+        selected.value = newSelected;
+        return;
+    }
+
+    // single-select behavior: nv is expected to be a key
+    // selected.value = null;
+    if (nv == null) return;
+    for (const it of data.items){
+        if (it.key === nv) { selected.value = it; break; }
+    }
 }, { immediate: true });
 
 </script>
