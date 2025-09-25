@@ -20,6 +20,7 @@ import DataList from "./components/DataList.vue";
 import SModal from "./components/SModal.vue";
 import STooltip from "./components/STooltip.vue";
 import SPagination from "./components/SPagination.vue";
+import SDropDown from "./components/SDropDown.vue";
 
 export {
   formConfig,
@@ -33,6 +34,7 @@ export {
   rules,
   util,
   SInput,
+  SDropDown,
   SButton,
   SCard,
   SForm,

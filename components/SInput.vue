@@ -73,8 +73,33 @@
         <div v-else>&nbsp;</div>
       </label>
 
-      <!-- select -->
-      <div v-if="useList === true">
+      <!-- select new version -->
+      <div v-if="useList === true && true">
+        <s-drop-down
+          ref="control"
+          v-model="value"
+          class="w-[100%]"
+          :items="items"
+          :item-key="itemKey"
+          :item-label="itemLabel"
+          :label="caption != '' ? caption : label != '' ? label : field"
+          :show-clear-button="showClearButton"
+          :allow-add="allowAdd"
+          :lookup-url="lookupUrl"
+          :lookup-key="lookupKey"
+          :lookup-labels="lookupLabels"
+          :lookup-searchs="lookupSearchs"
+          :lookup-payload-builder="lookupPayloadBuilder"
+          :read-only="disabled"
+          :multiple="multiple"
+          @focus="onFocus"
+          @item-added="onAddItem"
+        >
+        </s-drop-down>
+      </div>
+
+      <!-- select old version -->
+      <div v-else-if="useList === true && false">
         <s-select
           v-model="value"
           :items="items"
@@ -264,6 +289,7 @@
 <script setup>
 import { reactive, computed, onMounted, nextTick, ref, inject } from "vue";
 import SSelect from "./SSelect.vue";
+import SDropDown from "./SDropDown.vue";
 import moment from "moment";
 import util from "../scripts/util";
 import SEditor from './SEditor.vue';
@@ -287,6 +313,8 @@ const props = defineProps({
       return [];
     },
   },
+  itemKey: { type: String, default: "key" },
+  itemLabel: { type: String, default: "label" },
   bgColor: { type: String, default: "bg-transparent" },
   multiRow: { type: Number, default: 1 },
   allowAdd: { type: Boolean, default: false },

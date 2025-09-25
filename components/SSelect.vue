@@ -171,9 +171,9 @@ function fetchOptions(search, loading) {
       if(!props.multiple && props.modelValue && props.modelValue!==""){
         const whereExisting =  { Op: "$eq", Field: props.lookupKey, Value:  props.modelValue }
         if(qp.Where != undefined)
-          qp.Where = { Op: "$or", items: [qp.Where, whereExisting] };
+          qp.Where = { Op: "$or", Items: [qp.Where, whereExisting] };
         else
-          qp.Where = { Op: "$or", items: [whereExisting] };
+          qp.Where = { Op: "$or", Items: [whereExisting] };
       }
       else if (
         props.multiple &&
