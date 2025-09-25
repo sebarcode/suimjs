@@ -98,3 +98,15 @@
 .sdd_item_label { font-size: 0.75rem; color: #1f2937 }
 .sdd_item_desc { font-size: 0.75rem; color: #6b7280 }
 .sdd_item_selected { font-size: 0.75rem; color: #4f46e5 }
+.sdd_item:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+    background-color: #f3f4f6;
+}
+.sdd_item:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+}
+.sdd_highlighted:focus {
+    background-color: #e5e7eb;
+}

@@ -95,6 +95,9 @@
           @focus="onFocus"
           @item-added="onAddItem"
         >
+          <template #item="opts">
+            <slot name="sdd_item" v-bind="opts"></slot>
+          </template>
         </s-drop-down>
       </div>
 
@@ -422,6 +425,7 @@ const errorsTxt = computed(() => {
 onMounted(() => {
   if (props.validateOnMount) validate();
 
+  /*
   if (props.lookupUrl != "") {
     axios
       .post(props.lookupUrl, {
@@ -438,6 +442,7 @@ onMounted(() => {
           .join(" | ");
       });
   }
+  */
 });
 
 function handleChange(v1, v2, old, ctlRef) {

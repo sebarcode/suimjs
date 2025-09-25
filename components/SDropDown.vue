@@ -10,8 +10,11 @@
                     <input v-if="open && searchable" 
                         ref="searchInput" 
                         v-model="search" 
-                        @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)" @keydown.enter.prevent="chooseHighlighted" 
+                        @keydown.down.prevent="move(1)" 
+                        @keydown.up.prevent="move(-1)" 
+                        @keydown.enter.prevent="chooseHighlighted" 
                         @keydown.esc.prevent="close" 
+                        @keydown.tab="handleSearchTabNavigation"
                         class="sdd_search_input" 
                         placeholder="Search..."
                         autocomplete="off"
@@ -33,7 +36,7 @@
         <!-- read-only state -->
         <div v-else>
             <slot name="viewonly" :selected="selected" :items="data.items">
-                <div class="sdd_selected" v-if="selected.length !== 0">
+                <div class="sdd_selected" v-if="selected?.length !== 0">
                     <div class="sdd_selected_label">{{ selectedLabel }}</div>
                 </div>
                 <div v-else class="sdd_viewonly_noresult">
@@ -52,7 +55,7 @@
                                 v-if="allowAdd"
                                 :disabled="(search || '').toString().trim().length < minimalKeywordLength"
                                 @click.stop="addNewItem"
-                                class="ml-2 inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="ssd_add_btn"
                                 title="Add new item">
                                 Add
                             </button>
@@ -61,8 +64,11 @@
                     <li v-for="(it, idx) in filtered" 
                         :key="it._uid" 
                         :class="['sdd_item', highlighted === idx ? 'sdd_highlighted' : '']" 
+                        :tabindex="0"
                         @click="select(it)" 
-                        @mousemove="highlight(idx)">
+                        @mousemove="highlight(idx)"
+                        @keydown="handleItemKeydown($event, it, idx)"
+                        @focus="highlight(idx)">
                         <div class="sdd_item_row" v-if="multiple">
                             <slot name="item" :item="it" :isSelected="isSelected(it)">
                                 <input type="checkbox" v-if="multiple" :checked="isSelected(it)" />
@@ -80,9 +86,10 @@
             </div>
         </transition>
 
-        <div class="flex flex-col gap-2" hidden>
+        <div class="flex flex-col gap-3" v-if="false">
             <div>selected: {{ selected }}</div>
             <div>filtered: {{ filtered }}</div>
+            <div>data.items: {{ data.items }}</div>
         </div>
     </div>
 </template>
@@ -127,6 +134,10 @@ const data = reactive({
 // map incoming items to normalized objects while keeping original
 function normalizeList(list){
     const out = [];
+    const keyField =  props.lookupUrl ? props.lookupKey || 'key' : props.itemKey;
+    const labelField = props.lookupUrl ? 
+        (props.lookupLabels && props.lookupLabels.length > 0 ? props.lookupLabels[0] : 'label') : 
+        props.itemLabel;
     for (let i=0;i<list.length;i++){
         const el = list[i];
         if (typeof el === 'string' || typeof el === 'number'){
@@ -134,9 +145,11 @@ function normalizeList(list){
         } else if (el && typeof el === 'object'){
             out.push({ 
                 _uid: `i_${i}`, 
-                key: el[props.itemKey] ?? el.key ?? i, 
-                label: el[props.itemLabel] ?? el.label ?? String(el[props.itemKey] ?? el.key ?? i), 
-                original: el 
+                key: el[keyField] ?? el.key ?? i, 
+                label: el[labelField] ?? el.label ?? String(el[keyField] ?? el.key ?? i), 
+                original: el,
+                keyField, 
+                labelField
             });
         }
     }
@@ -151,8 +164,27 @@ watch(() => props.items, (nv) => {
 
 const selected = ref(props.multiple ? [] : null);
 
+async function fetchSelected(values) {
+    if (!props.lookupUrl) return;
+    if (values==undefined || values=== null || values.length==0) return;
+    const payload = props.multiple ? 
+        { Where: { Op: '$in', Field: props.lookupKey, Value: values } } :
+        { Where: { Field: props.lookupKey, Op: '$eq', Value: [values] } };
+
+    try {
+        const resp = await axios.post(props.lookupUrl, payload);
+        if (resp.data) {
+            selected.value = normalizeList(resp.data);
+        }
+    } catch(error) {
+        console.error('SDropDown: fetchSelected error', error);
+    }
+} 
+
 // when modelValue changes, sync the internal selected representation
-watch(() => props.modelValue, (nv) => {
+watch(() => props.modelValue, async (nv) => {
+    await fetchSelected(nv);
+
     if (props.multiple) {
         const newSelected = [];
         if (!nv || !Array.isArray(nv)) return;
@@ -167,7 +199,7 @@ watch(() => props.modelValue, (nv) => {
                if (found) newSelected.push(found);
             }
 
-            if (!found) newSelected.push({ _uid: `x_${newSelected.length}`, key: v, label: String(v), desc: '', original: v });
+            if (!found) newSelected.push({ _uid: `x_${newSelected.length}`, key: v, label: String(v), original: v });
         }
         selected.value = newSelected;
         return;
@@ -225,8 +257,6 @@ function select(it){
         // emit array of keys
         emit('update:modelValue', selected.value.map(s => s.key));
         emit('change', selected.value.map(s => s.key));
-        // keep open for multiple selection
-        console.log('multi select, emit:', it.key, ' selected:', selected.value);
         return;
     }
 
@@ -238,7 +268,8 @@ function select(it){
 }
 
 function clearSelection(){
-    if (data.searchFn && typeof data.searchFn === 'function') filtered.value = [];
+    if (data.lookupUrl && data.searchFn && typeof data.searchFn === 'function') 
+        filtered.value = [];
 
     if (props.multiple) {
         selected.value = [];
@@ -289,7 +320,7 @@ function addNewItem(){
 
 function isSelected(it){
     if (props.multiple) {
-        return !!selected.value.find(s => s._uid === it._uid || s.original === it.original || s.key === it.key);
+        return !!selected.value.find(s => s.key === it.key);
     }
     if (!selected.value) return false;
     return selected.value._uid === it._uid;
@@ -310,6 +341,92 @@ function chooseHighlighted(){
     if (highlighted.value >=0 && highlighted.value < list.length){ select(list[highlighted.value]); }
 }
 
+function handleSearchTabNavigation(event) {
+    if (!event.shiftKey && filtered.value.length > 0) {
+        // Tab forward - move focus to first dropdown item
+        event.preventDefault();
+        const firstItem = root.value.querySelector('.sdd_item[tabindex="0"]');
+        if (firstItem) {
+            firstItem.focus();
+            highlight(0);
+        }
+    }
+    // If Shift+Tab, let it bubble up to move focus to previous element outside dropdown
+}
+
+function handleItemKeydown(event, item, index) {
+    switch (event.key) {
+        case 'Enter':
+        case ' ':
+            event.preventDefault();
+            select(item);
+            break;
+        case 'ArrowDown':
+            event.preventDefault();
+            moveToNextItem(index);
+            break;
+        case 'ArrowUp':
+            event.preventDefault();
+            moveToPrevItem(index);
+            break;
+        case 'Tab':
+            if (event.shiftKey) {
+                // Shift+Tab - move focus back to search input or previous element
+                if (index === 0 && searchInput.value) {
+                    event.preventDefault();
+                    searchInput.value.focus();
+                } else if (index > 0) {
+                    event.preventDefault();
+                    const prevItem = root.value.querySelectorAll('.sdd_item[tabindex="0"]')[index - 1];
+                    if (prevItem) {
+                        prevItem.focus();
+                        highlight(index - 1);
+                    }
+                }
+            } else {
+                // Tab forward - move to next item or let it bubble to next element outside dropdown
+                if (index < filtered.value.length - 1) {
+                    event.preventDefault();
+                    const nextItem = root.value.querySelectorAll('.sdd_item[tabindex="0"]')[index + 1];
+                    if (nextItem) {
+                        nextItem.focus();
+                        highlight(index + 1);
+                    }
+                }
+                // If last item, let tab move to next focusable element outside dropdown
+            }
+            break;
+        case 'Escape':
+            event.preventDefault();
+            close();
+            break;
+    }
+}
+
+function moveToNextItem(currentIndex) {
+    const nextIndex = Math.min(filtered.value.length - 1, currentIndex + 1);
+    const nextItem = root.value.querySelectorAll('.sdd_item[tabindex="0"]')[nextIndex];
+    if (nextItem) {
+        nextItem.focus();
+        highlight(nextIndex);
+    }
+}
+
+function moveToPrevItem(currentIndex) {
+    if (currentIndex > 0) {
+        const prevIndex = currentIndex - 1;
+        const prevItem = root.value.querySelectorAll('.sdd_item[tabindex="0"]')[prevIndex];
+        if (prevItem) {
+            prevItem.focus();
+            highlight(prevIndex);
+        }
+    } else if (searchInput.value) {
+        // If at first item, move back to search input
+        searchInput.value.focus();
+        highlight(-1);
+    }
+}
+
 function onClickOutside(e){
     if (!e.target.closest('.sdd')) {  
         close();
@@ -327,7 +444,7 @@ function setSelected(keys) {
         for (const k of keys) {
             const found = data.items.find(it => it.key === k);
             if (found) selected.value.push(found);
-            else selected.value.push({ _uid: `x_${selected.value.length}`, key: k, label: String(k), desc: '', original: k });
+            else selected.value.push({ _uid: `x_${selected.value.length}`, key: k, label: String(k), original: k });
         }
         emit('update:modelValue', selected.value.map(s => s.key));
         emit('change', selected.value.map(s => s.key));
@@ -371,7 +488,10 @@ function joinWithSelected(normalizedResult) {
         }
     } else {
         if (selected.value && !normalizedResult.find(it => it.key === selected.value.key)) {
-            normalizedResult.push({ _uid: `x_${Date.now()}`, key: selected.value.key, label: String(selected.value.key), desc: '', original: selected.value.key });
+            normalizedResult.push({ _uid: `x_${Date.now()}`, 
+                key: selected.value.key, 
+                label: String(selected.value.key), 
+                original: selected.value.key });
         }
     }
     return normalizedResult;
@@ -409,23 +529,12 @@ function manageLookup() {
             }
             const response = await axios.post(props.lookupUrl, payload);
             if (response && response.data && Array.isArray(response.data)) {
-                return normalizeList(response.data.map(item => {
-                    // map item to { key, label } structure
-                    const key = props.lookupKey && item[props.lookupKey] !== undefined ? 
-                        item[props.lookupKey] : 
-                        (item.key !== undefined ? 
-                            item.key : 
-                            JSON.stringify(item));
-                    let label = '';
-                    if (props.lookupLabels && props.lookupLabels.length > 0) {
-                        label = props.lookupLabels.map(lab => item[lab] !== undefined ? item[lab] : '').join(' ');
-                    } else if (item.label !== undefined) {
-                        label = item.label;
-                    } else {
-                        label = String(key);
-                    }
-                    return { key, label, original: item };
-                }));
+                /*
+                return response.data.map(item => {
+                    return item;
+                });
+                */
+               return response.data;
             }
             return [];
         } catch (error) {
@@ -435,7 +544,7 @@ function manageLookup() {
     };
 } 
 
-function fetchItems(nv) {
+async function fetchItems(nv) {
     manageLookup();
 
     // transform search value, trim and lowercase for comparison and if it is using api then do not transform as it can be anything
@@ -443,14 +552,16 @@ function fetchItems(nv) {
     const q = props.lookupUrl ? (nv || '') : (nv || '').toString().toLowerCase().trim();
     if (data.searchFn && typeof data.searchFn === 'function' && q.length >= props.minimalKeywordLength) {
         // use custom search function
-        const result = data.searchFn(q);
+        const result = await data.searchFn(q);
         if (result && Array.isArray(result)) {
             filtered.value = joinWithSelected(normalizeList(result));
+            //filtered.value = normalizeList(result);
         } else if (result && typeof result.then === 'function') {
             // promise
             result.then(res => {
                 if (res && Array.isArray(res)) {
                     filtered.value = joinWithSelected(normalizeList(res));
+                    //filtered.value = normalizeList(result);
                 } else {
                     filtered.value = [];
                 }
@@ -479,3 +590,6 @@ watch(() => search.value, (nv) => {
 }, { immediate: true });
 
 </script>
+
+<style>
+</style>
