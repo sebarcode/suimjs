@@ -168,7 +168,7 @@ function fetchOptions(search, loading) {
             }),
           };
       } 
-      if(!props.multiple && props.modelValue){
+      if(!props.multiple && props.modelValue && props.modelValue!==""){
         const whereExisting =  { Op: "$eq", Field: props.lookupKey, Value:  props.modelValue }
         if(qp.Where != undefined)
           qp.Where = { Op: "$or", items: [qp.Where, whereExisting] };
@@ -180,7 +180,6 @@ function fetchOptions(search, loading) {
         props.modelValue &&
         props.modelValue.length > 0 
       ) {
-      
         const whereExisting =
           props.modelValue.length == 1
             ? { Op: "$eq", Field: props.lookupKey, Value: props.modelValue[0] }

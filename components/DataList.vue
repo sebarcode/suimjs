@@ -709,10 +709,12 @@ function refreshList() {
       data.listCfg = cfg;
       data.loadingGridCfg = false
 
-      if (gridCtl.value) {
-        gridCtl.value.refreshData();
-        return;
-      }
+      util.nextTickN(1, () => {
+        if (gridCtl.value) {
+          gridCtl.value.refreshData();
+          return;
+        }
+      })
     },
     (e) => data.loadingGridCfg = false
   );
