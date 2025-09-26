@@ -9,17 +9,163 @@
       class="flex gap-2 justify-center items-center header"
       v-if="!hideControl"
     >
-      <slot name="header_search" :config="config">
-        <input
-          type="text"
-          class="grow input_field border_b_[1px] search_input"
-          placeholder="enter search keyword"
-          v-model="data.keyword"
-          @keyup.enter="refreshData"
-          v-if="!hideSearch"
-        />
-        <div v-else class="grow">&nbsp;</div>
-      </slot>
+      <div class="grow">
+        <slot name="header_search" :config="config">
+          <div class="flex" v-if="!hideSearch && !data.autoSearch">
+            <input
+              type="text"
+              class="input_field border_b_[1px] search_input"
+              placeholder="enter search keyword"
+              v-model="data.keyword"
+              @keyup.enter="refreshData"
+            />
+            <s-button
+              icon="close"
+              class="btn_primary clear_btn"
+              tooltip="clear search"
+              @click="data.keyword=''; refreshData()"
+            />
+          </div>
+        </slot>
+
+        <div class="flex flex-col gap-1" v-if="data.autoSearch && !hideSearch">
+        <div v-for="(sfield, sfidx) in data.searchableFields" 
+          class="grid grid-cols-6 gap-1"
+          :key="'search_field_' + sfidx">
+          <div class="col-span-1">{{ sfield.field.label }}</div>
+          <div 
+            v-if="[ 'number', 'date', 'datetime'].includes(sfield.field.input.kind)"
+            :key="'search_input_' + sfidx"
+            class="col-span-4 flex gap-1 justify-between items-center"
+          >
+          <s-input
+              class="w-full"
+              v-model="sfield.value1"
+              hide-label
+              :ctl-ref="{ rowIndex: rIdx }"
+              :field="sfield.field.input.field"
+              :kind="sfield.field.input.kind"
+              :label="
+                sfield.field.input.kind == 'checkbox' || sfield.field.input.kind == 'bool'
+                  ? ''
+                  : sfield.field.input.label
+              "
+              :disabled="sfield.field.input.readOnly"
+              :caption="`enter ${sfield.field.input.label.toLowerCase()} to search`"
+              :hint="sfield.field.input.hint"
+              :multi-row="sfield.field.input.multiRow"
+              :use-list="sfield.field.input.useList"
+              :items="sfield.field.input.items"
+              :rules="sfield.field.input.rules"
+              :read-only="sfield.field.input.readOnly"
+              :lookup-url="sfield.field.input.lookupUrl"
+              :lookup-key="sfield.field.input.lookupKey"
+              :allow-add="sfield.field.input.allowAdd"
+              :lookup-format1="sfield.field.input.lookupFormat1"
+              :lookup-format2="sfield.field.input.lookupFormat2"
+              :decimal="sfield.field.input.decimal"
+              :date-format="sfield.field.input.dateFormat"
+              :multiple="sfield.field.input.multiple"
+              :lookup-labels="sfield.field.input.lookupLabels"
+              :lookup-searchs="
+                sfield.field.input.lookupSearchs &&
+                sfield.field.input.lookupSearchs.length == 0
+                  ? sfield.field.input.lookupLabels
+                  : sfield.field.input.lookupSearchs
+              "
+            />
+            <div>
+              to
+            </div>
+            <s-input 
+              class="w-full"
+              v-model="sfield.value2"
+              hide-label
+              :ctl-ref="{ rowIndex: rIdx }"
+              :field="sfield.field.input.field"
+              :kind="sfield.field.input.kind"
+              :label="
+                sfield.field.input.kind == 'checkbox' || sfield.field.input.kind == 'bool'
+                  ? ''
+                  : sfield.field.input.label
+              "
+              :disabled="sfield.field.input.readOnly"
+              :caption="`enter ${sfield.field.input.label.toLowerCase()} to search`"
+              :hint="sfield.field.input.hint"
+              :multi-row="sfield.field.input.multiRow"
+              :use-list="sfield.field.input.useList"
+              :items="sfield.field.input.items"
+              :rules="sfield.field.input.rules"
+              :read-only="sfield.field.input.readOnly"
+              :lookup-url="sfield.field.input.lookupUrl"
+              :lookup-key="sfield.field.input.lookupKey"
+              :allow-add="sfield.field.input.allowAdd"
+              :lookup-format1="sfield.field.input.lookupFormat1"
+              :lookup-format2="sfield.field.input.lookupFormat2"
+              :decimal="sfield.field.input.decimal"
+              :date-format="sfield.field.input.dateFormat"
+              :multiple="sfield.field.input.multiple"
+              :lookup-labels="sfield.field.input.lookupLabels"
+              :lookup-searchs="
+                sfield.field.input.lookupSearchs &&
+                sfield.field.input.lookupSearchs.length == 0
+                  ? sfield.field.input.lookupLabels
+                  : sfield.field.input.lookupSearchs
+              "
+            /> 
+          </div> 
+          <div 
+            v-else
+            :key="'search_input_nn_' + sfidx"
+            class="col-span-4 flex gap-1 justify-between items-center"
+          >
+          <s-input
+              class="w-full"
+              v-model="sfield.value1"
+              hide-label
+              :ctl-ref="{ rowIndex: rIdx }"
+              :field="sfield.field.input.field"
+              :kind="sfield.field.input.kind"
+              :label="
+                sfield.field.input.kind == 'checkbox' || sfield.field.input.kind == 'bool'
+                  ? ''
+                  : sfield.field.input.label
+              "
+              :disabled="sfield.field.input.readOnly"
+              :caption="`enter ${sfield.field.input.label.toLowerCase()} to search`"
+              :hint="sfield.field.input.hint"
+              :multi-row="sfield.field.input.multiRow"
+              :use-list="sfield.field.input.useList"
+              :items="sfield.field.input.items"
+              :rules="sfield.field.input.rules"
+              :read-only="sfield.field.input.readOnly"
+              :lookup-url="sfield.field.input.lookupUrl"
+              :lookup-key="sfield.field.input.lookupKey"
+              :allow-add="sfield.field.input.allowAdd"
+              :lookup-format1="sfield.field.input.lookupFormat1"
+              :lookup-format2="sfield.field.input.lookupFormat2"
+              :decimal="sfield.field.input.decimal"
+              :date-format="sfield.field.input.dateFormat"
+              :multiple="sfield.field.input.multiple"
+              :lookup-labels="sfield.field.input.lookupLabels"
+              :lookup-searchs="
+                sfield.field.input.lookupSearchs &&
+                sfield.field.input.lookupSearchs.length == 0
+                  ? sfield.field.input.lookupLabels
+                  : sfield.field.input.lookupSearchs
+              "
+            />
+          </div>
+        </div>
+        <div hidden>
+          {{ data.searchableFields.map(field => field.field.label + ": "+field.value1+" "+field.value2) }}
+          <br/>
+          {{ calcSearchQuery}}
+        </div>
+    </div>
+
+      </div>
+
       <div class="flex header_button">
         <slot name="header_buttons_1" :config="config"></slot>
         <slot name="header_buttons" :config="config">
@@ -29,6 +175,13 @@
             tooltip="refresh"
             @click="refreshData"
             v-if="!hideRefreshButton"
+          />
+          <s-button
+            icon="cog"
+            class="btn_primary refresh_btn"
+            tooltip="change to advance mode search"
+            @click="data.autoSearch = !data.autoSearch; refreshData()"
+            v-if="!hideRefreshButton && data.searchableFields.length > 0"
           />
           <s-button
             icon="plus"
@@ -355,6 +508,7 @@ const props = defineProps({
   hideHeader: { type: Boolean, default: false },
   editor: { type: Boolean, default: false },
   singleColor: { type: Boolean, default: false },
+  autoSearch: { type: Boolean, default: false },
   sortField: { type: String, default: "" },
   sortDirection: { type: String, default: "" },
   autoCommitLine: { type: Boolean, default: false },
@@ -416,11 +570,13 @@ const data = reactive({
   sortDirection: ["asc", "desc"].includes(props.sortDirection)
     ? props.sortDirection
     : "desc",
+  searchableFields: [],
   pageSize: props.pageSize,
   deleteFn: undefined,
   loading: false,
   currentIndex: -1,
   recordChanged: false,
+  autoSearch: props.autoSearch,
   showDeleteModal: false,
   total: [],
 });
@@ -575,6 +731,12 @@ function queryParam() {
         }));
       if (inlineFilters.length > 0) {
         filters.push({ Op: '$and', Items: inlineFilters });
+      }
+    } else if (data.autoSearch) {
+      const autoFilters = calcSearchQuery.value;
+      if (autoFilters.length > 0 ) {
+        console.log("Auto filters:", autoFilters);
+        filters.push(...autoFilters);
       }
     } else if (keywordFields.length > 0 && data.keyword && data.keyword != "") {
       filters.push({
@@ -835,6 +997,40 @@ function handleKeyDown(event) {
   }
 }
 
+const computedSearchableFields = () => {
+  if (props.config && props.config.fields) {
+    return props.config.fields
+      .filter(f => props.config.setting?.searchable?.includes(f.field))
+      .map(f => {
+        
+        const ops = []
+        switch (f.kind) {
+          case 'number':
+            ops.push('equal', 'not equal', 'greater than', 'less than', 'greater or equal', 'less or equal');
+            break;
+          case 'date':
+          case 'datetime':
+            ops.push('equal', 'not equal', 'before', 'after', 'on or before', 'on or after');
+            break;
+          case 'bool':
+          case 'checkbox':
+            ops.push('is', 'is not');
+            break;
+          case 'text':
+          case 'string':
+            ops.push('contains', 'not contains', 'starts with', 'ends with', 'equal', 'not equal');
+        }
+        
+        return { 
+          field: f,
+          ops: ops,
+          value1: f.input.lookupUrl ? [] : null,
+          value2: null
+        }});
+  }
+  return [];
+};
+
 watch(
   () => props.modelValue,
   (nv) => {
@@ -849,6 +1045,108 @@ watch(
     data.keyword = "";
   }
 );
+
+watch(
+  () => props.config,
+  (nv) => {
+    data.searchableFields = computedSearchableFields();
+    //showInlineSearch.value = props.inlineSearch && data.searchableFields.length > 0;
+  },
+  { immediate: true }
+);
+
+const calcSearchQuery = computed(() => {
+  if (data.searchableFields.length == 0) return {};
+  const parts = [];
+  data.searchableFields.forEach(sf => {
+    // if field is number, then value1 and value2 should be parsed to float
+    if (sf.field.input.kind=='number') {
+      if (sf.value1 != null && sf.value2 != null) {
+        const v1 = parseFloat(sf.value1);
+        const v2 = parseFloat(sf.value2);
+        if (!isNaN(v1) && !isNaN(v2)) {
+          parts.push({
+            Field: sf.field.field,
+            Op: '$range',
+            Value: [v1, v2],
+          });
+        }
+      } else if (sf.value1 != null) {
+        const v1 = parseFloat(sf.value1);
+        if (!isNaN(v1)) {
+          parts.push({
+            Field: sf.field.field,
+            Op: '$gte',
+            Value: v1,
+          });
+        }
+      } else if (sf.value2 != null) {
+        const v2 = parseFloat(sf.value2);
+        if (!isNaN(v2)) {
+          parts.push({
+            Field: sf.field.field,
+            Op: '$lte',
+            Value: v2,
+          });
+        }
+      }
+    } else if (sf.field.input.kind=='date' || sf.field.input.kind=='datetime') {
+      // if field is date or datetime, then value1 and value2 should be parsed to date
+      if (sf.value1 && sf.value2) {
+        const d1 = new Date(sf.value1);
+        const d2 = new Date(sf.value2);
+        if (!isNaN(d1.getTime()) && !isNaN(d2.getTime())) {
+          parts.push({
+            Field: sf.field.field,
+            Op: '$between',
+            Value: [d1.toISOString(), d2.toISOString()],
+          });
+        }
+      } else if (sf.value1) {
+        const d1 = new Date(sf.value1);
+        if (!isNaN(d1.getTime())) {
+          parts.push({
+            Field: sf.field.field,
+            Op: '$eq',
+            Value: d1.toISOString(),
+          });
+        }
+      }
+    } else {
+      if (sf.field.input.lookupUrl) {
+        // if field is lookup, then value1 is array
+        if (sf.value1 && sf.value1.length > 0) {
+          if (sf.field.input.multiple) {
+            // if multiple, then use $or with literal because field will be json or jsonb on database
+            return parts.push({
+              Op: '$or',
+              Items: sf.value1.map(v => {
+                return {
+                  Field: `${sf.field.field} ? '${v}'`,
+                  Op: '$literal',
+                };
+              })
+            });
+          } else {
+            return parts.push({
+              Field: sf.field.field,
+              Op: '$in',
+              Value: sf.value1,
+            });
+          }
+        }
+      } else if (sf.value1) {
+        return parts.push({
+          Field: sf.field.field,
+          Op: '$eq',
+          Value: sf.value1,
+        });
+      }
+    }
+  });
+  return parts;
+});
+
 </script>
 <style scoped>
 /* ...existing code... */
