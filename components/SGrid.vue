@@ -65,7 +65,6 @@
               :lookup-format2="sfield.field.input.lookupFormat2"
               :decimal="sfield.field.input.decimal"
               :date-format="sfield.field.input.dateFormat"
-              :multiple="sfield.field.input.multiple"
               :lookup-labels="sfield.field.input.lookupLabels"
               :lookup-searchs="
                 sfield.field.input.lookupSearchs &&
@@ -146,7 +145,7 @@
               :lookup-format2="sfield.field.input.lookupFormat2"
               :decimal="sfield.field.input.decimal"
               :date-format="sfield.field.input.dateFormat"
-              :multiple="sfield.field.input.multiple"
+              :multiple="sfield.field.input.useList || sfield.field.input.lookupUrl != ''"
               :lookup-labels="sfield.field.input.lookupLabels"
               :lookup-searchs="
                 sfield.field.input.lookupSearchs &&
