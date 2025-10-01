@@ -67,7 +67,6 @@
           "
         >
           {{ label }}
-          
           <span v-if="required" class="is_required font-extrabold text-yellow-200">*</span>
         </div>
         <div v-else>&nbsp;</div>

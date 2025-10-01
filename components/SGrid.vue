@@ -36,7 +36,7 @@
           <div 
             v-if="[ 'number', 'date', 'datetime'].includes(sfield.field.input.kind)"
             :key="'search_input_' + sfidx"
-            class="col-span-4 flex gap-1 justify-between items-center"
+            class="col-span-4 flex gap-2 justify-between items-center"
           >
           <s-input
               class="w-full"
@@ -51,7 +51,7 @@
                   : sfield.field.input.label
               "
               :disabled="sfield.field.input.readOnly"
-              :caption="`enter ${sfield.field.input.label.toLowerCase()} to search`"
+              :caption="sfield.field.input.caption || `enter ${sfield.field.input.label.toLowerCase()} to search`"
               :hint="sfield.field.input.hint"
               :multi-row="sfield.field.input.multiRow"
               :use-list="sfield.field.input.useList"
@@ -156,6 +156,11 @@
             />
           </div>
         </div>
+
+        <div>
+          <slot name="header_autoseach_footer" :config="config" :searchable="data.searchableFields"></slot>
+        </div>
+
         <div hidden>
           {{ data.searchableFields.map(field => field.field.label + ": "+field.value1+" "+field.value2) }}
           <br/>
@@ -725,7 +730,8 @@ function queryParam() {
         .filter(f => f.readType === 'show' && f.inlineSearchValue && f.inlineSearchValue !== '')
         .map(f => ({
           Field: f.field,
-          Op: '$contains',
+          //Op: '$contains',
+          Op: "$startsWith",
           Value: [f.inlineSearchValue],
         }));
       if (inlineFilters.length > 0) {
@@ -743,7 +749,8 @@ function queryParam() {
         Items: keywordFields.map((k) => {
           return {
             Field: k,
-            Op: "$contains",
+            //Op: "$contains",
+            Op: "$startsWith",
             Value: [data.keyword],
           };
         }),
@@ -1058,6 +1065,7 @@ const calcSearchQuery = computed(() => {
   if (data.searchableFields.length == 0) return {};
   const parts = [];
   data.searchableFields.forEach(sf => {
+    console.log(sf.field.input.field, sf.field.input.kind, sf.value1, sf.value2);
     // if field is number, then value1 and value2 should be parsed to float
     if (sf.field.input.kind=='number') {
       if (sf.value1 != null && sf.value2 != null) {
@@ -1111,6 +1119,14 @@ const calcSearchQuery = computed(() => {
           });
         }
       }
+    } else if (sf.field.input.kind=='checkbox') {
+      if (sf.value1===true) {
+        parts.push({
+          Field: sf.field.field,
+          Op: '$eq',
+          Value: true,
+        });
+      }
     } else {
       if (sf.field.input.lookupUrl) {
         // if field is lookup, then value1 is array
@@ -1137,8 +1153,9 @@ const calcSearchQuery = computed(() => {
       } else if (sf.value1) {
         return parts.push({
           Field: sf.field.field,
-          Op: '$eq',
-          Value: sf.value1,
+          // Op: "$contains",
+          Op: '$startsWith',
+          Value: [sf.value1],
         });
       }
     }
