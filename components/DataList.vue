@@ -372,6 +372,7 @@ const props = defineProps({
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => {} },
+  formConfigView: { type: [String, Object], default: () => {} },
   formDefaultMode: { type: String, default: "edit" },
   formOnlyIcon: { type: Boolean, default: false },
   formRead: { type: String, default: "" },

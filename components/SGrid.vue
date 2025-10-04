@@ -732,7 +732,7 @@ function queryParam() {
           Field: f.field,
           //Op: '$contains',
           Op: "$startsWith",
-          Value: [f.inlineSearchValue],
+          Value: f.inlineSearchValue,
         }));
       if (inlineFilters.length > 0) {
         filters.push({ Op: '$and', Items: inlineFilters });
@@ -740,7 +740,7 @@ function queryParam() {
     } else if (data.autoSearch) {
       const autoFilters = calcSearchQuery.value;
       if (autoFilters.length > 0 ) {
-        console.log("Auto filters:", autoFilters);
+        //console.log("Auto filters:", autoFilters);
         filters.push(...autoFilters);
       }
     } else if (keywordFields.length > 0 && data.keyword && data.keyword != "") {
@@ -751,7 +751,7 @@ function queryParam() {
             Field: k,
             //Op: "$contains",
             Op: "$startsWith",
-            Value: [data.keyword],
+            Value: data.keyword,
           };
         }),
       });
@@ -1008,7 +1008,6 @@ const computedSearchableFields = () => {
     return props.config.fields
       .filter(f => props.config.setting?.searchable?.includes(f.field))
       .map(f => {
-        
         const ops = []
         switch (f.kind) {
           case 'number':
@@ -1026,6 +1025,9 @@ const computedSearchableFields = () => {
           case 'string':
             ops.push('contains', 'not contains', 'starts with', 'ends with', 'equal', 'not equal');
         }
+        
+        f.input.readOnly = false;
+        f.input.disable = false;
         
         return { 
           field: f,
@@ -1155,7 +1157,7 @@ const calcSearchQuery = computed(() => {
           Field: sf.field.field,
           // Op: "$contains",
           Op: '$startsWith',
-          Value: [sf.value1],
+          Value: sf.value1,
         });
       }
     }
