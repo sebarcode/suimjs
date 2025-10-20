@@ -31,7 +31,7 @@
     <div v-else-if="kind == 'bool' || kind == 'checkbox'">
       <div class="flex gap-2 items-center mt-1">
         <div>
-          <input
+          <input :disabled="disabled || readOnly"
             :type="kind == 'bool' ? 'checkbox' : kind"
             v-model="value"
             ref="control"
@@ -196,16 +196,19 @@
           @focus="onFocus"
         />
         <textarea
-          v-else="multiRow <= 1"
+          v-else-if="multiRow > 1 && !disabled"
           :rows="multiRow"
           type="text"
           :placeholder="caption || label"
           class="input_field"
           ref="control"
           v-model="value"
-          :disabled="disabled"
+          :readonly="disabled || readOnly"
           @focus="onFocus"
-        />
+        ></textarea>
+        <div v-else-if="multiRow > 1 && disabled">
+          {{  value }}
+        </div>
       </div>
       <div class="text-[0.7em] italic opacity-40">{{ hint }}</div>
       <div class="input_error"

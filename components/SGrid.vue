@@ -771,6 +771,8 @@ function queryParam() {
       param.Sort = ["-" + data.sortField];
     }
   }
+
+  param.Select = props.config.fields.map((f) => f.field);
   return param;
 }
 

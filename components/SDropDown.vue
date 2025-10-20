@@ -444,8 +444,6 @@ function setSelected(keys) {
     emit('change', null);
 }
 
-defineExpose({ options, setSelected });
-
 onMounted(()=>{ document.addEventListener('click', onClickOutside); });
 onBeforeUnmount(()=>{ document.removeEventListener('click', onClickOutside); });
 
@@ -496,16 +494,10 @@ function manageLookup() {
                     } else {
                         payload.Where = { Op: '$or', Items: props.lookupSearchs.map(fld => ({ Field: fld, Op: '$contains', Value: [trimmedQ] })) };
                     }
-
                 }
             }
             const response = await axios.post(props.lookupUrl, payload);
             if (response && response.data && Array.isArray(response.data)) {
-                /*
-                return response.data.map(item => {
-                    return item;
-                });
-                */
                return response.data;
             }
             return [];
@@ -593,6 +585,20 @@ watch(() => props.modelValue, async (nv) => {
         if (it.key === nv) { selected.value = it; break; }
     }
 }, { immediate: true });
+
+
+function value2(key) {
+  if (key == undefined) {
+    key = props.modelValue;
+  }
+  // const opts = data.options && data.options.filter ? data.options.filter((el) => el.key == key) : undefined;
+  // return opts && opts.length > 0 ? opts[0].text : key;
+
+  const opts=filtered.value.filter((el) => el.key == key);
+  return opts && opts.length > 0 ? opts[0].label : key;
+}
+
+defineExpose({ options, setSelected, value2 });
 
 </script>
 
