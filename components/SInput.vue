@@ -36,6 +36,7 @@
             v-model="value"
             ref="control"
             @focus="onFocus"
+            autocomplete="off"
           />
         </div>
         <div>{{ label }}</div>
@@ -149,6 +150,7 @@
           ref="control"
           :disabled="disabled"
           @focus="onFocus"
+          autocomplete="off"
         />
         <button
           class="input_icon"
@@ -174,6 +176,7 @@
           ref="control"
           :disabled="disabled"
           @focus="onFocus"
+          autocomplete="off"
         />
 
         <input
@@ -185,6 +188,7 @@
           ref="control"
           :disabled="disabled"
           @focus="onFocus"
+          autocomplete="off"
         />
         <input
           v-else-if="multiRow <= 1 && kind == 'number'"
@@ -194,6 +198,7 @@
           ref="control"
           :disabled="disabled"
           @focus="onFocus"
+          autocomplete="off"
         />
         <textarea
           v-else-if="multiRow > 1 && !disabled"

@@ -82,7 +82,7 @@
                         <div class="sdd_item_row" v-else>
                             <slot name="item" :item="it" :isSelected="isSelected(it)">
                                 <div class="sdd_item_label grow">{{ it.label }}</div>
-                                <div v-if="isSelected(it)" class="sdd_item_selected">Selected</div>
+                                <div v-if="isSelected(it)" class="sdd_item_selected" hidden>Selected</div>
                             </slot>
                         </div>
                     </li>
