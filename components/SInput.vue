@@ -92,6 +92,7 @@
           :lookup-payload-builder="lookupPayloadBuilder"
           :read-only="disabled"
           :multiple="multiple"
+          :clearable="clearable"
           @focus="onFocus"
           @item-added="onAddItem"
         >
@@ -118,6 +119,7 @@
           :lookup-payload-builder="lookupPayloadBuilder"
           :disabled="disabled"
           :multiple="multiple"
+          :clearable="clearable"
           @focus="onFocus"
           @addItem="onAddItem"
         >
@@ -317,6 +319,7 @@ const props = defineProps({
   caption: { type: String, default: "" },
   hint: { type: String, default: "" },
   kind: { type: String, default: "text" },
+  clearable: { type: Boolean, default: true },
   items: {
     type: Array,
     default() {
