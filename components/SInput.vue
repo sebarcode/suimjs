@@ -29,7 +29,7 @@
 
     <!-- checkbox -->
     <div v-else-if="kind == 'bool' || kind == 'checkbox'">
-      <div class="flex gap-2 items-center mt-1">
+      <div class="flex gap-2 items-start">
         <div>
           <input :disabled="disabled || readOnly"
             :type="kind == 'bool' ? 'checkbox' : kind"
@@ -43,13 +43,10 @@
       </div>
       <div>
         <div
-          class="text-[0.7em] opacity-60 flex gap-1 text-red-300"
+          class="input_error"
           v-show="errorsTxt.length > 0"
         >
-          <div v-if="errorsTxt.length > 0">
-            {{ errorsTxt }}
-          </div>
-          <div v-else>&nbsp;</div>
+          {{ errorsTxt }}
         </div>
       </div>
     </div>
@@ -230,8 +227,8 @@
   </div>
 
   <!-- view mode -->
-  <div v-else>
-    <label class="input_label" v-if="!hideLabel">
+  <div v-else class="w-full">
+    <label class="input_label" v-if="!hideLabel" :class="{'text-right':kind=='number'}">
       <div v-if="true">
         {{ label }}
         <span v-if="required" class="font-extrabold text-yellow-200">*</span>
@@ -245,7 +242,7 @@
     <div class="bg-transparent" v-else-if="kind == 'date'">
       {{ moment(value).local().format("DD-MMM-YYYY") }}
     </div>
-    <div class="bg-transparent" v-else-if="kind == 'number'">
+    <div class="bg-transparent text-right mt-2" v-else-if="kind == 'number'">
       {{ util.formatMoney(value, { decimal: decimal }) }}
     </div>
     <div class="bg-transparent" v-else-if="lookupUrl && lookupUrl != ''">
