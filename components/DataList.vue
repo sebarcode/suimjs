@@ -342,6 +342,7 @@ import {
   watch,
 } from "vue";
 import util from "../scripts/util.js";
+import formConfig from "../scripts/form_config.js";
 
 const props = defineProps({
   noGap: { type: Boolean },
@@ -371,8 +372,8 @@ const props = defineProps({
   gridPageSize: { type: Number, default: 20 },
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
-  formConfigNew: { type: [String, Object], default: () => {} },
-  formConfigView: { type: [String, Object], default: () => {} },
+  formConfigNew: { type: [String, Object], default: () => undefined },
+  formConfigView: { type: [String, Object], default: () => undefined },
   formDefaultMode: { type: String, default: "edit" },
   formOnlyIcon: { type: Boolean, default: false },
   formRead: { type: String, default: "" },
@@ -612,12 +613,25 @@ function selectData(dt, index, isAfterSave = false) {
       data.isAfterSave = isAfterSave
       
       data.record = r.data;
+      if (props.formConfigView && data.formMode == "view") refreshForm()
       nextTick(() => {
         emit("formLoaded", data.record);
       });
     },
     (e) => {
       data.loadingSelectData = false
+      util.showError(e);
+    }
+  );
+}
+
+function readFormRecord(dt) {
+  axios.post(props.formRead, [dt._id]).then(
+    (r) => {      
+      emit("formEditData", r.data);
+      data.record = r.data;
+    },
+    (e) => {
       util.showError(e);
     }
   );
@@ -633,6 +647,7 @@ function newData(dt) {
       data.controlMode = "form";
       data.formMode = "new";
       nextTick(() => {
+        if (props.formConfigNew) refreshForm()
         emit("gridRowUpdated", data.record);
         emit("formLoaded", data.record);
       });
@@ -724,7 +739,13 @@ function refreshList() {
 
 function refreshForm() {
   if (props.formConfig == undefined || props.formConfig == "") return;
-  loadFormConfig(axios, props.formConfig).then(
+  let configSource = props.formConfig;
+  if (data.formMode == "new" && props.formConfigNew) {
+    configSource = props.formConfigNew;
+  } else if (data.formMode == "view" && props.formConfigView) {
+    configSource = props.formConfigView;
+  }
+  loadFormConfig(axios, configSource).then(
     (r) => {
       emit("alterFormConfig", r);
       data.formCfg = r;
@@ -813,7 +834,7 @@ function setFormRecord(record) {
 }
 
 function getGridRecords() {
-  return gridCtl.value.getRecords();
+  return gridCtl.value?.getRecords();
 }
 
 function getGridRecord(idx) {
@@ -825,7 +846,7 @@ function setGridRecord(idx, dt) {
 }
 
 function setGridRecordByID(dt) {
-  return gridCtl.value.setRecordByID(dt);
+  return gridCtl.value?.setRecordByID(dt);
 }
 
 function setFormMode(mode) {
@@ -982,7 +1003,8 @@ defineExpose({
   getFormAllField,
   gridResetFilter,
   gridAddData,
-  selectData
+  selectData,
+  readFormRecord
 });
 
 onMounted(() => {
