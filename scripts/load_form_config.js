@@ -1,8 +1,9 @@
 import createFormConfig from "./create_form_config"
+import formConfigModeled from "./form-config-modeled"
 
 const loadFormConfig = async (axios, url) => {
     const r = (await axios.post(url)).data
-    const cfg = {}
+    const cfg = new formConfigModeled()
     cfg.setting = r.setting
 
     r.sectionGroups.forEach(sg => {

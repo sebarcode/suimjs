@@ -4,7 +4,7 @@
     <div class="w-full h-full absolute top-0 left-0 z-50 flex items-center justify-center" v-if="data.displayModal">
         <div class="modal_container">
             <slot name="title">
-                <div class="modal_title" v-if="!hideTitle">
+                <div class="modal_title bg-primary text-white" v-if="!hideTitle">
                     <div class="grow">{{ title  }}</div>
                     <div class="flex gap-1" v-if="!hideActions">
                         <slot name="actions">
@@ -88,8 +88,6 @@ defineExpose({
 </script>
 
 <style scoped>
-
-
 .modal_fullbg {
     position: absolute;
     top: 0;
@@ -107,14 +105,15 @@ defineExpose({
     background: white;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
+
 .modal_title {
-    background: var(--primary-color, #2563eb);
     color: #e2e8f0;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
     display: flex;
     gap: 0.5rem;
 }
+
 .modal_action {
     cursor: pointer;
     transition: opacity 0.2s;

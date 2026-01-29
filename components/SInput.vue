@@ -90,6 +90,7 @@
           :read-only="disabled"
           :multiple="multiple"
           :clearable="clearable"
+          :placeholder="`Select ${caption || label || field}`"
           @focus="onFocus"
           @item-added="onAddItem"
         >
@@ -189,15 +190,16 @@
           @focus="onFocus"
           autocomplete="off"
         />
-        <input
+        <s-input-number
           v-else-if="multiRow <= 1 && kind == 'number'"
-          :type="kind"
-          class="input_field text-right"
+          :decimal="decimal"
+          :min="undefined"
+          :max="undefined"
+          :format-code="undefined"
           v-model="value"
           ref="control"
           :disabled="disabled"
           @focus="onFocus"
-          autocomplete="off"
         />
         <textarea
           v-else-if="multiRow > 1 && !disabled"
@@ -299,6 +301,7 @@
 import { reactive, computed, onMounted, nextTick, ref, inject } from "vue";
 import SSelect from "./SSelect.vue";
 import SDropDown from "./SDropDown.vue";
+import SInputNumber from "./SInputNumber.vue";
 import moment from "moment";
 import util from "../scripts/util";
 import SEditor from './SEditor.vue';

@@ -57,21 +57,20 @@
         </div>
     </div>
     <div class="pagesize">
-        <s-input 
-            field=""
-            class="min-w-[80px] select-dropdown"
-            :show-clear-button="false" 
-            use-list 
-            :items="data.itemsPageSize" 
+        <select 
+            class="min-w-[80px] border border-gray-300 rounded px-2 py-1"
             v-model="data.pageSize"
             @change="onChangePageSize" 
-        />
+        >
+            <option v-for="size in data.itemsPageSize" :key="size" :value="size">
+                {{ size }}
+            </option>
+        </select>
     </div>
   </div>
 </template>
 <script setup>
 import { computed, reactive} from "vue";
-import SInput from "./SInput.vue";
 
 const props = defineProps({
   recordCount: { type: Number, default: 0 },
@@ -84,7 +83,7 @@ const emit = defineEmits({
   changePage: null,
   changePageSize:null,
 }); 
-const itemsPageSize = [5,10,15,20,25]
+const itemsPageSize = [5,10,15,20,25,30,40,50,75,100];
 itemsPageSize.push(props.pageSize) 
  
 const data = reactive({  
@@ -96,8 +95,8 @@ function onChangePage(page) {
   if ([0, props.pageCount + 1].includes(parseInt(page))) return;
   emit("changePage", page);
 }
-function onChangePageSize(field, v1){
-    emit('changePageSize',v1)
+function onChangePageSize(){
+    emit('changePageSize', data.pageSize)
 }
 function createPagination() {
   let delta = 2;

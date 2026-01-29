@@ -730,7 +730,6 @@ function queryParam() {
         .filter(f => f.readType === 'show' && f.inlineSearchValue && f.inlineSearchValue !== '')
         .map(f => ({
           Field: f.field,
-          //Op: '$contains',
           Op: "$startsWith",
           Value: f.inlineSearchValue,
         }));
@@ -740,7 +739,6 @@ function queryParam() {
     } else if (data.autoSearch) {
       const autoFilters = calcSearchQuery.value;
       if (autoFilters.length > 0 ) {
-        //console.log("Auto filters:", autoFilters);
         filters.push(...autoFilters);
       }
     } else if (keywordFields.length > 0 && data.keyword && data.keyword != "") {
@@ -1069,7 +1067,7 @@ const calcSearchQuery = computed(() => {
   if (data.searchableFields.length == 0) return {};
   const parts = [];
   data.searchableFields.forEach(sf => {
-    console.log(sf.field.input.field, sf.field.input.kind, sf.value1, sf.value2);
+    //console.log(sf.field.input.field, sf.field.input.kind, sf.value1, sf.value2);
     // if field is number, then value1 and value2 should be parsed to float
     if (sf.field.input.kind=='number') {
       if (sf.value1 != null && sf.value2 != null) {
@@ -1134,7 +1132,9 @@ const calcSearchQuery = computed(() => {
     } else {
       if (sf.field.input.lookupUrl) {
         // if field is lookup, then value1 is array
-        if (sf.value1 && sf.value1.length > 0) {
+        if (sf.value1 && Array.isArray(sf.value1)) {
+          if (sf.value1.length == 0) return;
+
           if (sf.field.input.multiple) {
             // if multiple, then use $or with literal because field will be json or jsonb on database
             return parts.push({
@@ -1155,12 +1155,21 @@ const calcSearchQuery = computed(() => {
           }
         }
       } else if (sf.value1) {
-        return parts.push({
-          Field: sf.field.field,
-          // Op: "$contains",
-          Op: '$startsWith',
-          Value: sf.value1,
-        });
+        if (Array.isArray(sf.value1)) {
+          if (sf.value1.length == 0) return;
+          return parts.push({
+            Field: sf.field.field,
+            Op: '$in',
+            Value: sf.value1,
+          });
+        } else {
+          return parts.push({
+            Field: sf.field.field,
+            // Op: "$contains",
+            Op: '$startsWith',
+            Value: sf.value1,
+          });
+        }
       }
     }
   });

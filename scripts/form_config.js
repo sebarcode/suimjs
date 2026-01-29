@@ -1,3 +1,4 @@
+import formConfigModeled from "./form-config-modeled"
 import formSection from "./form_section"
 
 class formConfig {
@@ -55,9 +56,8 @@ class formConfig {
     }
 
     generateConfig () {
-        const modeledConfig = {
-            setting: this.setting
-        }
+        const modeledConfig = new formConfigModeled()
+        modeledConfig.setting = this.setting
         modeledConfig.sectionGroups = this.sectionGroups()
         return modeledConfig
     }

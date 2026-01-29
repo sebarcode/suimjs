@@ -10,6 +10,7 @@ import loadGridConfig from "./scripts/load_grid_config.js";
 import rules from "./scripts/rules.js";
 import { keyHandlers, keyHandlerSetup } from "./scripts/keyhandler.js";
 import SInput from "./components/SInput.vue";
+import SInputNumber from "./components/SInputNumber.vue";
 import SButton from "./components/SButton.vue";
 import SCard from "./components/SCard.vue";
 import SForm from "./components/SForm.vue";
@@ -34,6 +35,7 @@ export {
   rules,
   util,
   SInput,
+  SInputNumber,
   SDropDown,
   SButton,
   SCard,

@@ -6,8 +6,9 @@
         :disabled="disableBtn"
         @click="clickBtn"
       >
-        <mdicon width="14" :name="icon" v-if="icon != ''" />
+        <mdicon width="14" :name="icon" v-if="icon != '' && !iconRight" />
         <div class="mt-0" v-if="label != ''">{{ label }}</div>
+        <mdicon width="14" :name="icon" v-if="icon != '' && iconRight" />
       </button>
     </template>
   </s-tooltip>
@@ -24,6 +25,7 @@ const props = defineProps({
   disabled: { type: Boolean, default: false },
   disableWhenClicked: { type: Boolean, default: false },
   tooltip: { type: String, default: "" },
+  iconRight: { type: Boolean, default: false },
   noTooltip: { type: Boolean, default: false },
 });
 
