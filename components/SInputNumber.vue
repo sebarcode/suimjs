@@ -95,47 +95,6 @@ function manualGroupDigits(s, groupChar) {
   return (neg ? '-' : '') + out;
 }
 
-function parseNumber(str) {
-  if (str === null || str === undefined) return 0;
-  const s = String(str).trim();
-  if (s.length === 0) return 0;
-  const sep = detectSeparators();
-  // remove group separators
-  function escapeRegex(x) { return x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-  const groupEsc = escapeRegex(sep.group);
-  const decEsc = escapeRegex(sep.decimal);
-  let cleaned = s.replace(new RegExp(groupEsc, 'g'), '');
-  if (decEsc !== '.') {
-    cleaned = cleaned.replace(new RegExp(decEsc, 'g'), '.');
-  }
-  // allow only digits, dot and minus (keep potential trailing dot)
-  cleaned = cleaned.replace(/[^0-9.\-]/g, '');
-  // collapse multiple dots to a single dot (keep first occurrence)
-  if ((cleaned.match(/\./g) || []).length > 1) {
-    const parts = cleaned.split('.');
-    const intPart = parts.shift();
-    cleaned = intPart + '.' + parts.join('');
-  }
-  // if there's a decimal point, enforce max fractional digits
-  const dotIndex = cleaned.indexOf('.');
-  if (dotIndex >= 0) {
-    const intPart = cleaned.slice(0, dotIndex) || '0';
-    let frac = cleaned.slice(dotIndex + 1);
-    if (props.decimal === 0) {
-      cleaned = intPart;
-    } else {
-      if (frac.length > props.decimal) {
-        frac = frac.slice(0, props.decimal);
-      }
-      cleaned = intPart + '.' + frac;
-    }
-  }
-  // remove lone minus or lone dot
-  if (cleaned === '' || cleaned === '-' || cleaned === '.' || cleaned === '-.') return 0;
-  const val = Number(cleaned);
-  return isNaN(val) ? 0 : val;
-}
-
 watch(() => props.modelValue, (newVal) => {
   if (!editing.value) {
     fmtValue.value = formatNumber(Number(newVal || 0));
