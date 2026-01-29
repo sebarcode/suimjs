@@ -201,19 +201,44 @@ function storeValue(event) {
   if (numeric < props.min) numeric = props.min;
   if (numeric > props.max) numeric = props.max;
 
-  // while editing, display should be plain digits (no grouping) + decimal part
-  let display = (numeric < 0 ? '-' : '') + String(intDigitsOnly);
+  // while editing, display should be grouped/formatted on the integer part
+  const groupChar = sep.group || ',';
+  const formattedInt = manualGroupDigits((numeric < 0 ? '-' : '') + String(intDigitsOnly), groupChar);
+  let display = formattedInt;
   if (props.decimal > 0 && (hadDecimal || fracPart.length > 0)) {
     display += sep.decimal + fracPart;
   }
 
-  // compute caret position: handle fractional editing and immediate decimal insertion
+  // compute caret position: if caret was after decimal, map to fractional position
   const before = raw.slice(0, sel);
   const cleanedBefore = cleanInput(before);
-  // since display has no grouping while editing, caret maps directly to cleanedBefore length
-  const newPos = cleanedBefore.length;
+  let newPos = 0;
+  if ((props.decimal > 0) && (cleanedBefore.indexOf('.') >= 0)) {
+    const partsBefore = cleanedBefore.split('.');
+    const fracDigitsBefore = (partsBefore[1] || '').replace(/[^0-9]/g, '').length;
+    const decIndexInDisp = display.indexOf(sep.decimal);
+    if (decIndexInDisp >= 0) {
+      newPos = decIndexInDisp + sep.decimal.length + fracDigitsBefore;
+    } else {
+      newPos = display.length;
+    }
+  } else {
+    // caret in integer part -> map digit index to position in formatted display
+    const digitIndex = cleanedBefore.replace(/[^0-9]/g, '').length;
+    function caretFromDigitIndex(dIdx, disp) {
+      if (dIdx === 0) return disp.startsWith('-') ? 1 : 0;
+      let seen = 0;
+      for (let i = 0; i < disp.length; i++) {
+        if (/[0-9]/.test(disp[i])) seen++;
+        if (seen >= dIdx) return i + 1;
+      }
+      return disp.length;
+    }
+    newPos = caretFromDigitIndex(digitIndex, display);
+  }
+
   fmtValue.value = display;
-  // ensure DOM input shows sanitized value immediately
+  // ensure DOM input shows sanitized & formatted value immediately
   try { el.value = display; } catch (e) {}
   requestAnimationFrame(() => {
     try {
