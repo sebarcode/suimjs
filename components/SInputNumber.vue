@@ -201,11 +201,8 @@ function storeValue(event) {
   if (numeric < props.min) numeric = props.min;
   if (numeric > props.max) numeric = props.max;
 
-  const groupChar = sep.group || ',';
-  const formattedInt = manualGroupDigits((numeric < 0 ? '-' : '') + String(intDigitsOnly), groupChar);
-
-  // decide display string: formatted integer + (decimal sep + fracPart if user typed or decimal>0 and hadDecimal)
-  let display = formattedInt;
+  // while editing, display should be plain digits (no grouping) + decimal part
+  let display = (numeric < 0 ? '-' : '') + String(intDigitsOnly);
   if (props.decimal > 0 && (hadDecimal || fracPart.length > 0)) {
     display += sep.decimal + fracPart;
   }
@@ -213,53 +210,11 @@ function storeValue(event) {
   // compute caret position: handle fractional editing and immediate decimal insertion
   const before = raw.slice(0, sel);
   const cleanedBefore = cleanInput(before);
-
-  let newPos = 0;
-  const disp = display;
-  const decIndexInDisp = disp.indexOf(sep.decimal);
-
-  if ((props.decimal > 0) && (cleanedBefore.indexOf('.') >= 0)) {
-    // caret was after decimal in the raw input -> map to after decimal + fractional digits count
-    const partsBefore = cleanedBefore.split('.');
-    const fracDigitsBefore = (partsBefore[1] || '').replace(/[^0-9]/g, '').length;
-    if (decIndexInDisp >= 0) {
-      newPos = decIndexInDisp + sep.decimal.length + fracDigitsBefore;
-    } else {
-      newPos = disp.length;
-    }
-  } else {
-    // caret was in integer part (or just after decimal char typed)
-    // detect if user just typed the decimal separator (character before selection is decimal)
-    const charBefore = raw.charAt(Math.max(0, sel - 1));
-    if (props.decimal > 0 && charBefore === sep.decimal) {
-      // move caret to just after decimal separator in display
-      if (decIndexInDisp >= 0) {
-        newPos = decIndexInDisp + sep.decimal.length;
-      } else {
-        newPos = disp.length;
-      }
-    } else {
-      // count integer digits before caret and map to display digits
-      const intDigitsBefore = cleanedBefore.replace(/[^0-9]/g, '').length;
-      if (intDigitsBefore === 0) {
-        // place at start or right after sign
-        newPos = disp.startsWith('-') ? 1 : 0;
-      } else {
-        let seen = 0;
-        for (let i = 0; i < disp.length; i++) {
-          if (/[0-9]/.test(disp[i])) seen++;
-          if (seen >= intDigitsBefore) {
-            newPos = i + 1;
-            break;
-          }
-        }
-        if (!newPos) newPos = disp.length;
-      }
-    }
-  }
-
+  // since display has no grouping while editing, caret maps directly to cleanedBefore length
+  const newPos = cleanedBefore.length;
   fmtValue.value = display;
-  // set caret asynchronously to ensure DOM updated
+  // ensure DOM input shows sanitized value immediately
+  try { el.value = display; } catch (e) {}
   requestAnimationFrame(() => {
     try {
       el.setSelectionRange(newPos, newPos);
