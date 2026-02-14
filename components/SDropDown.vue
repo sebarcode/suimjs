@@ -150,10 +150,14 @@ function normalizeList(list){
         if (typeof el === 'string' || typeof el === 'number'){
             out.push({ _uid: `i_${i}`, key: el, label: String(el), original: el });
         } else if (el && typeof el === 'object'){
+            let concatenatedLabel = '';
+            if (props.lookupUrl && props.lookupLabels && props.lookupLabels.length > 0) {
+                concatenatedLabel = props.lookupLabels.map(lf => el[lf] ?? '').filter(v => v).join(' - ');
+            }
             out.push({ 
                 _uid: `i_${i}`, 
                 key: el[keyField] ?? el.key ?? i, 
-                label: el[labelField] ?? el.label ?? String(el[keyField] ?? el.key ?? i), 
+                label: concatenatedLabel || el[labelField] || el.label  || String(el[keyField] || el.key || i), 
                 original: el,
                 keyField, 
                 labelField
@@ -554,6 +558,10 @@ async function fetchItems(nv) {
 
 watch(() => search.value, (nv) => {
     fetchItems(nv);
+}, { immediate: true });
+
+watch(() => props.lookupUrl, () => {
+    fetchItems(search.value);
 }, { immediate: true });
 
 
