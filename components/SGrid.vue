@@ -6,7 +6,7 @@
     </s-modal>
 
     <div
-      class="flex gap-2 justify-center items-center header"
+      class="flex gap-1 items-center header"
       v-if="!hideControl"
     >
       <div class="grow">

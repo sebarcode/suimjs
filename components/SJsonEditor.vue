@@ -5,10 +5,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, defineEmits, defineProps, defineExpose } from 'vue'
-// jsoneditor (ensure it's installed in the project: npm i jsoneditor)
-import JSONEditor from 'jsoneditor'
-import 'jsoneditor/dist/jsoneditor.css'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
     modelValue: { type: [Object, Array, String, Number, Boolean, null], default: () => ({}) },
@@ -45,9 +42,17 @@ function getEditorValue() {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
     const defaultOptions = Object.assign({ mode: props.mode, navigationBar: false, mainMenuBar: false }, props.options)
-    editor = new JSONEditor(editorContainer.value, defaultOptions)
+    try {
+        const mod = await import('jsoneditor')
+        await import('jsoneditor/dist/jsoneditor.css')
+        const JSONEditor = mod.default || mod
+        editor = new JSONEditor(editorContainer.value, defaultOptions)
+    } catch (err) {
+        console.warn('SJsonEditor: jsoneditor module not available', err)
+        return
+    }
 
     // initialize
     setEditorValue(props.modelValue)

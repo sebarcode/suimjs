@@ -29,17 +29,15 @@
 
     <!-- checkbox -->
     <div v-else-if="kind == 'bool' || kind == 'checkbox'">
-      <div class="flex gap-2 items-start">
-        <div>
-          <input :disabled="disabled || readOnly"
-            :type="kind == 'bool' ? 'checkbox' : kind"
-            v-model="value"
-            ref="control"
-            @focus="onFocus"
-            autocomplete="off"
-          />
-        </div>
-        <div>{{ label }}</div>
+      <label class="input_label" v-if="!hideLabel && label">{{ label }}</label>
+      <div>
+        <input :disabled="disabled || readOnly"
+          :type="kind == 'bool' ? 'checkbox' : kind"
+          v-model="value"
+          ref="control"
+          @focus="onFocus"
+          autocomplete="off"
+        />
       </div>
       <div>
         <div
