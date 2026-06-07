@@ -1,5 +1,5 @@
 <template>
-   <div class="suim_form" :class="[focus ? 'focus' :'', data.inSubmission || data.loading ? 'loading' :''] ">
+  <div ref="formRoot" class="suim_form" :class="[focus ? 'focus' :'', data.inSubmission || data.loading ? 'loading' :''] " @focusin="markAsActive" @mousedown="markAsActive">
       
       <template v-if="data.inSubmission || data.loading" >
         <slot name="loader">
@@ -48,6 +48,7 @@
               <button
                 class="close-button"
                 @click="onCancelForm"
+                :disabled="isLockedByOtherForm"
               >
                 <mdicon name="close" size="16"></mdicon>
               </button>
@@ -57,6 +58,7 @@
           <s-form-buttons v-if="buttonsOnTop" ref="buttonsTopCtl" class="form_button_top"
               :hide-buttons="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit" 
               :only-icon="onlyIconTop" :disable-submit="data.inSubmission || data.loading"
+              :disable-all="isLockedByOtherForm"
               :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
               :tab="data.currentTab"
               :showOnAllTabs="showButtonsOnAllTabs" 
@@ -254,6 +256,7 @@
             <s-form-buttons v-if="buttonsOnBottom" ref="buttonsBottomCtl" class="form_button_bottom"
                 :hide-buttons="hideButtons" :hide-cancel-button="hideCancel" :hide-submit-button="hideSubmit"
                 :only-icon="onlyIconBottom" :disable-submit="data.inSubmission || data.loading" 
+                :disable-all="isLockedByOtherForm"
                 :submit-text="submitText" :submit-icon="submitIcon" :cancel-text="cancelText" :cancel-icon="cancelIcon"
                 :tab="data.currentTab" :showButtonsOnAllTabs="showButtonsOnAllTabs"
                 @submit-click="onSubmitForm" @cancel-click="onCancelForm">
@@ -285,8 +288,11 @@ import { ref, reactive, computed, onMounted, watch, nextTick } from "vue";
 import SFormButtons from "./SFormButtons.vue";
 import SInput from "./SInput.vue";
 import { onUnmounted } from "vue";
+import { activeSFormId, nextSFormInstanceId } from "./sform-exclusive-state.js";
 
 const inputs = ref([]);
+const formRoot = ref(null);
+const formInstanceId = nextSFormInstanceId();
 
 const buttonsTopCtl = ref(null);
 const buttonsBottomCtl = ref(null);
@@ -316,6 +322,7 @@ const props = defineProps({
   tabs: { type: Array, default: () => [] },
   initialTab: { type: Number, default: 0 },
   focus: { type: Boolean, default: false },
+  noExclusiveButtons: { type: Boolean, default: false },
 });
 
 const emit = defineEmits({
@@ -359,6 +366,24 @@ const data = reactive({
 
 });
 
+const isLockedByOtherForm = computed(() => {
+  if (props.noExclusiveButtons) return false;
+  return activeSFormId.value !== null && activeSFormId.value !== formInstanceId;
+});
+
+function markAsActive(event) {
+  if (props.noExclusiveButtons) return;
+  const rootEl = formRoot.value;
+  if (!rootEl) return;
+
+  if (event?.target?.closest) {
+    const nearestForm = event.target.closest(".suim_form");
+    if (nearestForm && nearestForm !== rootEl) return;
+  }
+
+  activeSFormId.value = formInstanceId;
+}
+
 const inputIsDisabled = (input) => {
   if (props.mode == "view") return input.disabled===false ? false : true;
   if (input.readOnly) return true;
@@ -381,6 +406,8 @@ function validate() {
 }
 
 async function onSubmitForm() {
+  if (isLockedByOtherForm.value) return;
+  markAsActive();
   let isValid = true;
   try {
     emit("preSubmitForm", props.modelValue);
@@ -450,6 +477,7 @@ const value = computed({
 });
 
 function onCancelForm() {
+  if (isLockedByOtherForm.value) return;
   emit("cancelForm");
 }
 
@@ -631,6 +659,9 @@ watch(
 let formsInputs = ref([])
 
 onMounted(() => {
+  if (!props.noExclusiveButtons) {
+    activeSFormId.value = formInstanceId;
+  }
   calcChangeFields();
   if (
     props.autoFocus &&
@@ -647,6 +678,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (!props.noExclusiveButtons && activeSFormId.value === formInstanceId) {
+    activeSFormId.value = null;
+  }
   document.removeEventListener("keydown", handleKeyDown);
 })
 

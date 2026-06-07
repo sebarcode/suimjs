@@ -1,5 +1,5 @@
 <template>
-    <div class="suim_form_button">
+    <div class="suim_form_button" :hidden="disableAll">
         <div class="flex items-center justify-end w-full gap-[1px]" 
             v-if="!hideButtons">
             <div class="grow">&nbsp;</div>
@@ -16,7 +16,7 @@
                 class="btn_primary submit_btn"
                 :label="onlyIcon ? '' : submitText || 'Save'"
                 @click="onSubmitForm"
-                :disabled="disableSubmit"
+                :disabled="disableSubmit || disableAll"
             />
             <s-button
                 v-if="!hideCancelButton && buttonisVisible"
@@ -24,6 +24,7 @@
                 class="btn_warning back_btn"
                 :label="onlyIcon ? '' : cancelText"
                 @click="onCancelForm"
+                :disabled="disableAll"
             />
             </slot>
             <slot v-else name="buttons">
@@ -33,6 +34,7 @@
                 class="btn_warning back_btn"
                 :label="onlyIcon ? '' : cancelText"
                 @click="onCancelForm"
+                :disabled="disableAll"
             />
             </slot>
             <slot name="buttons_2" :item="modelValue"></slot>
@@ -59,6 +61,7 @@ const props = defineProps({
     hideButtons: {type: Boolean, default: false},
     showOnAllTabs: {type: Boolean, default: false},
     disableSubmit: {type: Boolean},
+    disableAll: {type: Boolean, default: false},
     onlyIcon: {type: Boolean, default: false},
     modelValue: {type: Object, default: ()=>{}},
 })
@@ -84,10 +87,12 @@ const buttonisVisible = computed(() => {
 
 
 function onSubmitForm () {
+    if (props.disableAll) return;
     emit('submitClick', props.modelValue)
 }
 
 function onCancelForm () {
+    if (props.disableAll) return;
     emit('cancelClick', props.modelValue)
 }
 
@@ -104,6 +109,9 @@ onUnmounted(() => {
 })
 
 function handleKeyDown (event) {
+    if (props.hideButtons || props.disableAll || !buttonisVisible.value) {
+        return;
+    }
     if (event.altKey && event.key==="s") {
         event.preventDefault();
         onSubmitForm();
