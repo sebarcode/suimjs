@@ -24,7 +24,7 @@
                         autocomplete="off"
                         autocorrect="off"
                         autosave="off"
-                        />
+                    />   
                 </div>
                 <div
                     class="sdd sdd_actions"
@@ -108,7 +108,7 @@ const props = defineProps({
     modelValue: { type: [Array, String, Object, Number, null], default: null },
     items: { type: Array, default: () => ([]) },
     itemKey: { type: String, default: 'key' },
-    itemLabel: { type: String, default: 'value' },
+    itemLabel: { type: String, default: 'text' },
     placeholder: { type: String, default: 'Select an option' },
     searchable: { type: Boolean, default: true },
     clearable: { type: Boolean, default: true },
@@ -143,8 +143,9 @@ function normalizeList(list){
     const out = [];
     const keyField =  props.lookupUrl ? props.lookupKey || 'key' : props.itemKey;
     const labelField = props.lookupUrl ? 
-        (props.lookupLabels && props.lookupLabels.length > 0 ? props.lookupLabels[0] : 'label') : 
+        (props.lookupLabels && props.lookupLabels.length > 0 ? props.lookupLabels[0] : 'text') : 
         props.itemLabel;
+            
     for (let i=0;i<list.length;i++){
         const el = list[i];
         if (typeof el === 'string' || typeof el === 'number'){

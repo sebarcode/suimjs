@@ -324,7 +324,7 @@ const props = defineProps({
     },
   },
   itemKey: { type: String, default: "key" },
-  itemLabel: { type: String, default: "label" },
+  itemLabel: { type: String, default: "text" },
   bgColor: { type: String, default: "bg-transparent" },
   multiRow: { type: Number, default: 1 },
   allowAdd: { type: Boolean, default: false },
