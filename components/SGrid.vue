@@ -516,7 +516,7 @@ const props = defineProps({
   sortField: { type: String, default: "" },
   sortDirection: { type: String, default: "" },
   autoCommitLine: { type: Boolean, default: false },
-  labelMethod: { type: String, default: "database" },
+  labelMethod: { type: String, default: "none" },
   noConfirmDelete: { type: Boolean },
   hideNew: { type: Boolean },
   hideControl: { type: Boolean },

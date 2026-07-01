@@ -17,6 +17,7 @@
             {{ util.formatMoney(record[columnConfig.field], {decimal:columnConfig.decimal}) }}
         </div>
         <div v-else-if="columnConfig.kind == 'date'">
+            ddd
             <div v-if="moment(record[columnConfig.field]).local().year() >= 1901">
                 {{ moment(record[columnConfig.field]).local().format("DD-MMM-YYYY") }}
             </div>
@@ -53,7 +54,6 @@ const data = reactive({
 
 function getLabel() {
     if (props.columnConfig.input.lookupUrl != undefined && props.columnConfig.input.lookupUrl != "") {
-        //console.log(props.columnConfig.input.lookupUrl)
         axios.post(props.columnConfig.input.lookupUrl, {
             "Where": {
                 "Field": "_id", "Op": "$eq",

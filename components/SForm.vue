@@ -691,6 +691,9 @@ function handleKeyDown(event) {
   } else if (event.altKey && event.key === "ArrowLeft") {
     event.preventDefault();
     prevTab();
+  } else if (event.altKey && (event.key === "t" || event.key === "T")) {
+    event.preventDefault();
+    nextTab();
   } 
 }
 
