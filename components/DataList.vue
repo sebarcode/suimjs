@@ -404,11 +404,11 @@ const props = defineProps({
   initAppMode: { type: String, default: "grid" },
   newRecordType: { type: String, default: "form" },
   //initFormMode: { type: String, default: "edit" },
+  preSaveFn: { type: Function, default: null },
 });
 
 const axios = inject("axios");
 const emit = defineEmits({
-  preSave: null,
   postSave: null,
   formFieldChange: null,
   formRecordChange: null,
@@ -669,7 +669,13 @@ function cancelForm() {
 }
 
 function save(saveData, cbOK, cbFalse, disableNotif) {
-  emit("preSave", saveData);
+  if (props.preSaveFn) {
+    const result = props.preSaveFn(saveData);
+    if (result === false) {
+      if (cbFalse) cbFalse();
+      return;
+    }
+  }
   const saveEndPoint =
     data.formMode == "new" ? props.formInsert : props.formUpdate;
 

@@ -305,7 +305,7 @@
                   (el) => el.readType == 'show'
                 )"
                 :key="'grid_col_' + hdrIndex"
-                class="whitespace-nowrap px-2 py-1 text-ellipsis"
+                class="whitespace-nowrap px-2 py-1 text-ellipsis align-top"
               >
                 <slot :name="'item_' + hdr.field" :item="r" :header="hdr">
                   <div v-if="editor && !(
@@ -362,8 +362,7 @@
                 </slot>
               </td>
 
-              <!-- sebelumnya ada class row_action -->
-              <td class="whitespace-nowrap px-2 py-1 align-middle items-center flex gap-[2px]" v-if="!hideAction">
+              <td class="whitespace-nowrap px-2 py-1 align-top items-center flex gap-[2px]" v-if="!hideAction">
                 <slot name="item_buttons_1" :item="r" :config="config"></slot>
                 <slot name="item_buttons" :item="r" :config="config">
                   <slot name="item_button_recordchange" :item="r" :config="config">
@@ -730,7 +729,7 @@ function queryParam() {
         .filter(f => f.readType === 'show' && f.inlineSearchValue && f.inlineSearchValue !== '')
         .map(f => ({
           Field: f.field,
-          Op: "$startsWith",
+          Op: props.config.setting?.keywordOperator || "$startsWith",
           Value: f.inlineSearchValue,
         }));
       if (inlineFilters.length > 0) {
@@ -742,13 +741,13 @@ function queryParam() {
         filters.push(...autoFilters);
       }
     } else if (keywordFields.length > 0 && data.keyword && data.keyword != "") {
+      const kwOp = props.config.setting?.keywordOperator || "$startsWith";
       filters.push({
         Op: "$or",
         Items: keywordFields.map((k) => {
           return {
             Field: k,
-            //Op: "$contains",
-            Op: "$startsWith",
+            Op: kwOp,
             Value: data.keyword,
           };
         }),
