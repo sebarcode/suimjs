@@ -1,5 +1,5 @@
 <template>
-  <div style="w-full" class="flex flex-col gap-1 suim_grid">
+  <div class="flex flex-col gap-1 suim_grid w-full max-w-full">
     <s-modal :display="false" ref="deleteModal" @submit="confirmDelete">
       You will delete data ! Are you sure ?<br />
       Please be noted, this can not be undone !
@@ -202,12 +202,26 @@
 
     <!--<div>data items: {{  data.items }}</div>-->
     <div v-if="!data.loading">
-      <div v-if="data.items.length > 0" class="suim_area_table overflow-x-auto">
-        <table class="w-full table-auto suim_table min-w-[600px]">
+      <div v-if="data.items.length > 0">
+        <div
+          class="suim_area_table overflow-x-auto w-full max-w-full"
+          :class="{ 'suim_grid_scroll': scrollMode }"
+        >
+          <table
+            ref="tableEl"
+            class="table-auto suim_table min-w-full w-max"
+            :class="{ 'suim_editor_grid': editor }"
+          >
           <!-- header -->
           <thead name="grid_header">
-            <tr class="border-b-[1px] border-slate-500">
-              <th class="row_select whitespace-nowrap px-2 py-1" v-if="!hideSelect">
+            <tr class="border-b-[1px] border-slate-500 bg-slate-50">
+              <th
+                class="row_select whitespace-nowrap px-2 py-1"
+                :class="{ 'suim_sticky': scrollMode }"
+                :style="scrollMode ? 'left:0px' : ''"
+                data-role="select"
+                v-if="!hideSelect"
+              >
                 <input type="checkbox" @change="checkUncheckAll" />
               </th>
               <th
@@ -220,8 +234,15 @@
                   'text-right': hdr.align == 'right' || hdr.kind == 'number',
                   'pr-4': hdr.align == 'right' || hdr.kind == 'number',
                   'text-left': !(hdr.align == 'right' || hdr.kind == 'number'),
+                  'suim_sticky': isFixedColumn(hdrIndex),
                 }"
-                :style="hdr.width != '' ? `width:${hdr.width}` : ''"
+                :style="[
+                  hdr.width != '' ? `width:${hdr.width}` : '',
+                  hdr.width != '' ? `min-width:${hdr.width}` : '',
+                  isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '',
+                ]"
+                data-role="data"
+                :data-col-index="hdrIndex"
               >
                 <div class="flex w-full items-center justify-between">
                   <div class="grow">{{ hdr.label }}</div>
@@ -252,6 +273,7 @@
               </th>
               <th
                 class="header_column_action"
+                data-role="action"
                 v-if="!hideAction"
               >
                 Action
@@ -286,11 +308,17 @@
             <tr
               v-for="(r, rIdx) in data.items"
               :key="'grid_item_' + rIdx"
-              class="cursor-pointer border-b-[1px] border-slate-200 last:border-none hover:bg-slate-200"
+              class="cursor-pointer border-b-[1px] border-slate-200 last:border-none hover:bg-slate-200 group"
               :class="{ 'even:bg-slate-100': !editor && !singleColor, 'hover:none':hideEdit}"
               @dblclick="selectData(r, 'detail', true)"
             >
-              <td class="w-[30px] text-center whitespace-nowrap px-2 py-1" v-if="!hideSelect">
+              <td
+                class="w-[30px] text-center whitespace-nowrap px-2 py-1"
+                :class="[{ 'suim_sticky': scrollMode }, scrollMode ? stickyTdBg() : '']"
+                :style="scrollMode ? 'left:0px' : ''"
+                data-role="select"
+                v-if="!hideSelect"
+              >
                 <!-- <input type="checkbox" v-model="r.isSelected" /> -->
                 <slot name="checkbox" :item="r"
                   ><input
@@ -306,12 +334,22 @@
                 )"
                 :key="'grid_col_' + hdrIndex"
                 class="whitespace-nowrap px-2 py-1 text-ellipsis align-top"
+                :class="[{ 'suim_sticky': isFixedColumn(hdrIndex) }, isFixedColumn(hdrIndex) ? stickyTdBg() : '']"
+                :style="[
+                  hdr.width != '' ? `min-width:${hdr.width}` : '',
+                  isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '',
+                ]"
+                data-role="data"
+                :data-col-index="hdrIndex"
               >
                 <slot :name="'item_' + hdr.field" :item="r" :header="hdr">
-                  <div v-if="editor && !(
+                  <div
+                    v-if="editor && !(
                         hdr.input.readOnly || 
                         (hdr.input.readOnlyOnEdit && (r.suimRowMode=='edit' || r.suimRowMode==undefined))
-                    )">
+                    )"
+                    class="suim_editor_input"
+                  >
                     <s-input
                       hide-label
                       :ctl-ref="{ rowIndex: rIdx }"
@@ -352,7 +390,7 @@
                       ref="inputs"
                     />
                   </div>
-                  <div v-else>
+                  <div v-else class="suim_editor_display">
                     <s-grid-column
                       :record="r"
                       :column-config="hdr"
@@ -362,7 +400,11 @@
                 </slot>
               </td>
 
-              <td class="whitespace-nowrap px-2 py-1 align-top items-center flex gap-[2px]" v-if="!hideAction">
+              <td
+                class="whitespace-nowrap px-2 py-1 align-top items-center flex gap-[2px]"
+                data-role="action"
+                v-if="!hideAction"
+              >
                 <slot name="item_buttons_1" :item="r" :config="config"></slot>
                 <slot name="item_buttons" :item="r" :config="config">
                   <slot name="item_button_recordchange" :item="r" :config="config">
@@ -421,15 +463,17 @@
             </tr>
           </tbody>
 
-          <!-- total -->
-          <tbody
-            name="grid_body_total"
-            :class="{ 'text-[0.9em] editor': editor }"
-            v-if="totalUrl !== ''"
-          >
-            <slot name="grid_total" :item="data.total"></slot>
-          </tbody>
         </table>
+        </div>
+
+        <div
+          v-if="totalUrl !== ''"
+          name="grid_total_area"
+          class="suim_total_area"
+          :class="{ 'text-[0.9em] editor': editor }"
+        >
+          <slot name="grid_total" :item="data.total"></slot>
+        </div>
 
         <div v-if="!props.hideFooter" class="footer">
           <slot
@@ -493,7 +537,7 @@ import SInput from "./SInput.vue";
 import SGridColumn from "./SGridColumn.vue";
 import SModal from "./SModal.vue";
 import SPagination from "./SPagination.vue";
-import { computed, inject, onMounted, reactive, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, reactive, ref, watch } from "vue";
 import util from "../scripts/util";
 import { useRoute } from "vue-router";
 import { onUnmounted } from "vue";
@@ -535,6 +579,7 @@ const props = defineProps({
   totalUrl: { type: String, default: "" },
   inlineSearch: { type: Boolean, default: false },
   disableDblClick: { type: Boolean, default: false },
+  fixColumn: { type: Number, default: 0 },
 });
 
 const axios = inject("axios");
@@ -597,6 +642,8 @@ if (props.inlineSearch && props.config && props.config.fields) {
 
 const deleteModal = ref(null);
 const showInlineSearch = ref(false);
+const tableEl = ref(null);
+const colLefts = ref({});
 
 function resetCustomFilter(){
   emit("resetCustomFilter")
@@ -686,6 +733,75 @@ const pageCount = computed({
     return Math.ceil(data.recordCount / data.pageSize);
   },
 });
+
+const scrollMode = computed({
+  get() {
+    return props.fixColumn > 0;
+  },
+});
+
+function isFixedColumn(hdrIndex) {
+  return scrollMode.value && hdrIndex < props.fixColumn;
+}
+
+function stickyTdBg() {
+  let cls = "bg-white";
+  if (!props.editor && !props.singleColor) cls += " even:bg-slate-100";
+  if (!props.hideEdit) cls += " group-hover:bg-slate-200";
+  return cls;
+}
+
+let stickyObserver = null;
+let stickyTarget = null;
+
+function ensureStickyObserver() {
+  if (tableEl.value && tableEl.value !== stickyTarget) {
+    if (stickyObserver) stickyObserver.disconnect();
+    stickyObserver = new ResizeObserver(() => updateSticky());
+    stickyObserver.observe(tableEl.value);
+    stickyTarget = tableEl.value;
+  }
+}
+
+function updateSticky() {
+  if (!scrollMode.value) return;
+  const table = tableEl.value;
+  if (!table) return;
+  const headerRow = table.querySelector("thead tr");
+  if (!headerRow) return;
+
+  const next = {};
+  let acc = 0;
+  headerRow.querySelectorAll("th").forEach((th) => {
+    const role = th.getAttribute("data-role");
+    const colIdx = Number(th.getAttribute("data-col-index") ?? -1);
+    const fixed =
+      role == "select" ||
+      (role == "data" && colIdx >= 0 && colIdx < props.fixColumn);
+    if (!fixed) return;
+    next[role == "select" ? "__select" : String(colIdx)] = acc;
+    acc += th.offsetWidth;
+  });
+
+  colLefts.value = next;
+}
+
+function refreshSticky() {
+  ensureStickyObserver();
+  nextTick(updateSticky);
+}
+
+watch(
+  () => [data.items.length, props.modelValue],
+  () => refreshSticky(),
+  { flush: "post" }
+);
+
+watch(
+  () => [props.config, props.fixColumn, props.editor, props.hideSelect],
+  () => refreshSticky(),
+  { flush: "post" }
+);
 
 function setLoading(loading) {
   data.loading = loading;
@@ -970,12 +1086,14 @@ defineExpose({
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
+  refreshSticky();
   //refreshData();
   //console.log(`mounting grid ${props.config.title}`);
 });
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleKeyDown);
+  if (stickyObserver) stickyObserver.disconnect();
   //console.log(`unmounting grid ${props.config.title}`);
 });
 
@@ -1181,6 +1299,99 @@ const calcSearchQuery = computed(() => {
 
 /* Responsive grid table */
 .suim_area_table {
+  max-width: 100%;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.suim_area_table::-webkit-scrollbar {
+  display: none;
+}
+
+.suim_grid {
+  max-width: 100%;
+}
+
+/* Fixed (sticky) columns on the left when fixColumn > 0 */
+.suim_grid_scroll .suim_sticky {
+  position: sticky;
+  z-index: 2;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.06);
+}
+
+.suim_grid_scroll thead th.suim_sticky {
+  z-index: 3;
+}
+
+/* Excel-like compact cell layout when grid is in editor mode */
+.suim_editor_grid td {
+  padding: 0;
+  vertical-align: top;
+}
+
+.suim_editor_grid td[data-role="select"],
+.suim_editor_grid td[data-role="action"] {
+  padding: 4px 6px;
+}
+
+.suim_editor_grid td .suim_editor_display {
+  padding: 3px 6px;
+}
+
+.suim_editor_grid :deep(.suim_input) {
+  display: block;
+  width: 100%;
+}
+
+.suim_editor_grid :deep(.suim_input input.input_field) {
+  width: 100%;
+  height: 24px;
+  min-height: 24px;
+  padding: 2px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+.suim_editor_grid :deep(.suim_input textarea.input_field) {
+  width: 100%;
+  min-height: 24px;
+  padding: 2px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+.suim_editor_grid :deep(.suim_input input.input_field:focus),
+.suim_editor_grid :deep(.suim_input textarea.input_field:focus) {
+  background: #fff;
+  box-shadow: inset 0 0 0 2px #2563eb;
+}
+
+.suim_editor_grid :deep(.suim_input .input_error),
+.suim_editor_grid :deep(.suim_input .italic.opacity-40) {
+  display: none !important;
+}
+
+.suim_editor_grid :deep(.sdd_root .sdd_toggle) {
+  padding: 1px 4px;
+  min-height: 24px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
+}
+
+/* Each data column keeps a readable minimum width */
+.suim_table th[data-role="data"],
+.suim_table td[data-role="data"] {
+  min-width: 80px;
 }
 
 /* Responsive th/td for small screens */

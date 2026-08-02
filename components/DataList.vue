@@ -106,6 +106,7 @@
         :sort-direction="gridSortDirection"
         :page-size="gridPageSize"
         :single-color="gridSingleColor"
+        :fix-column="gridFixColumn"
         @select-data="selectData"
         @new-data="newData"
         @get-data="getData"
@@ -370,6 +371,7 @@ const props = defineProps({
   gridCustomFilter: { type: Object, default: () => {} },
   gridNoConfirmDelete: { type: Boolean, default: false },
   gridPageSize: { type: Number, default: 20 },
+  gridFixColumn: { type: Number, default: 0 },
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => undefined },
