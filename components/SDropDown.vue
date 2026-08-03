@@ -52,46 +52,49 @@
             </slot>
         </div>
 
-        <transition name="fade">
-            <div v-if="open" class="sdd_dropdown">
-                <ul class="sdd_list">
-                    <li v-if="filtered.length === 0" class="sdd_noresult">
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="text-gray-500">No results</div>
-                            <button
-                                v-if="allowAdd"
-                                :disabled="(search || '').toString().trim().length < minimalKeywordLength"
-                                @click.stop="addNewItem"
-                                class="ssd_add_btn"
-                                title="Add new item">
-                                Add
-                            </button>
-                        </div>
-                    </li>
-                    <li v-for="(it, idx) in filtered" 
-                        :key="it._uid" 
-                        :class="['sdd_item', highlighted === idx ? 'sdd_highlighted' : '']" 
+        <teleport to="body">
+            <transition name="fade">
+                <div v-if="open" ref="dropdownEl" class="sdd_dropdown sdd" :style="dropdownStyle" @keydown="handleDropdownKeydown">
+                    <ul class="sdd_list">
+                        <li v-if="filtered.length === 0" class="sdd_noresult">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="text-gray-500">No results</div>
+                                <button
+                                    v-if="allowAdd"
+                                    :disabled="(search || '').toString().trim().length < minimalKeywordLength"
+                                    @click.stop="addNewItem"
+                                    class="ssd_add_btn"
+                                    title="Add new item">
+                                    Add
+                                </button>
+                            </div>
+                        </li>
+                    <li v-for="(it, idx) in filtered"
+                        :key="it._uid"
+                        :class="['sdd_item', highlighted === idx ? 'sdd_highlighted' : '']"
                         :tabindex="0"
-                        @click="select(it)" 
+                        @click="select(it)"
+                        @dblclick="select(it, true)"
                         @mousemove="highlight(idx)"
                         @keydown="handleItemKeydown($event, it, idx)"
                         @focus="highlight(idx)">
-                        <div class="sdd_item_row" v-if="multiple">
-                            <slot name="item" :item="it" :isSelected="isSelected(it)">
-                                <input type="checkbox" v-if="multiple" :checked="isSelected(it)" />
-                                <div class="sdd_item_label grow">{{ it.label }}</div>
-                            </slot>
-                        </div>
-                        <div class="sdd_item_row" v-else>
-                            <slot name="item" :item="it" :isSelected="isSelected(it)">
-                                <div class="sdd_item_label grow">{{ it.label }}</div>
-                                <div v-if="isSelected(it)" class="sdd_item_selected" hidden>Selected</div>
-                            </slot>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </transition>
+                            <div class="sdd_item_row" v-if="multiple">
+                                <slot name="item" :item="it" :isSelected="isSelected(it)">
+                                    <input type="checkbox" v-if="multiple" :checked="isSelected(it)" />
+                                    <div class="sdd_item_label grow">{{ it.label }}</div>
+                                </slot>
+                            </div>
+                            <div class="sdd_item_row" v-else>
+                                <slot name="item" :item="it" :isSelected="isSelected(it)">
+                                    <div class="sdd_item_label grow">{{ it.label }}</div>
+                                    <div v-if="isSelected(it)" class="sdd_item_selected" hidden>Selected</div>
+                                </slot>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </transition>
+        </teleport>
 
         <div class="flex flex-col gap-3" v-if="lookupUrl && !multiple && false">
             <div>selected: {{ selected }}</div>
@@ -129,9 +132,47 @@ const emit = defineEmits(['update:modelValue', 'change', 'item-added']);
 const axios = inject('axios');
 const root = ref(null);
 const searchInput = ref(null);
+const dropdownEl = ref(null);
 const open = ref(false);
 const search = ref('');
 const highlighted = ref(-1);
+const dropdownStyle = ref({});
+
+let scrollListener = null;
+let resizeListener = null;
+
+function updateDropdownPosition() {
+    if (!root.value || !open.value) return;
+    const rect = root.value.getBoundingClientRect();
+    dropdownStyle.value = {
+        position: 'fixed',
+        top: `${rect.bottom}px`,
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        zIndex: 9999,
+    };
+}
+
+function onScrollOrResize(e) {
+    if (!open.value) return;
+    // Jangan update posisi jika scroll berasal dari dalam dropdown list itu sendiri
+    if (e && e.target && e.target.closest && e.target.closest('.sdd_dropdown')) return;
+    updateDropdownPosition();
+}
+
+function attachDropdownListeners() {
+    scrollListener = (e) => onScrollOrResize(e);
+    resizeListener = () => onScrollOrResize();
+    window.addEventListener('scroll', scrollListener, true);
+    window.addEventListener('resize', resizeListener);
+}
+
+function detachDropdownListeners() {
+    if (scrollListener) window.removeEventListener('scroll', scrollListener, true);
+    if (resizeListener) window.removeEventListener('resize', resizeListener);
+    scrollListener = null;
+    resizeListener = null;
+}
 
 const data = reactive({
     items: [],
@@ -209,10 +250,38 @@ const hasSelection = computed(() => {
 function toggle(){
     open.value = !open.value;
     if (open.value) {
-        // focus search input on next tick
+        highlighted.value = -1;
+        // focus search input on next tick, or first item if not searchable
         nextTick(() => {
-            if (searchInput.value) searchInput.value.focus();
+            if (searchInput.value) {
+                searchInput.value.focus();
+            } else {
+                const firstItem = dropdownEl.value?.querySelector('.sdd_item');
+                if (firstItem) firstItem.focus();
+            }
         });
+    }
+}
+
+function handleDropdownKeydown(e){
+    if (e.defaultPrevented) return;
+    switch (e.key) {
+        case 'ArrowDown':
+            e.preventDefault();
+            move(1);
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            move(-1);
+            break;
+        case 'Enter':
+            e.preventDefault();
+            chooseHighlighted();
+            break;
+        case 'Escape':
+            e.preventDefault();
+            close();
+            break;
     }
 }
 
@@ -228,7 +297,7 @@ function close(){
     highlighted.value = -1;
 }
 
-function select(it){
+function select(it, closeAfterSelect = !props.multiple){
     if (props.multiple) {
         // toggle membership
         const idx = selected.value.findIndex(s => s._uid === it._uid || s.key === it.key);
@@ -237,6 +306,7 @@ function select(it){
         // emit array of keys
         emit('update:modelValue', selected.value.map(s => s.key));
         emit('change', selected.value.map(s => s.key));
+        if (closeAfterSelect) close();
         return;
     }
 
@@ -244,7 +314,7 @@ function select(it){
     // emit the key for single-select
     emit('update:modelValue', it.key);
     emit('change', it.key);
-    close();
+    if (closeAfterSelect) close();
 }
 
 function clearSelection(){
@@ -452,10 +522,40 @@ function setSelected(keys) {
     emit('change', null);
 }
 
-onMounted(()=>{ document.addEventListener('click', onClickOutside); });
-onBeforeUnmount(()=>{ document.removeEventListener('click', onClickOutside); });
+onMounted(()=>{
+    document.addEventListener('click', onClickOutside);
+    attachDropdownListeners();
+});
+onBeforeUnmount(()=>{
+    document.removeEventListener('click', onClickOutside);
+    detachDropdownListeners();
+});
+
+watch(() => open.value, (nv) => {
+    if (nv) {
+        nextTick(updateDropdownPosition);
+    } else {
+        dropdownStyle.value = {};
+    }
+});
+
+watch(() => highlighted.value, (idx) => {
+    if (idx < 0) return;
+    nextTick(() => {
+        const activeItem = document.querySelector('.sdd_highlighted');
+        if (activeItem && activeItem.scrollIntoView) {
+            activeItem.scrollIntoView({ block: 'nearest' });
+        }
+    });
+});
 
 const filtered = ref([]);
+
+watch(() => filtered.value, (list) => {
+    if (highlighted.value >= list.length) {
+        highlighted.value = list.length > 0 ? list.length - 1 : -1;
+    }
+});
 
 function joinWithSelected(normalizedResult) {
     if (props.multiple) {

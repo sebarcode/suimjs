@@ -16,7 +16,8 @@
       </select>
       <span class="text-sm text-slate-500">
         Saat fixColumn &gt; 0, grid scrollable secara horizontal dan N kolom pertama di sisi kiri
-        (termasuk kolom checkbox select) terkunci.
+        (termasuk kolom checkbox select) terkunci. Kolom Action di sisi kanan juga otomatis
+        sticky sehingga tetap terlihat saat scroll.
       </span>
     </div>
 

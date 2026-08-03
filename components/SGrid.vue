@@ -273,6 +273,8 @@
               </th>
               <th
                 class="header_column_action"
+                :class="{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }"
+                :style="scrollMode ? 'right:0px' : ''"
                 data-role="action"
                 v-if="!hideAction"
               >
@@ -299,7 +301,12 @@
                   @keyup.enter="refreshData"
                 />
               </td>
-              <td v-if="!hideAction" class="whitespace-nowrap px-2 py-1"></td>
+              <td
+                v-if="!hideAction"
+                class="whitespace-nowrap px-2 py-1"
+                :class="{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }"
+                :style="scrollMode ? 'right:0px' : ''"
+              ></td>
             </tr>
           </thead>
 
@@ -311,6 +318,7 @@
               class="cursor-pointer border-b-[1px] border-slate-200 last:border-none hover:bg-slate-200 group"
               :class="{ 'even:bg-slate-100': !editor && !singleColor, 'hover:none':hideEdit}"
               @dblclick="selectData(r, 'detail', true)"
+              @focusin="onRowFocus(rIdx)"
             >
               <td
                 class="w-[30px] text-center whitespace-nowrap px-2 py-1"
@@ -402,6 +410,8 @@
 
               <td
                 class="whitespace-nowrap px-2 py-1 align-top items-center flex gap-[2px]"
+                :class="[{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }, scrollMode ? stickyTdBg() : '']"
+                :style="scrollMode ? 'right:0px' : ''"
                 data-role="action"
                 v-if="!hideAction"
               >
@@ -650,14 +660,18 @@ function resetCustomFilter(){
 }
 
 function rowFieldFocus(name, v1, v2, ctlRef) {
-  const prevIndex = data.currentIndex;
-  const currentRowIndex = ctlRef.rowIndex;
+  const currentRowIndex = ctlRef?.rowIndex;
+  if (currentRowIndex === undefined) return;
+  setCurrentRow(currentRowIndex);
+}
 
-  if (prevIndex == currentRowIndex) {
-    return;
-  }
+function onRowFocus(rowIndex) {
+  setCurrentRow(rowIndex);
+}
 
-  data.currentIndex = currentRowIndex;
+function setCurrentRow(rowIndex) {
+  if (data.currentIndex === rowIndex) return;
+  data.currentIndex = rowIndex;
   data.recordChanged = false;
 }
 
@@ -1323,6 +1337,18 @@ const calcSearchQuery = computed(() => {
 }
 
 .suim_grid_scroll thead th.suim_sticky {
+  z-index: 3;
+}
+
+/* Fixed (sticky) action column on the right when fixColumn > 0 */
+.suim_grid_scroll .suim_sticky_right {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.06);
+}
+
+.suim_grid_scroll thead th.suim_sticky_right {
   z-index: 3;
 }
 
