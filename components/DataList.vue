@@ -36,6 +36,7 @@
         @list-refreshed="handleGridRefreshed"
         v-if="data.listCfg.setting"
         :config="data.listCfg"
+        :keyword-operation="listKeywordOperation"
         @select-data="selectData"
         @new-data="newData"
         @resetCustomFilter="handleGridResetCustomFilter"
@@ -107,6 +108,7 @@
         :page-size="gridPageSize"
         :single-color="gridSingleColor"
         :fix-column="gridFixColumn"
+        :keyword-operation="gridKeywordOperation"
         @select-data="selectData"
         @new-data="newData"
         @get-data="getData"
@@ -390,6 +392,8 @@ const props = defineProps({
   gridMode: { type: String, default: "list" },
   gridLabelMethod: { type: String, default: "labelfield" },
   gridAutoCommitLine: { type: Boolean, default: false },
+  gridKeywordOperation: { type: String, default: "" },
+  listKeywordOperation: { type: String, default: "" },
   gridConfig: { type: [String, Object], default: () => {} },
   gridRead: { type: String, default: "" },
   gridUpdate: { type: String, default: "" },

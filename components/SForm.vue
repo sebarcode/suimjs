@@ -1,5 +1,7 @@
 <template>
   <div ref="formRoot" class="suim_form" :class="[focus ? 'focus' :'', data.inSubmission || data.loading ? 'loading' :''] " @focusin="markAsActive" @mousedown="markAsActive">
+      <!-- reactive stamp to force re-render when config is mutated via setFieldAttr/setSectionAttr/removeField -->
+      <div hidden>{{ data.configStamp }}</div>
       
       <template v-if="data.inSubmission || data.loading" >
         <slot name="loader">
@@ -284,7 +286,7 @@
 </template>
   
 <script setup>
-import { ref, reactive, computed, onMounted, watch, nextTick } from "vue";
+import { ref, reactive, computed, onMounted, watch, nextTick, getCurrentInstance } from "vue";
 import SFormButtons from "./SFormButtons.vue";
 import SInput from "./SInput.vue";
 import { onUnmounted } from "vue";
@@ -296,6 +298,7 @@ const formInstanceId = nextSFormInstanceId();
 
 const buttonsTopCtl = ref(null);
 const buttonsBottomCtl = ref(null);
+const instance = getCurrentInstance();
 
 const props = defineProps({
   config: {
@@ -363,7 +366,7 @@ const data = reactive({
   submitErrorTxt: "",
   currentTab: props.initialTab,
   changeFields: [],
-
+  configStamp: 0,
 });
 
 const isLockedByOtherForm = computed(() => {
@@ -606,6 +609,8 @@ function removeField(name) {
       section.rows = section.rows.filter((row) => row.inputs.length > 0);
     });
   });
+  data.configStamp++;
+  if (instance && instance.proxy) instance.proxy.$forceUpdate();
 }
 
 function setSectionAttr(name, attr, value) {
@@ -616,6 +621,8 @@ function setSectionAttr(name, attr, value) {
       }
     });
   });
+  data.configStamp++;
+  if (instance && instance.proxy) instance.proxy.$forceUpdate();
 }
 
 function setFieldAttr(name, attr, value) {
@@ -630,6 +637,8 @@ function setFieldAttr(name, attr, value) {
       });
     });
   });
+  data.configStamp++;
+  if (instance && instance.proxy) instance.proxy.$forceUpdate();
 }
 
 function setLoading(loading) {

@@ -588,11 +588,20 @@ const props = defineProps({
   hideAction: { type: Boolean, default: false },
   totalUrl: { type: String, default: "" },
   inlineSearch: { type: Boolean, default: false },
+  keywordOperation: { type: String, default: "" },
   disableDblClick: { type: Boolean, default: false },
   fixColumn: { type: Number, default: 0 },
 });
 
 const axios = inject("axios");
+
+const keywordOp = computed(() => {
+  return (
+    props.keywordOperation ||
+    props.config?.setting?.keywordOperator ||
+    "$contains"
+  );
+});
 
 const emit = defineEmits({
   newData: null,
@@ -859,7 +868,7 @@ function queryParam() {
         .filter(f => f.readType === 'show' && f.inlineSearchValue && f.inlineSearchValue !== '')
         .map(f => ({
           Field: f.field,
-          Op: props.config.setting?.keywordOperator || "$startsWith",
+          Op: keywordOp.value,
           Value: f.inlineSearchValue,
         }));
       if (inlineFilters.length > 0) {
@@ -871,7 +880,7 @@ function queryParam() {
         filters.push(...autoFilters);
       }
     } else if (keywordFields.length > 0 && data.keyword && data.keyword != "") {
-      const kwOp = props.config.setting?.keywordOperator || "$startsWith";
+      const kwOp = keywordOp.value;
       filters.push({
         Op: "$or",
         Items: keywordFields.map((k) => {
@@ -1296,8 +1305,7 @@ const calcSearchQuery = computed(() => {
         } else {
           return parts.push({
             Field: sf.field.field,
-            // Op: "$contains",
-            Op: '$startsWith',
+            Op: keywordOp.value,
             Value: sf.value1,
           });
         }

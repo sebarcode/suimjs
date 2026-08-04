@@ -195,10 +195,19 @@ const props = defineProps({
   hideDeleteButton: { type: Boolean, default: false },
   hideFooter: { type: Boolean, default: false },
   hideLineSeparator: { type: Boolean, default: false },
+  keywordOperation: { type: String, default: "" },
 });
 
 const axios = inject("axios");
 const deleteModal = ref(null);
+
+const keywordOp = computed(() => {
+  return (
+    props.keywordOperation ||
+    props.config?.setting?.keywordOperator ||
+    "$contains"
+  );
+});
 
 const emit = defineEmits({
   newData: null,
@@ -304,7 +313,7 @@ function queryParam() {
       Items: keywordFields.map((k) => {
         return {
           Field: k,
-          Op: "$contains",
+          Op: keywordOp.value,
           Value: [data.keyword],
         };
       }),
