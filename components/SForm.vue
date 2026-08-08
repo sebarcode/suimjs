@@ -133,7 +133,7 @@
                       colSpan10: input.colSpan == 10,
                       colSpan11: input.colSpan == 11,
                       colSpan12: input.colSpan == 12,
-                      'col-auto': input.colSpan == undefined || input.colSpan == 0,
+                      'col-auto': input.colSpan == undefined || input.colSpan == 0 || input.colSpan == 'auto',
                     }"
                   >
                     <slot
@@ -785,5 +785,6 @@ function handleKeyDown(event) {
   .colSpan10 { grid-column: span 10 / span 10; }
   .colSpan11 { grid-column: span 11 / span 11; }
   .colSpan12 { grid-column: span 12 / span 12; }
+  .col-auto { grid-column: span 1 / span 1; }
   </style>
   
