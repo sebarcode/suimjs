@@ -135,6 +135,16 @@
         <template #header_buttons_2="{ config }">
           <slot name="grid_header_buttons_2" :config="config"></slot>
         </template>
+        <template #table_pre="prop">
+          <slot
+            name="grid_table_pre"
+            :config="prop.config"
+            :keyword="prop.keyword"
+            :autoSearch="prop.autoSearch"
+            :searchQuery="prop.searchQuery"
+            :items="prop.items"
+          ></slot>
+        </template>
         <template #item_buttons_1="prop">
           <slot
             name="grid_item_buttons_1"

@@ -6,6 +6,18 @@
     </s-modal>
 
     <div
+      v-if="data.editorTooltip.show"
+      class="suim_editor_tooltip_fixed"
+      :style="{
+        left: data.editorTooltip.left + 'px',
+        top: data.editorTooltip.top + 'px',
+        transform: data.editorTooltip.transform
+      }"
+    >
+      {{ data.editorTooltip.text }}
+    </div>
+
+    <div
       class="flex gap-1 items-center header"
       v-if="!hideControl"
     >
@@ -200,6 +212,17 @@
       </div>
     </div>
 
+    <div v-if="$slots.table_pre" class="suim_table_pre w-full">
+      <slot
+        name="table_pre"
+        :config="config"
+        :keyword="data.keyword"
+        :autoSearch="data.autoSearch"
+        :searchQuery="calcSearchQuery"
+        :items="data.items"
+      ></slot>
+    </div>
+
     <!--<div>data items: {{  data.items }}</div>-->
     <div v-if="!data.loading">
       <div v-if="data.items.length > 0">
@@ -353,7 +376,15 @@
                           (hdr.input.readOnlyOnEdit && (r.suimRowMode=='edit' || r.suimRowMode==undefined))
                       )"
                       class="suim_editor_input"
-                      :class="{ 'suim_editor_bool': hdr.input.kind == 'checkbox' || hdr.input.kind == 'bool' }"
+                      :class="{
+                        'suim_editor_bool': hdr.input.kind == 'checkbox' || hdr.input.kind == 'bool',
+                        'suim_editor_input_focused': isEditorCellFocused(rIdx, hdr.input.field)
+                      }"
+                      @mouseenter="showEditorTooltip($event, r, hdr, rIdx)"
+                      @mousemove="moveEditorTooltip($event)"
+                      @mouseleave="hideEditorTooltip"
+                      @focusin="setEditorCellFocus(rIdx, hdr.input.field)"
+                      @focusout="clearEditorCellFocus(rIdx, hdr.input.field)"
                     >
                       <s-input
                         hide-label
@@ -650,6 +681,14 @@ const data = reactive({
   deleteFn: undefined,
   loading: false,
   currentIndex: -1,
+  editorFocusedCell: null,
+  editorTooltip: {
+    show: false,
+    text: "",
+    left: 0,
+    top: 0,
+    transform: "translate(0, 0)",
+  },
   recordChanged: false,
   autoSearch: props.autoSearch,
   showDeleteModal: false,
@@ -679,6 +718,7 @@ function resetCustomFilter(){
 function rowFieldFocus(name, v1, v2, ctlRef) {
   const currentRowIndex = ctlRef?.rowIndex;
   if (currentRowIndex === undefined) return;
+  setEditorCellFocus(currentRowIndex, name);
   setCurrentRow(currentRowIndex);
 }
 
@@ -690,6 +730,69 @@ function setCurrentRow(rowIndex) {
   if (data.currentIndex === rowIndex) return;
   data.currentIndex = rowIndex;
   data.recordChanged = false;
+}
+
+function editorCellKey(rowIndex, field) {
+  return `${rowIndex}:${field || ""}`;
+}
+
+function setEditorCellFocus(rowIndex, field) {
+  data.editorFocusedCell = editorCellKey(rowIndex, field);
+  hideEditorTooltip();
+}
+
+function clearEditorCellFocus(rowIndex, field) {
+  if (data.editorFocusedCell === editorCellKey(rowIndex, field)) {
+    data.editorFocusedCell = null;
+  }
+}
+
+function isEditorCellFocused(rowIndex, field) {
+  return data.editorFocusedCell === editorCellKey(rowIndex, field);
+}
+
+function editorTooltipText(record = {}, hdr = {}) {
+  const field = hdr.input?.field || hdr.field;
+  const value = record?.[field];
+  if (value === undefined || value === null || value === "") return "";
+  if (Array.isArray(value)) return value.join(", ");
+  if (typeof value === "object") return JSON.stringify(value);
+
+  const kind = String(hdr.input?.kind || hdr.kind || "").toLowerCase();
+  if (["number", "int", "integer", "float", "decimal"].includes(kind)) {
+    const decimal = hdr.input?.decimal ?? hdr.decimal ?? 0;
+    return util.formatMoney(value, { decimal });
+  }
+
+  return String(value);
+}
+
+function showEditorTooltip(event, record = {}, hdr = {}, rowIndex) {
+  const field = hdr.input?.field || hdr.field;
+  if (isEditorCellFocused(rowIndex, field)) return;
+
+  const text = editorTooltipText(record, hdr);
+  if (!text) return;
+
+  data.editorTooltip.text = text;
+  data.editorTooltip.show = true;
+  moveEditorTooltip(event);
+}
+
+function moveEditorTooltip(event) {
+  if (!data.editorTooltip.show) return;
+
+  const offset = 12;
+  const nearRight = event.clientX > window.innerWidth - 360;
+  const nearBottom = event.clientY > window.innerHeight - 96;
+
+  data.editorTooltip.left = nearRight ? event.clientX - offset : event.clientX + offset;
+  data.editorTooltip.top = nearBottom ? event.clientY - offset : event.clientY + offset;
+  data.editorTooltip.transform = `${nearRight ? "translateX(-100%)" : "translateX(0)"} ${nearBottom ? "translateY(-100%)" : "translateY(0)"}`;
+}
+
+function hideEditorTooltip() {
+  data.editorTooltip.show = false;
 }
 
 function saveRowData(r, rowIndex) {
@@ -1438,12 +1541,33 @@ const calcSearchQuery = computed(() => {
   padding: 3px 6px;
 }
 
+.suim_editor_grid td .suim_editor_input {
+  position: relative;
+}
+
 .suim_editor_grid td .suim_editor_input.suim_editor_bool {
   display: flex;
   justify-content: center;
   align-items: flex-start;
   min-height: 24px;
   padding-top: 2px;
+}
+
+.suim_editor_tooltip_fixed {
+  position: fixed;
+  z-index: 2147483647;
+  max-width: min(320px, 70vw);
+  padding: 4px 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.96);
+  border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.22);
+  font-size: 12px;
+  line-height: 1.35;
+  pointer-events: none;
 }
 
 .suim_editor_grid :deep(.suim_input) {
