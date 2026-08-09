@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-1 suim_grid w-full max-w-full">
+  <div ref="gridRoot" class="flex flex-col gap-1 suim_grid w-full max-w-full">
     <s-modal :display="false" ref="deleteModal" @submit="confirmDelete">
       You will delete data ! Are you sure ?<br />
       Please be noted, this can not be undone !
@@ -599,6 +599,9 @@ import { useRoute } from "vue-router";
 import { onUnmounted } from "vue";
 
 const route = useRoute();
+let sGridShortcutScopeSeq = 0;
+let activeSGridShortcutScopeId = null;
+const sGridShortcutRegistry = new Map();
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
@@ -714,10 +717,70 @@ if (props.inlineSearch && props.config && props.config.fields) {
 const deleteModal = ref(null);
 const showInlineSearch = ref(false);
 const tableEl = ref(null);
+const gridRoot = ref(null);
 const colLefts = ref({});
+const shortcutScopeId = `sgrid-shortcut-${++sGridShortcutScopeSeq}`;
 
 function resetCustomFilter(){
   emit("resetCustomFilter")
+}
+
+function activateShortcutScope() {
+  activeSGridShortcutScopeId = shortcutScopeId;
+}
+
+function isGridVisible() {
+  const el = gridRoot.value;
+  return !!(el && el.isConnected && el.getClientRects().length > 0);
+}
+
+function getGridDepth(el) {
+  let depth = 0;
+  let current = el?.parentElement || null;
+  while (current) {
+    depth += 1;
+    current = current.parentElement;
+  }
+  return depth;
+}
+
+function resolveActiveShortcutScope() {
+  const activeElement = document.activeElement;
+  const visibleEntries = Array.from(sGridShortcutRegistry.values())
+    .filter((entry) => entry.isVisible())
+    .sort((a, b) => {
+      if (b.depth !== a.depth) return b.depth - a.depth;
+      return b.order - a.order;
+    });
+
+  if (activeElement instanceof Node) {
+    const focusedEntry = visibleEntries.find((entry) => entry.element()?.contains(activeElement));
+    if (focusedEntry) {
+      activeSGridShortcutScopeId = focusedEntry.id;
+      return focusedEntry.id;
+    }
+  }
+
+  const activeEntry = visibleEntries.find((entry) => entry.id === activeSGridShortcutScopeId);
+  if (activeEntry) {
+    return activeEntry.id;
+  }
+
+  const fallbackEntry = visibleEntries[0];
+  activeSGridShortcutScopeId = fallbackEntry?.id || null;
+  return activeSGridShortcutScopeId;
+}
+
+function isShortcutScopeActive(event) {
+  if (!isGridVisible()) return false;
+
+  const target = event?.target;
+  if (target instanceof Node && gridRoot.value?.contains(target)) {
+    activateShortcutScope();
+    return true;
+  }
+
+  return resolveActiveShortcutScope() === shortcutScopeId;
 }
 
 function rowFieldFocus(name, v1, v2, ctlRef) {
@@ -1304,7 +1367,20 @@ defineExpose({
 });
 
 onMounted(() => {
+  sGridShortcutRegistry.set(shortcutScopeId, {
+    id: shortcutScopeId,
+    order: sGridShortcutScopeSeq,
+    depth: getGridDepth(gridRoot.value),
+    element: () => gridRoot.value,
+    isVisible: isGridVisible,
+  });
   document.addEventListener('keydown', handleKeyDown);
+  gridRoot.value?.addEventListener("focusin", activateShortcutScope);
+  gridRoot.value?.addEventListener("mousedown", activateShortcutScope);
+  gridRoot.value?.addEventListener("touchstart", activateShortcutScope, { passive: true });
+  if (isGridVisible()) {
+    resolveActiveShortcutScope();
+  }
   refreshSticky();
   //refreshData();
   //console.log(`mounting grid ${props.config.title}`);
@@ -1312,6 +1388,14 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleKeyDown);
+  gridRoot.value?.removeEventListener("focusin", activateShortcutScope);
+  gridRoot.value?.removeEventListener("mousedown", activateShortcutScope);
+  gridRoot.value?.removeEventListener("touchstart", activateShortcutScope);
+  sGridShortcutRegistry.delete(shortcutScopeId);
+  if (activeSGridShortcutScopeId === shortcutScopeId) {
+    activeSGridShortcutScopeId = null;
+    resolveActiveShortcutScope();
+  }
   if (stickyObserver) stickyObserver.disconnect();
   //console.log(`unmounting grid ${props.config.title}`);
 });
@@ -1320,6 +1404,8 @@ const editActions =ref([]);
 const currentFocusIndex = ref(-1);
 
 function handleKeyDown(event) {
+  if (!isShortcutScopeActive(event)) return;
+
   const key = String(event.key || "").toLowerCase();
   if (event.altKey && key === "r") {
     event.preventDefault();
