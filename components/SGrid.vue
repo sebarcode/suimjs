@@ -218,7 +218,7 @@
               <th
                 class="row_select whitespace-nowrap px-2 py-1"
                 :class="{ 'suim_sticky': scrollMode }"
-                :style="scrollMode ? 'left:0px' : ''"
+                :style="[selectColumnStyle, scrollMode ? 'left:0px' : '']"
                 data-role="select"
                 v-if="!hideSelect"
               >
@@ -236,11 +236,7 @@
                   'text-left': !(hdr.align == 'right' || hdr.kind == 'number'),
                   'suim_sticky': isFixedColumn(hdrIndex),
                 }"
-                :style="[
-                  hdr.width != '' ? `width:${hdr.width}` : '',
-                  hdr.width != '' ? `min-width:${hdr.width}` : '',
-                  isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '',
-                ]"
+                :style="[columnWidthStyle(hdr), isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '']"
                 data-role="data"
                 :data-col-index="hdrIndex"
               >
@@ -292,6 +288,7 @@
                 )"
                 :key="'grid_inline_search_' + hdrIndex"
                 class="whitespace-nowrap px-2 py-1"
+                :style="columnWidthStyle(hdr)"
               >
                 <s-input
                   v-model="hdr.inlineSearchValue"
@@ -312,165 +309,174 @@
 
           <!-- records -->
           <tbody name="grid_body" :class="{ 'text-[0.9em] editor': editor }">
-            <tr
+            <template
               v-for="(r, rIdx) in data.items"
-              :key="'grid_item_' + rIdx"
-              class="cursor-pointer border-b-[1px] border-slate-200 last:border-none hover:bg-slate-200 group"
-              :class="{ 'even:bg-slate-100': !editor && !singleColor, 'hover:none':hideEdit}"
-              @dblclick="selectData(r, 'detail', true)"
-              @focusin="onRowFocus(rIdx)"
+              :key="'grid_item_group_' + rIdx"
             >
-              <td
-                class="w-[30px] text-center whitespace-nowrap px-2 py-1"
-                :class="[{ 'suim_sticky': scrollMode }, scrollMode ? stickyTdBg() : '']"
-                :style="scrollMode ? 'left:0px' : ''"
-                data-role="select"
-                v-if="!hideSelect"
+              <tr
+                class="suim_data_row cursor-pointer border-b-[1px] border-slate-200 last:border-none hover:bg-slate-200 group"
+                :class="{ 'even:bg-slate-100': !editor && !singleColor, 'hover:none':hideEdit}"
+                @dblclick="selectData(r, 'detail', true)"
+                @focusin="onRowFocus(rIdx)"
               >
-                <!-- <input type="checkbox" v-model="r.isSelected" /> -->
-                <slot name="checkbox" :item="r"
-                  ><input
-                    type="checkbox"
-                    v-model="r.isSelected"
-                    @change="checkUncheck(r)"
-                /></slot>
-              </td>
+                <td
+                  class="text-center whitespace-nowrap px-2 py-1"
+                  :class="[{ 'suim_sticky': scrollMode }, scrollMode ? stickyTdBg() : '']"
+                  :style="[selectColumnStyle, scrollMode ? 'left:0px' : '']"
+                  data-role="select"
+                  v-if="!hideSelect"
+                >
+                  <!-- <input type="checkbox" v-model="r.isSelected" /> -->
+                  <slot name="checkbox" :item="r"
+                    ><input
+                      type="checkbox"
+                      v-model="r.isSelected"
+                      @change="checkUncheck(r)"
+                  /></slot>
+                </td>
 
-              <td
-                v-for="(hdr, hdrIndex) in config.fields.filter(
-                  (el) => el.readType == 'show'
-                )"
-                :key="'grid_col_' + hdrIndex"
-                class="whitespace-nowrap px-2 py-1 text-ellipsis align-top"
-                :class="[{ 'suim_sticky': isFixedColumn(hdrIndex) }, isFixedColumn(hdrIndex) ? stickyTdBg() : '']"
-                :style="[
-                  hdr.width != '' ? `min-width:${hdr.width}` : '',
-                  isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '',
-                ]"
-                data-role="data"
-                :data-col-index="hdrIndex"
-              >
-                <slot :name="'item_' + hdr.field" :item="r" :header="hdr">
-                  <div
-                    v-if="editor && !(
-                        hdr.input.readOnly || 
-                        (hdr.input.readOnlyOnEdit && (r.suimRowMode=='edit' || r.suimRowMode==undefined))
-                    )"
-                    class="suim_editor_input"
-                  >
-                    <s-input
-                      hide-label
-                      :ctl-ref="{ rowIndex: rIdx }"
-                      :field="hdr.input.field"
-                      :kind="hdr.input.kind"
-                      :label="
-                        hdr.input.kind == 'checkbox' || hdr.input.kind == 'bool'
-                          ? ''
-                          : hdr.input.label
-                      "
-                      :disabled="hdr.input.readOnly"
-                      :caption="hdr.input.caption"
-                      :hint="hdr.input.hint"
-                      :multi-row="hdr.input.multiRow"
-                      :use-list="hdr.input.useList"
-                      :items="hdr.input.items"
-                      :rules="hdr.input.rules"
-                      :required="hdr.input.required"
-                      :read-only="hdr.input.readOnly"
-                      :lookup-url="hdr.input.lookupUrl"
-                      :lookup-key="hdr.input.lookupKey"
-                      :allow-add="hdr.input.allowAdd"
-                      :lookup-format1="hdr.input.lookupFormat1"
-                      :lookup-format2="hdr.input.lookupFormat2"
-                      :decimal="hdr.input.decimal"
-                      :date-format="hdr.input.dateFormat"
-                      :multiple="hdr.input.multiple"
-                      :lookup-labels="hdr.input.lookupLabels"
-                      :lookup-searchs="
-                        hdr.input.lookupSearchs &&
-                        hdr.input.lookupSearchs.length == 0
-                          ? hdr.input.lookupLabels
-                          : hdr.input.lookupSearchs
-                      "
-                      @focus="rowFieldFocus"
-                      @change="rowFieldChanged"
-                      v-model="r[hdr.input.field]"
-                      ref="inputs"
-                    />
-                  </div>
-                  <div v-else class="suim_editor_display">
-                    <s-grid-column
-                      :record="r"
-                      :column-config="hdr"
-                      :label-method="labelMethod"
-                    />
-                  </div>
-                </slot>
-              </td>
+                <td
+                  v-for="(hdr, hdrIndex) in config.fields.filter(
+                    (el) => el.readType == 'show'
+                  )"
+                  :key="'grid_col_' + hdrIndex"
+                  class="whitespace-nowrap px-2 py-1 text-ellipsis align-top"
+                  :class="[{ 'suim_sticky': isFixedColumn(hdrIndex) }, isFixedColumn(hdrIndex) ? stickyTdBg() : '']"
+                  :style="[columnWidthStyle(hdr), isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '']"
+                  data-role="data"
+                  :data-col-index="hdrIndex"
+                >
+                  <slot :name="'item_' + hdr.field" :item="r" :header="hdr">
+                    <div
+                      v-if="editor && !(
+                          hdr.input.readOnly || 
+                          (hdr.input.readOnlyOnEdit && (r.suimRowMode=='edit' || r.suimRowMode==undefined))
+                      )"
+                      class="suim_editor_input"
+                    >
+                      <s-input
+                        hide-label
+                        :ctl-ref="{ rowIndex: rIdx }"
+                        :field="hdr.input.field"
+                        :kind="hdr.input.kind"
+                        :label="
+                          hdr.input.kind == 'checkbox' || hdr.input.kind == 'bool'
+                            ? ''
+                            : hdr.input.label
+                        "
+                        :disabled="hdr.input.readOnly"
+                        :caption="hdr.input.caption"
+                        :hint="hdr.input.hint"
+                        :multi-row="hdr.input.multiRow"
+                        :use-list="hdr.input.useList"
+                        :items="hdr.input.items"
+                        :rules="hdr.input.rules"
+                        :required="hdr.input.required"
+                        :read-only="hdr.input.readOnly"
+                        :lookup-url="hdr.input.lookupUrl"
+                        :lookup-key="hdr.input.lookupKey"
+                        :allow-add="hdr.input.allowAdd"
+                        :lookup-format1="hdr.input.lookupFormat1"
+                        :lookup-format2="hdr.input.lookupFormat2"
+                        :decimal="hdr.input.decimal"
+                        :date-format="hdr.input.dateFormat"
+                        :multiple="hdr.input.multiple"
+                        :lookup-labels="hdr.input.lookupLabels"
+                        :lookup-searchs="
+                          hdr.input.lookupSearchs &&
+                          hdr.input.lookupSearchs.length == 0
+                            ? hdr.input.lookupLabels
+                            : hdr.input.lookupSearchs
+                        "
+                        @focus="rowFieldFocus"
+                        @change="rowFieldChanged"
+                        v-model="r[hdr.input.field]"
+                        ref="inputs"
+                      />
+                    </div>
+                    <div v-else class="suim_editor_display">
+                      <s-grid-column
+                        :record="r"
+                        :column-config="hdr"
+                        :label-method="labelMethod"
+                      />
+                    </div>
+                  </slot>
+                </td>
 
-              <td
-                class="whitespace-nowrap px-2 py-1 align-top items-center flex gap-[2px]"
-                :class="[{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }, scrollMode ? stickyTdBg() : '']"
-                :style="scrollMode ? 'right:0px' : ''"
-                data-role="action"
-                v-if="!hideAction"
+                <td
+                  class="whitespace-nowrap px-2 py-1 align-top items-center flex gap-[2px]"
+                  :class="[{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }, scrollMode ? stickyTdBg() : '']"
+                  :style="scrollMode ? 'right:0px' : ''"
+                  data-role="action"
+                  v-if="!hideAction"
+                >
+                  <slot name="item_buttons_1" :item="r" :config="config"></slot>
+                  <slot name="item_buttons" :item="r" :config="config">
+                    <slot name="item_button_recordchange" :item="r" :config="config">
+                      <a
+                        href="#"
+                        v-if="
+                          editor &&
+                          r.suimRecordChange === true &&
+                          !hideSaveButton &&
+                          !autoCommitLine
+                        "
+                        @click="saveRowData(r, rIdx)"
+                        class="save_action"
+                      >
+                        <mdicon
+                          name="content-save"
+                          width="16"
+                          alt="edit"
+                          class="cursor-pointer hover:text-primary"
+                        />
+                      </a>
+                    </slot>
+                    <slot name="item_button_edit" :item="r" :config="config">
+                      <a
+                        href="#"
+                        v-if="!hideDetail && !hideEdit"
+                        @click="selectData(r, rIdx)"
+                        class="edit_action"
+                      >
+                        <mdicon
+                          name="pencil"
+                          width="16"
+                          alt="edit"
+                          class="cursor-pointer hover:text-primary"
+                        />
+                      </a>
+                    </slot>
+                    <slot name="item_button_delete" :item="r" :config="config">
+                      <a
+                        href="#"
+                        v-if="!(hideDeleteButton || (data.recordChanged && !hideSaveButton))"
+                        @click="deleteData(r, rIdx)"
+                        class="delete_action"
+                      >
+                        <mdicon
+                          name="delete"
+                          width="16"
+                          alt="delete"
+                          class=""
+                        />
+                      </a>
+                    </slot>
+                  </slot>
+                  <slot name="item_buttons_2" :item="r" :config="config"></slot>
+                </td>
+              </tr>
+
+              <tr
+                v-if="secondaryRow"
+                class="suim_secondary_row border-b-[1px] border-slate-200"
               >
-                <slot name="item_buttons_1" :item="r" :config="config"></slot>
-                <slot name="item_buttons" :item="r" :config="config">
-                  <slot name="item_button_recordchange" :item="r" :config="config">
-                    <a
-                      href="#"
-                      v-if="
-                        editor &&
-                        r.suimRecordChange === true &&
-                        !hideSaveButton &&
-                        !autoCommitLine
-                      "
-                      @click="saveRowData(r, rIdx)"
-                      class="save_action"
-                    >
-                      <mdicon
-                        name="content-save"
-                        width="16"
-                        alt="edit"
-                        class="cursor-pointer hover:text-primary"
-                      />
-                    </a>
-                  </slot>
-                  <slot name="item_button_edit" :item="r" :config="config">
-                    <a
-                      href="#"
-                      v-if="!hideDetail && !hideEdit"
-                      @click="selectData(r, rIdx)"
-                      class="edit_action"
-                    >
-                      <mdicon
-                        name="pencil"
-                        width="16"
-                        alt="edit"
-                        class="cursor-pointer hover:text-primary"
-                      />
-                    </a>
-                  </slot>
-                  <slot name="item_button_delete" :item="r" :config="config">
-                    <a
-                      href="#"
-                      v-if="!(hideDeleteButton || (data.recordChanged && !hideSaveButton))"
-                      @click="deleteData(r, rIdx)"
-                      class="delete_action"
-                    >
-                      <mdicon
-                        name="delete"
-                        width="16"
-                        alt="delete"
-                        class=""
-                      />
-                    </a>
-                  </slot>
-                </slot>
-                <slot name="item_buttons_2" :item="r" :config="config"></slot>
-              </td>
-            </tr>
+                <td :colspan="gridColumnCount" class="px-2 py-1">
+                  <slot name="secondary_row" :item="r" :config="config"></slot>
+                </td>
+              </tr>
+            </template>
           </tbody>
 
         </table>
@@ -591,6 +597,7 @@ const props = defineProps({
   keywordOperation: { type: String, default: "" },
   disableDblClick: { type: Boolean, default: false },
   fixColumn: { type: Number, default: 0 },
+  secondaryRow: { type: Boolean, default: false },
 });
 
 const axios = inject("axios");
@@ -707,6 +714,16 @@ function saveRowData(r, rowIndex) {
   );
 }
 
+function saveActiveRow() {
+  if (!props.editor || props.autoCommitLine || props.hideSaveButton) return;
+  const rowIndex = data.currentIndex;
+  if (rowIndex < 0 || rowIndex >= data.items.length) return;
+
+  const row = data.items[rowIndex];
+  if (!row || row.suimRecordChange !== true) return;
+  saveRowData(row, rowIndex);
+}
+
 function updateRecordChanged() {
   for (const itIndex in data.items) {
     const it = data.items[itIndex];
@@ -762,6 +779,42 @@ const scrollMode = computed({
     return props.fixColumn > 0;
   },
 });
+
+const gridColumnCount = computed({
+  get() {
+    const visibleColumnCount = props.config?.fields?.filter((el) => el.readType == "show").length || 0;
+    return visibleColumnCount + (props.hideSelect ? 0 : 1) + (props.hideAction ? 0 : 1);
+  },
+});
+
+const selectColumnStyle = {
+  width: "60px",
+  minWidth: "60px",
+};
+
+function normalizeWidth(width) {
+  if (width === undefined || width === null || width === "") return "";
+  return typeof width === "number" ? `${width}px` : width;
+}
+
+function columnDefaultWidth(hdr = {}) {
+  const kind = String(hdr.input?.kind || hdr.kind || "").toLowerCase();
+  const hasDropdownSource = hdr.input?.useList || hdr.input?.lookupUrl || hdr.input?.items?.length > 0;
+
+  if (hasDropdownSource || ["dropdown", "selection", "select"].includes(kind)) return "120px";
+  if (["number", "int", "integer", "float", "decimal"].includes(kind)) return "100px";
+  if (["date", "datetime", "time"].includes(kind)) return "100px";
+  return "120px";
+}
+
+function columnWidthStyle(hdr = {}) {
+  const width = normalizeWidth(hdr.width) || columnDefaultWidth(hdr);
+  return {
+    width,
+    minWidth: width,
+    maxWidth: width,
+  };
+}
 
 function isFixedColumn(hdrIndex) {
   return scrollMode.value && hdrIndex < props.fixColumn;
@@ -1124,12 +1177,16 @@ const editActions =ref([]);
 const currentFocusIndex = ref(-1);
 
 function handleKeyDown(event) {
-  if (event.altKey && event.key === "r") {
+  const key = String(event.key || "").toLowerCase();
+  if (event.altKey && key === "r") {
     event.preventDefault();
     refreshData();
-  } else if (event.altKey && event.key === "n") {
+  } else if (event.altKey && key === "n") {
     event.preventDefault();
     newData();
+  } else if (event.altKey && key === "s") {
+    event.preventDefault();
+    saveActiveRow();
   } else if (event.altKey && event.key === "1") {
     event.preventDefault();
     editActions.value = document.querySelectorAll(".edit_action");
@@ -1337,6 +1394,11 @@ const calcSearchQuery = computed(() => {
   max-width: 100%;
 }
 
+.suim_table tbody tr.suim_data_row + tr.suim_data_row,
+.suim_table tbody tr.suim_secondary_row + tr.suim_data_row {
+  border-top: 1px solid #cbd5e1;
+}
+
 /* Fixed (sticky) columns on the left when fixColumn > 0 */
 .suim_grid_scroll .suim_sticky {
   position: sticky;
@@ -1386,7 +1448,8 @@ const calcSearchQuery = computed(() => {
   min-height: 24px;
   padding: 2px 6px;
   background: transparent;
-  border: none;
+  border: 0 !important;
+  border-bottom: 0 !important;
   border-radius: 0;
   outline: none;
   box-shadow: none;
@@ -1397,7 +1460,8 @@ const calcSearchQuery = computed(() => {
   min-height: 24px;
   padding: 2px 6px;
   background: transparent;
-  border: none;
+  border: 0 !important;
+  border-bottom: 0 !important;
   border-radius: 0;
   outline: none;
   box-shadow: none;

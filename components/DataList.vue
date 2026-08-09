@@ -109,6 +109,7 @@
         :single-color="gridSingleColor"
         :fix-column="gridFixColumn"
         :keyword-operation="gridKeywordOperation"
+        :secondary-row="gridSecondaryRow"
         @select-data="selectData"
         @new-data="newData"
         @get-data="getData"
@@ -172,6 +173,14 @@
         
         <template #grid_total="prop">
           <slot name="grid_item_total" :item="prop.item"></slot>
+        </template>
+
+        <template #secondary_row="prop">
+          <slot
+            name="grid_secondary_row"
+            :item="prop.item"
+            :config="prop.config"
+          />
         </template>
         
         <template #item_button_recordchange="prop">
@@ -374,6 +383,7 @@ const props = defineProps({
   gridNoConfirmDelete: { type: Boolean, default: false },
   gridPageSize: { type: Number, default: 20 },
   gridFixColumn: { type: Number, default: 0 },
+  gridSecondaryRow: { type: Boolean, default: false },
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => undefined },
