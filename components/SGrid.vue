@@ -353,6 +353,7 @@
                           (hdr.input.readOnlyOnEdit && (r.suimRowMode=='edit' || r.suimRowMode==undefined))
                       )"
                       class="suim_editor_input"
+                      :class="{ 'suim_editor_bool': hdr.input.kind == 'checkbox' || hdr.input.kind == 'bool' }"
                     >
                       <s-input
                         hide-label
@@ -1437,9 +1438,28 @@ const calcSearchQuery = computed(() => {
   padding: 3px 6px;
 }
 
+.suim_editor_grid td .suim_editor_input.suim_editor_bool {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 24px;
+  padding-top: 2px;
+}
+
 .suim_editor_grid :deep(.suim_input) {
   display: block;
   width: 100%;
+}
+
+.suim_editor_grid :deep(.suim_editor_bool .suim_input) {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.suim_editor_grid :deep(.suim_editor_bool input[type="checkbox"]) {
+  display: block;
+  margin: 2px auto 0;
 }
 
 .suim_editor_grid :deep(.suim_input input.input_field) {
