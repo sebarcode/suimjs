@@ -344,7 +344,7 @@
               >
                 <td
                   class="text-center whitespace-nowrap px-2 py-1"
-                  :class="[{ 'suim_sticky': scrollMode }, scrollMode ? stickyTdBg() : '']"
+                  :class="[{ 'suim_sticky': scrollMode }, scrollMode ? stickyTdBg(rIdx) : '']"
                   :style="[selectColumnStyle, scrollMode ? 'left:0px' : '']"
                   data-role="select"
                   v-if="!hideSelect"
@@ -364,7 +364,7 @@
                   )"
                   :key="'grid_col_' + hdrIndex"
                   class="whitespace-nowrap px-2 py-1 text-ellipsis align-top"
-                  :class="[{ 'suim_sticky': isFixedColumn(hdrIndex) }, isFixedColumn(hdrIndex) ? stickyTdBg() : '']"
+                  :class="[{ 'suim_sticky': isFixedColumn(hdrIndex) }, isFixedColumn(hdrIndex) ? stickyTdBg(rIdx) : '']"
                   :style="[columnWidthStyle(hdr), isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '']"
                   data-role="data"
                   :data-col-index="hdrIndex"
@@ -438,7 +438,7 @@
 
                 <td
                   class="whitespace-nowrap px-2 py-1 align-top items-center flex gap-[2px]"
-                  :class="[{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }, scrollMode ? stickyTdBg() : '']"
+                  :class="[{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }, scrollMode ? stickyTdBg(rIdx) : '']"
                   :style="scrollMode ? 'right:0px' : ''"
                   data-role="action"
                   v-if="!hideAction"
@@ -924,9 +924,8 @@ function isFixedColumn(hdrIndex) {
   return scrollMode.value && hdrIndex < props.fixColumn;
 }
 
-function stickyTdBg() {
-  let cls = "bg-white";
-  if (!props.editor && !props.singleColor) cls += " even:bg-slate-100";
+function stickyTdBg(rowIndex) {
+  let cls = !props.editor && !props.singleColor && rowIndex % 2 === 1 ? "bg-slate-100" : "bg-white";
   if (!props.hideEdit) cls += " group-hover:bg-slate-200";
   return cls;
 }
@@ -1636,6 +1635,14 @@ const calcSearchQuery = computed(() => {
   min-width: 80px;
 }
 
+/* Non-editor grid: allow cell content to wrap to avoid overlap */
+.suim_table:not(.suim_editor_grid) td[data-role="data"] {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  overflow: hidden;
+}
+
 /* Responsive th/td for small screens */
 @media (max-width: 640px) {
   .suim_table th,
@@ -1648,7 +1655,7 @@ const calcSearchQuery = computed(() => {
     overflow: visible !important;
     text-overflow: ellipsis;
   }
-  
+
   .suim_table {
     min-width: 480px;
   }
