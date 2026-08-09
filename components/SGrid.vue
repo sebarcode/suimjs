@@ -240,7 +240,8 @@
         >
           <table
             ref="tableEl"
-            class="table-auto suim_table min-w-full w-max"
+            class="table-auto suim_table w-full"
+            style="min-width: max-content;"
             :class="{ 'suim_editor_grid': editor }"
           >
           <!-- header -->
@@ -1016,11 +1017,20 @@ function columnDefaultWidth(hdr = {}) {
 }
 
 function columnWidthStyle(hdr = {}) {
-  const width = normalizeWidth(hdr.width) || columnDefaultWidth(hdr);
+  const explicitWidth = normalizeWidth(hdr.width);
+  if (explicitWidth) {
+    return {
+      width: explicitWidth,
+      minWidth: explicitWidth,
+      maxWidth: explicitWidth,
+    };
+  }
+
+  const defaultWidth = columnDefaultWidth(hdr);
+  if (!defaultWidth || defaultWidth === "auto") return {};
+
   return {
-    width,
-    minWidth: width,
-    maxWidth: width,
+    minWidth: defaultWidth,
   };
 }
 
