@@ -34,7 +34,7 @@
                     @keydown.enter.prevent="bodyClick"
                     @keydown.space.prevent="bodyClick"
                 >
-                    <button v-if="clearable && hasSelection" @click.stop="clearSelection" class="sdd_clear_btn" title="Clear selection" type="button">✕</button>
+                    <button v-if="showClearButton" @click.stop="clearSelection" class="sdd_clear_btn" title="Clear selection" type="button">✕</button>
                     <svg class="sdd_chev" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.12 1.0l-4.25 4.653a.75.75 0 01-1.07 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
                 </div>
             </div>
@@ -245,6 +245,10 @@ const selectedLabel = computed(() => {
 const hasSelection = computed(() => {
     if (props.multiple) return selected.value && selected.value.length > 0;
     return !!selected.value;
+});
+
+const showClearButton = computed(() => {
+    return props.clearable && hasSelection.value && !!props.lookupUrl;
 });
 
 function toggle(){
