@@ -14,9 +14,9 @@
                     <input v-if="open && searchable" 
                         ref="searchInput" 
                         v-model="search" 
-                        @keydown.down.prevent="move(1)" 
-                        @keydown.up.prevent="move(-1)" 
-                        @keydown.enter.prevent="chooseHighlighted" 
+                        @keydown.down.prevent="handleSearchArrowDown" 
+                        @keydown.up.prevent="handleSearchArrowUp" 
+                        @keydown.enter.prevent="handleSearchEnter" 
                         @keydown.esc.prevent="close" 
                         @keydown.tab="handleSearchTabNavigation"
                         class="sdd_search_input" 
@@ -28,6 +28,7 @@
                 </div>
                 <div
                     class="sdd sdd_actions"
+                    ref="triggerEl"
                     role="button"
                     tabindex="0"
                     @click="bodyClick"
@@ -133,6 +134,7 @@ const axios = inject('axios');
 const root = ref(null);
 const searchInput = ref(null);
 const dropdownEl = ref(null);
+const triggerEl = ref(null);
 const open = ref(false);
 const search = ref('');
 const highlighted = ref(-1);
@@ -295,13 +297,20 @@ function bodyClick(ev){
     toggle();
 }
 
-function close(){
+function focusTrigger() {
+    nextTick(() => {
+        triggerEl.value?.focus?.();
+    });
+}
+
+function close(returnFocus = false){
     open.value = false;
     search.value = '';
     highlighted.value = -1;
+    if (returnFocus) focusTrigger();
 }
 
-function select(it, closeAfterSelect = !props.multiple){
+function select(it, closeAfterSelect = !props.multiple, returnFocus = false){
     if (props.multiple) {
         // toggle membership
         const idx = selected.value.findIndex(s => s._uid === it._uid || s.key === it.key);
@@ -310,7 +319,7 @@ function select(it, closeAfterSelect = !props.multiple){
         // emit array of keys
         emit('update:modelValue', selected.value.map(s => s.key));
         emit('change', selected.value.map(s => s.key));
-        if (closeAfterSelect) close();
+        if (closeAfterSelect) close(returnFocus);
         return;
     }
 
@@ -318,7 +327,7 @@ function select(it, closeAfterSelect = !props.multiple){
     // emit the key for single-select
     emit('update:modelValue', it.key);
     emit('change', it.key);
-    if (closeAfterSelect) close();
+    if (closeAfterSelect) close(returnFocus);
 }
 
 function clearSelection(){
@@ -390,20 +399,58 @@ function move(dir){
     else highlighted.value = Math.max(0, Math.min(list.length - 1, highlighted.value + dir));
 }
 
-function chooseHighlighted(){
+function dropdownItems() {
+    return dropdownEl.value?.querySelectorAll('.sdd_item[tabindex="0"]') || [];
+}
+
+function focusDropdownItem(index) {
+    const items = dropdownItems();
+    const target = items[index];
+    if (!target) return false;
+    target.focus();
+    highlight(index);
+    return true;
+}
+
+function handleSearchArrowDown() {
     const list = filtered.value;
-    if (highlighted.value >=0 && highlighted.value < list.length){ select(list[highlighted.value]); }
+    if (!list.length) return;
+
+    const nextIndex = highlighted.value < 0 ? 0 : Math.min(list.length - 1, highlighted.value + 1);
+    if (!focusDropdownItem(nextIndex)) {
+        move(1);
+    }
+}
+
+function handleSearchArrowUp() {
+    const list = filtered.value;
+    if (!list.length) return;
+
+    if (highlighted.value <= 0) {
+        highlight(0);
+        return;
+    }
+
+    const prevIndex = Math.max(0, highlighted.value - 1);
+    if (!focusDropdownItem(prevIndex)) {
+        move(-1);
+    }
+}
+
+function chooseHighlighted(returnFocus = false){
+    const list = filtered.value;
+    if (highlighted.value >=0 && highlighted.value < list.length){ select(list[highlighted.value], !props.multiple, returnFocus); }
+}
+
+function handleSearchEnter() {
+    chooseHighlighted(true);
 }
 
 function handleSearchTabNavigation(event) {
     if (!event.shiftKey && filtered.value.length > 0) {
         // Tab forward - move focus to first dropdown item
         event.preventDefault();
-        const firstItem = root.value.querySelector('.sdd_item[tabindex="0"]');
-        if (firstItem) {
-            firstItem.focus();
-            highlight(0);
-        }
+        focusDropdownItem(0);
     }
     // If Shift+Tab, let it bubble up to move focus to previous element outside dropdown
 }
@@ -413,7 +460,7 @@ function handleItemKeydown(event, item, index) {
         case 'Enter':
         case ' ':
             event.preventDefault();
-            select(item);
+            select(item, !props.multiple, true);
             break;
         case 'ArrowDown':
             event.preventDefault();
@@ -431,21 +478,13 @@ function handleItemKeydown(event, item, index) {
                     searchInput.value.focus();
                 } else if (index > 0) {
                     event.preventDefault();
-                    const prevItem = root.value.querySelectorAll('.sdd_item[tabindex="0"]')[index - 1];
-                    if (prevItem) {
-                        prevItem.focus();
-                        highlight(index - 1);
-                    }
+                    focusDropdownItem(index - 1);
                 }
             } else {
                 // Tab forward - move to next item or let it bubble to next element outside dropdown
                 if (index < filtered.value.length - 1) {
                     event.preventDefault();
-                    const nextItem = root.value.querySelectorAll('.sdd_item[tabindex="0"]')[index + 1];
-                    if (nextItem) {
-                        nextItem.focus();
-                        highlight(index + 1);
-                    }
+                    focusDropdownItem(index + 1);
                 }
                 // If last item, let tab move to next focusable element outside dropdown
             }
@@ -459,21 +498,13 @@ function handleItemKeydown(event, item, index) {
 
 function moveToNextItem(currentIndex) {
     const nextIndex = Math.min(filtered.value.length - 1, currentIndex + 1);
-    const nextItem = root.value.querySelectorAll('.sdd_item[tabindex="0"]')[nextIndex];
-    if (nextItem) {
-        nextItem.focus();
-        highlight(nextIndex);
-    }
+    focusDropdownItem(nextIndex);
 }
 
 function moveToPrevItem(currentIndex) {
     if (currentIndex > 0) {
         const prevIndex = currentIndex - 1;
-        const prevItem = root.value.querySelectorAll('.sdd_item[tabindex="0"]')[prevIndex];
-        if (prevItem) {
-            prevItem.focus();
-            highlight(prevIndex);
-        }
+        focusDropdownItem(prevIndex);
     } else if (searchInput.value) {
         // If at first item, move back to search input
         searchInput.value.focus();
