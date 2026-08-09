@@ -1010,8 +1010,9 @@ function columnDefaultWidth(hdr = {}) {
 
   if (hasDropdownSource || ["dropdown", "selection", "select"].includes(kind)) return "120px";
   if (["number", "int", "integer", "float", "decimal"].includes(kind)) return "100px";
-  if (["date", "datetime", "time"].includes(kind)) return "100px";
-  return "120px";
+  if (["date", "time"].includes(kind)) return "100px";
+  if (["datetime"].includes(kind)) return "140px";
+  return "auto";
 }
 
 function columnWidthStyle(hdr = {}) {
