@@ -74,8 +74,8 @@
                         :key="it._uid"
                         :class="['sdd_item', highlighted === idx ? 'sdd_highlighted' : '']"
                         :tabindex="0"
-                        @click="select(it)"
-                        @dblclick="select(it, true)"
+                        @click="select(it, !multiple, true)"
+                        @dblclick="select(it, true, true)"
                         @mousemove="highlight(idx)"
                         @keydown="handleItemKeydown($event, it, idx)"
                         @focus="highlight(idx)">

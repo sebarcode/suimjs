@@ -186,6 +186,14 @@
         <slot name="header_buttons_1" :config="config"></slot>
         <slot name="header_buttons" :config="config">
           <s-button
+            icon="content-save"
+            class="btn_primary refresh_btn"
+            tooltip="save all changed rows"
+            @click="saveChangedRows"
+            v-if="showHeaderSaveButton"
+            :disabled="data.savingChangedRows"
+          />
+          <s-button
             icon="refresh"
             class="btn_primary refresh_btn"
             tooltip="refresh"
@@ -662,11 +670,7 @@ const emit = defineEmits({
 const data = reactive({
   keyword: "",
   items: props.modelValue == undefined ? [] : 
-    props.modelValue.map(el => {
-      el.suimRecordChange = false;
-      el.suimRowMode = "edit";
-      return el;
-    }),
+    props.modelValue.map(el => normalizeGridRow(el)),
   recordCount: props.modelValue == undefined ? 0 : props.modelValue.length,
   currentPage: 1,
   sortField:
@@ -690,6 +694,7 @@ const data = reactive({
     transform: "translate(0, 0)",
   },
   recordChanged: false,
+  savingChangedRows: false,
   autoSearch: props.autoSearch,
   showDeleteModal: false,
   total: [],
@@ -802,10 +807,10 @@ function saveRowData(r, rowIndex) {
     props.updateUrl == null
   ) {
     emit("saveRowData", r, rowIndex);
-    return;
+    return Promise.resolve();
   }
 
-  axios.post(props.updateUrl, r).then(
+  return axios.post(props.updateUrl, r).then(
     (r) => {
       r = r.data;
       r.suimRecordChange = false;
@@ -813,8 +818,12 @@ function saveRowData(r, rowIndex) {
       data.items[rowIndex] = r;
       emit("rowUpdated", r);
       updateRecordChanged();
+      return r;
     },
-    (e) => util.showError(e)
+    (e) => {
+      util.showError(e);
+      throw e;
+    }
   );
 }
 
@@ -826,6 +835,27 @@ function saveActiveRow() {
   const row = data.items[rowIndex];
   if (!row || row.suimRecordChange !== true) return;
   saveRowData(row, rowIndex);
+}
+
+async function saveChangedRows() {
+  if (!showHeaderSaveButton.value || data.savingChangedRows) return;
+
+  const changedRowIndexes = data.items
+    .map((row, index) => (row?.suimRecordChange === true ? index : -1))
+    .filter((index) => index >= 0);
+
+  if (changedRowIndexes.length === 0) return;
+
+  data.savingChangedRows = true;
+  try {
+    for (const rowIndex of changedRowIndexes) {
+      const row = data.items[rowIndex];
+      if (!row || row.suimRecordChange !== true) continue;
+      await saveRowData(row, rowIndex);
+    }
+  } finally {
+    data.savingChangedRows = false;
+  }
 }
 
 function updateRecordChanged() {
@@ -876,6 +906,16 @@ const pageCount = computed({
   get() {
     return Math.ceil(data.recordCount / data.pageSize);
   },
+});
+
+function normalizeGridRow(row = {}) {
+  row.suimRecordChange = row.suimRecordChange === true;
+  row.suimRowMode = row.suimRowMode === "new" ? "new" : "edit";
+  return row;
+}
+
+const showHeaderSaveButton = computed(() => {
+  return props.editor && !props.autoCommitLine && !props.hideSaveButton && data.recordChanged;
 });
 
 const scrollMode = computed({
@@ -1178,14 +1218,14 @@ function getRecord(recordIndex) {
 }
 
 function setRecord(recordIndex, record) {
-  data.items[recordIndex] = record;
+  data.items[recordIndex] = normalizeGridRow(record);
   updateRecordChanged();
 }
 
 function setRecordByID(record) {
   data.items.forEach((dt, index) => {
     if (dt._id == record._id) {
-      data.items[index] = record;   
+      data.items[index] = normalizeGridRow(record);   
     }
   });
   updateRecordChanged();
@@ -1210,7 +1250,7 @@ function getActiveIndex() {
 }
 
 function setRecords(newDataSet) {
-  data.items = newDataSet;
+  data.items = (newDataSet || []).map((item) => normalizeGridRow(item));
   updateRecordChanged();
 }
 
@@ -1342,8 +1382,11 @@ const computedSearchableFields = () => {
 watch(
   () => props.modelValue,
   (nv) => {
-    if (nv == undefined) data.items = [];
-    data.items = nv;
+    if (nv == undefined) {
+      data.items = [];
+      return;
+    }
+    data.items = nv.map((item) => normalizeGridRow(item));
   }
 );
 
