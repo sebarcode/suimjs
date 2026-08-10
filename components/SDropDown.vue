@@ -107,6 +107,7 @@
 
 <script setup>
 import { ref, reactive, watch, onMounted, onBeforeUnmount, computed, inject, nextTick } from 'vue';
+import { getCachedLookup } from '../scripts/lookup_cache';
 
 const props = defineProps({
     modelValue: { type: [Array, String, Object, Number, null], default: null },
@@ -221,15 +222,22 @@ const selected = ref(props.multiple ? [] : null);
 
 async function fetchSelected(values) {
     if (!props.lookupUrl) return;
-    if (values==undefined || values=== null || values.length==0) return;
+    if (values == undefined || values === null || values.length == 0) return;
     const payload = props.multiple ? 
         { Where: { Op: '$in', Field: props.lookupKey, Value: values } } :
         { Where: { Field: props.lookupKey, Op: '$eq', Value: [values] } };
 
     try {
-        const resp = await axios.post(props.lookupUrl, payload);
-        if (resp.data) {
-            selected.value = props.multiple ? normalizeList(resp.data) : normalizeList(resp.data)[0] || null;
+        const result = await getCachedLookup(
+            props.lookupUrl,
+            payload,
+            async () => {
+                const resp = await axios.post(props.lookupUrl, payload);
+                return Array.isArray(resp?.data) ? resp.data : [];
+            }
+        );
+        if (result) {
+            selected.value = props.multiple ? normalizeList(result) : normalizeList(result)[0] || null;
         }
     } catch(error) {
         console.error('SDropDown: fetchSelected error', error);
@@ -568,7 +576,10 @@ onBeforeUnmount(()=>{
 
 watch(() => open.value, (nv) => {
     if (nv) {
-        nextTick(updateDropdownPosition);
+        nextTick(() => {
+            updateDropdownPosition();
+            fetchItems(search.value);
+        });
     } else {
         dropdownStyle.value = {};
     }
@@ -639,11 +650,14 @@ function manageLookup() {
                     }
                 }
             }
-            const response = await axios.post(props.lookupUrl, payload);
-            if (response && response.data && Array.isArray(response.data)) {
-               return response.data;
-            }
-            return [];
+            return await getCachedLookup(
+                props.lookupUrl,
+                payload,
+                async () => {
+                    const response = await axios.post(props.lookupUrl, payload);
+                    return Array.isArray(response?.data) ? response.data : [];
+                }
+            );
         } catch (error) {
             console.error('SDropDown: lookup error', error);
             return [];
@@ -657,6 +671,11 @@ async function fetchItems(nv) {
     // transform search value, trim and lowercase for comparison and if it is using api then do not transform as it can be anything
     // use ' ' (space) as search term to trigger api call without filtering
     const q = props.lookupUrl ? (nv || '') : (nv || '').toString().toLowerCase().trim();
+    if (props.lookupUrl && !open.value && q === '') {
+        filtered.value = joinWithSelected([...data.items]);
+        return;
+    }
+
     if (data.searchFn && typeof data.searchFn === 'function' && q.length >= props.minimalKeywordLength) {
         // use custom search function
         const result = await data.searchFn(q);
@@ -693,12 +712,15 @@ async function fetchItems(nv) {
 }
 
 watch(() => search.value, (nv) => {
+    if (props.lookupUrl && !open.value) return;
     fetchItems(nv);
-}, { immediate: true });
+});
 
 watch(() => props.lookupUrl, () => {
-    fetchItems(search.value);
-}, { immediate: true });
+    if (open.value) {
+        fetchItems(search.value);
+    }
+});
 
 
 // when modelValue changes, sync the internal selected representation
