@@ -235,6 +235,7 @@
     <div v-if="!data.loading">
       <div v-if="data.items.length > 0">
         <div
+          ref="tableScrollerEl"
           class="suim_area_table overflow-x-auto w-full max-w-full"
           :class="{ 'suim_grid_scroll': scrollMode }"
         >
@@ -530,6 +531,15 @@
         </div>
 
         <div
+          v-if="showBottomScrollbar"
+          ref="bottomScrollerEl"
+          class="suim_bottom_scroller"
+          @scroll="syncScrollFromBottom"
+        >
+          <div class="suim_bottom_scroller_inner" :style="{ width: bottomScrollWidth }"></div>
+        </div>
+
+        <div
           v-if="totalUrl !== ''"
           name="grid_total_area"
           class="suim_total_area"
@@ -733,9 +743,15 @@ if (props.inlineSearch && props.config && props.config.fields) {
 const deleteModal = ref(null);
 const showInlineSearch = ref(false);
 const tableEl = ref(null);
+const tableScrollerEl = ref(null);
+const bottomScrollerEl = ref(null);
 const gridRoot = ref(null);
 const colLefts = ref({});
 const shortcutScopeId = `sgrid-shortcut-${++sGridShortcutScopeSeq}`;
+const bottomScrollWidth = ref("0px");
+const showBottomScrollbar = ref(false);
+let syncingMainScroll = false;
+let syncingBottomScroll = false;
 
 function resetCustomFilter(){
   emit("resetCustomFilter")
@@ -1121,6 +1137,47 @@ function refreshSticky() {
   nextTick(updateSticky);
 }
 
+function updateBottomScrollbar() {
+  const scroller = tableScrollerEl.value;
+  const table = tableEl.value;
+  if (!scroller || !table) {
+    showBottomScrollbar.value = false;
+    bottomScrollWidth.value = "0px";
+    return;
+  }
+
+  const scrollWidth = Math.ceil(table.scrollWidth || 0);
+  const clientWidth = Math.ceil(scroller.clientWidth || 0);
+  bottomScrollWidth.value = `${scrollWidth}px`;
+  showBottomScrollbar.value = scrollWidth > clientWidth + 1;
+
+  if (bottomScrollerEl.value && !syncingMainScroll) {
+    bottomScrollerEl.value.scrollLeft = scroller.scrollLeft;
+  }
+}
+
+function syncScrollFromMain() {
+  if (!tableScrollerEl.value || !bottomScrollerEl.value) return;
+  syncingMainScroll = true;
+  if (!syncingBottomScroll) {
+    bottomScrollerEl.value.scrollLeft = tableScrollerEl.value.scrollLeft;
+  }
+  requestAnimationFrame(() => {
+    syncingMainScroll = false;
+  });
+}
+
+function syncScrollFromBottom() {
+  if (!tableScrollerEl.value || !bottomScrollerEl.value) return;
+  syncingBottomScroll = true;
+  if (!syncingMainScroll) {
+    tableScrollerEl.value.scrollLeft = bottomScrollerEl.value.scrollLeft;
+  }
+  requestAnimationFrame(() => {
+    syncingBottomScroll = false;
+  });
+}
+
 function setGridResizeCursor(active) {
   if (typeof document === "undefined") return;
   document.body.style.cursor = active ? "col-resize" : "";
@@ -1139,6 +1196,7 @@ function handleColumnResizeMove(event) {
     [resizeState.field]: `${nextWidth}px`,
   };
   refreshSticky();
+  nextTick(updateBottomScrollbar);
 }
 
 function stopColumnResize() {
@@ -1172,13 +1230,19 @@ function startColumnResize(hdr, event) {
 
 watch(
   () => [data.items.length, props.modelValue],
-  () => refreshSticky(),
+  () => {
+    refreshSticky();
+    nextTick(updateBottomScrollbar);
+  },
   { flush: "post" }
 );
 
 watch(
   () => [props.config, props.fixColumn, props.editor, props.hideSelect],
-  () => refreshSticky(),
+  () => {
+    refreshSticky();
+    nextTick(updateBottomScrollbar);
+  },
   { flush: "post" }
 );
 
@@ -1464,6 +1528,7 @@ defineExpose({
 });
 
 onMounted(() => {
+  tableScrollerEl.value?.addEventListener("scroll", syncScrollFromMain, { passive: true });
   sGridShortcutRegistry.set(shortcutScopeId, {
     id: shortcutScopeId,
     order: sGridShortcutScopeSeq,
@@ -1479,12 +1544,14 @@ onMounted(() => {
     resolveActiveShortcutScope();
   }
   refreshSticky();
+  nextTick(updateBottomScrollbar);
   //refreshData();
   //console.log(`mounting grid ${props.config.title}`);
 });
 
 onUnmounted(() => {
   stopColumnResize();
+  tableScrollerEl.value?.removeEventListener("scroll", syncScrollFromMain);
   document.removeEventListener("keydown", handleKeyDown);
   gridRoot.value?.removeEventListener("focusin", activateShortcutScope);
   gridRoot.value?.removeEventListener("mousedown", activateShortcutScope);
@@ -1718,6 +1785,18 @@ const calcSearchQuery = computed(() => {
 
 .suim_area_table::-webkit-scrollbar {
   display: none;
+}
+
+.suim_bottom_scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  height: 14px;
+  scrollbar-width: thin;
+}
+
+.suim_bottom_scroller_inner {
+  height: 1px;
 }
 
 .suim_grid {
