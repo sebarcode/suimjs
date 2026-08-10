@@ -261,7 +261,7 @@
                   (el) => el.readType == 'show'
                 )"
                 :key="'grid_col_' + hdrIndex"
-                class="whitespace-nowrap text-ellipsis"
+                class="whitespace-nowrap text-ellipsis relative"
                 :class="{
                   'text-right': hdr.align == 'right' || hdr.kind == 'number',
                   'pr-4': hdr.align == 'right' || hdr.kind == 'number',
@@ -298,6 +298,12 @@
                     </svg>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  class="suim_col_resize_handle"
+                  :aria-label="`Resize column ${hdr.label}`"
+                  @mousedown.prevent.stop="startColumnResize(hdr, $event)"
+                ></button>
               </th>
               <th
                 class="header_column_action"
@@ -704,6 +710,15 @@ const data = reactive({
   total: [],
 });
 
+const columnWidthOverrides = ref({});
+const resizeState = reactive({
+  active: false,
+  field: "",
+  startX: 0,
+  startWidth: 0,
+  minWidth: 60,
+});
+
 // Untuk menyimpan nilai inline search per kolom
 if (props.inlineSearch && props.config && props.config.fields) {
   props.config.fields.forEach(f => {
@@ -1005,6 +1020,14 @@ function normalizeWidth(width) {
   return typeof width === "number" ? `${width}px` : width;
 }
 
+function parsePixelWidth(width) {
+  if (typeof width === "number" && Number.isFinite(width)) return width;
+  if (typeof width !== "string") return null;
+  const match = width.trim().match(/^(\d+(?:\.\d+)?)px$/i);
+  if (!match) return null;
+  return Number(match[1]);
+}
+
 function columnDefaultWidth(hdr = {}) {
   const kind = String(hdr.input?.kind || hdr.kind || "").toLowerCase();
   const hasDropdownSource = hdr.input?.useList || hdr.input?.lookupUrl || hdr.input?.items?.length > 0;
@@ -1017,6 +1040,15 @@ function columnDefaultWidth(hdr = {}) {
 }
 
 function columnWidthStyle(hdr = {}) {
+  const overriddenWidth = normalizeWidth(columnWidthOverrides.value[hdr.field]);
+  if (overriddenWidth) {
+    return {
+      width: overriddenWidth,
+      minWidth: overriddenWidth,
+      maxWidth: overriddenWidth,
+    };
+  }
+
   const explicitWidth = normalizeWidth(hdr.width);
   if (explicitWidth) {
     return {
@@ -1032,6 +1064,11 @@ function columnWidthStyle(hdr = {}) {
   return {
     minWidth: defaultWidth,
   };
+}
+
+function columnResizeMinWidth(hdr = {}) {
+  const defaultWidth = parsePixelWidth(columnDefaultWidth(hdr));
+  return Math.max(60, Math.min(defaultWidth || 60, 120));
 }
 
 function isFixedColumn(hdrIndex) {
@@ -1082,6 +1119,55 @@ function updateSticky() {
 function refreshSticky() {
   ensureStickyObserver();
   nextTick(updateSticky);
+}
+
+function setGridResizeCursor(active) {
+  if (typeof document === "undefined") return;
+  document.body.style.cursor = active ? "col-resize" : "";
+  document.body.style.userSelect = active ? "none" : "";
+}
+
+function handleColumnResizeMove(event) {
+  if (!resizeState.active || !resizeState.field) return;
+  const deltaX = event.clientX - resizeState.startX;
+  const nextWidth = Math.max(
+    resizeState.minWidth,
+    Math.round(resizeState.startWidth + deltaX)
+  );
+  columnWidthOverrides.value = {
+    ...columnWidthOverrides.value,
+    [resizeState.field]: `${nextWidth}px`,
+  };
+  refreshSticky();
+}
+
+function stopColumnResize() {
+  if (!resizeState.active) return;
+  resizeState.active = false;
+  resizeState.field = "";
+  setGridResizeCursor(false);
+  if (typeof document !== "undefined") {
+    document.removeEventListener("mousemove", handleColumnResizeMove);
+    document.removeEventListener("mouseup", stopColumnResize);
+  }
+  refreshSticky();
+}
+
+function startColumnResize(hdr, event) {
+  const th = event.currentTarget?.closest?.("th");
+  if (!th || !hdr?.field) return;
+
+  resizeState.active = true;
+  resizeState.field = hdr.field;
+  resizeState.startX = event.clientX;
+  resizeState.startWidth = th.offsetWidth;
+  resizeState.minWidth = columnResizeMinWidth(hdr);
+
+  setGridResizeCursor(true);
+  if (typeof document !== "undefined") {
+    document.addEventListener("mousemove", handleColumnResizeMove);
+    document.addEventListener("mouseup", stopColumnResize);
+  }
 }
 
 watch(
@@ -1398,6 +1484,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  stopColumnResize();
   document.removeEventListener("keydown", handleKeyDown);
   gridRoot.value?.removeEventListener("focusin", activateShortcutScope);
   gridRoot.value?.removeEventListener("mousedown", activateShortcutScope);
@@ -1663,6 +1750,35 @@ const calcSearchQuery = computed(() => {
 
 .suim_grid_scroll thead th.suim_sticky_right {
   z-index: 3;
+}
+
+.suim_col_resize_handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  z-index: 5;
+}
+
+.suim_col_resize_handle::before {
+  content: "";
+  position: absolute;
+  top: 20%;
+  bottom: 20%;
+  left: 3px;
+  width: 1px;
+  background: rgba(148, 163, 184, 0.45);
+  transition: background 0.15s ease;
+}
+
+.suim_col_resize_handle:hover::before,
+.suim_col_resize_handle:focus-visible::before {
+  background: rgba(37, 99, 235, 0.75);
 }
 
 /* Excel-like compact cell layout when grid is in editor mode */
