@@ -421,7 +421,7 @@
                         :rules="hdr.input.rules"
                         :required="hdr.input.required"
                         :read-only="hdr.input.readOnly"
-                        :lookup-url="hdr.input.lookupUrl"
+                        :lookup-url="resolveInputLookupUrl(hdr.input.lookupUrl, r, hdr, rIdx)"
                         :lookup-key="hdr.input.lookupKey"
                         :allow-add="hdr.input.allowAdd"
                         :lookup-format1="hdr.input.lookupFormat1"
@@ -430,6 +430,7 @@
                         :date-format="hdr.input.dateFormat"
                         :multiple="hdr.input.multiple"
                         :lookup-labels="hdr.input.lookupLabels"
+                        :lookup-payload-builder="resolveInputLookupPayloadBuilder(hdr.input.lookupPayloadBuilder, r, hdr, rIdx)"
                         :lookup-searchs="
                           hdr.input.lookupSearchs &&
                           hdr.input.lookupSearchs.length == 0
@@ -834,6 +835,20 @@ function setCurrentRow(rowIndex) {
 
 function editorCellKey(rowIndex, field) {
   return `${rowIndex}:${field || ""}`;
+}
+
+function resolveInputLookupUrl(lookupUrl, record, header, rowIndex) {
+  if (typeof lookupUrl === "function") {
+    return lookupUrl(record, header, rowIndex) || "";
+  }
+
+  return lookupUrl || "";
+}
+
+function resolveInputLookupPayloadBuilder(lookupPayloadBuilder, record, header, rowIndex) {
+  if (typeof lookupPayloadBuilder !== "function") return lookupPayloadBuilder;
+
+  return (query) => lookupPayloadBuilder(query, record, header, rowIndex) || {};
 }
 
 function setEditorCellFocus(rowIndex, field) {
