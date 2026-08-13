@@ -355,6 +355,7 @@
               <tr
                 class="suim_data_row cursor-pointer border-b-[1px] border-slate-200 last:border-none hover:bg-slate-200 group"
                 :class="{ 'even:bg-slate-100': !editor && !singleColor, 'hover:none':hideEdit}"
+                :data-row-index="rIdx"
                 @dblclick="selectData(r, 'detail', true)"
                 @focusin="onRowFocus(rIdx)"
               >
@@ -440,7 +441,6 @@
                         @focus="rowFieldFocus"
                         @change="rowFieldChanged"
                         v-model="r[hdr.input.field]"
-                        ref="inputs"
                       />
                     </div>
                     <div v-else class="suim_editor_display">
@@ -1393,6 +1393,31 @@ function addData(dt) {
   emit("update:modelValue", data.items);
   emit("rowUpdated", dt);
   updateRecordChanged();
+  focusNewEditorRow(data.items.length - 1);
+}
+
+function focusNewEditorRow(rowIndex) {
+  if (!props.editor || rowIndex < 0) return;
+
+  let attempts = 0;
+  const focusControl = () => {
+    const row = gridRoot.value?.querySelector(`tr[data-row-index="${rowIndex}"]`);
+    const control = row?.querySelector(
+      '.suim_editor_input input:not([type="hidden"]):not([disabled]), .suim_editor_input textarea:not([disabled]), .suim_editor_input select:not([disabled]), .suim_editor_input button:not([disabled])'
+    );
+    if (control) {
+      row.scrollIntoView?.({ block: "nearest" });
+      control.focus?.({ preventScroll: true });
+      return;
+    }
+
+    attempts += 1;
+    if (attempts < 4) setTimeout(focusControl, 50);
+  };
+
+  // The parent v-model update can render once more after addData(), so wait for
+  // both Vue render passes before resolving the new row's first editor control.
+  nextTick(() => nextTick(() => setTimeout(focusControl, 0)));
 }
 
 function deleteData(record, dataIndex) {

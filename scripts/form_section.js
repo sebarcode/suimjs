@@ -24,12 +24,18 @@ class formSection {
         inputFields.forEach(el => {
             cols.push(el)
             if (cols.length == columnPerRow) {
-                this.addRow(...cols)
+                const row = new formRow(...cols)
+                row.colCount = columnPerRow
+                this.rows.push(row)
                 cols = []
             }
         })
 
-        this.addRow(...cols)
+        if (cols.length > 0) {
+            const row = new formRow(...cols)
+            row.colCount = columnPerRow
+            this.rows.push(row)
+        }
     }
 
     getField(field) {

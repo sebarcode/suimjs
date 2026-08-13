@@ -12,7 +12,7 @@ const loadFormConfigFromData = (r) => {
                     f.colSpan = isNaN(f.width=="") || f.width=="0" ? "auto" : f.width 
                     return f
                 })
-                modeledRow.colCount = row.length
+                modeledRow.colCount = s.autoCol > 0 ? s.autoCol : row.length
                 return modeledRow
             })
             s.visible = true
