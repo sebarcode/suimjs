@@ -172,6 +172,7 @@
           :format="kind === 'date' ? dateOnlyFormat(dateFormat) : dateFormat"
           :placeholder="caption || label"
           :disabled="disabled"
+          :style="{ width: kind === 'date' ? '110px' : '150px' }"
           @focus="onFocus"
         />
 
