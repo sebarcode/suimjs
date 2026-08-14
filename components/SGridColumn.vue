@@ -17,14 +17,14 @@
             {{ util.formatMoney(record[columnConfig.field], {decimal:columnConfig.decimal}) }}
         </div>
         <div v-else-if="columnConfig.kind == 'date'">
-            <div v-if="moment(record[columnConfig.field]).local().year() >= 1901">
-                {{ moment(record[columnConfig.field]).local().format("DD-MMM-YYYY") }}
+            <div v-if="hasDisplayDate(record[columnConfig.field])">
+                {{ formatDate(record[columnConfig.field], 'date') }}
             </div>
             <div v-else>&nbsp;</div>
         </div>
         <div v-else-if="columnConfig.kind == 'datetime'">
-            <div v-if="moment(record[columnConfig.field]).local().year() >= 1901">
-                {{ moment(record[columnConfig.field]).local().format("DD-MMM-YYYY HH:mm:ss") }}
+            <div v-if="hasDisplayDate(record[columnConfig.field])">
+                {{ formatDate(record[columnConfig.field], 'datetime') }}
             </div>
             <div v-else>&nbsp;</div>
         </div>
@@ -67,6 +67,20 @@ function getLabel() {
             else data.txt = props.record[props.columnConfig.field]
         })
     }
+}
+
+function hasDisplayDate(value) {
+    if (!value) return false;
+
+    const date = moment.utc(value);
+    return date.isValid() && date.year() > 1;
+}
+
+function formatDate(value, kind) {
+    const configuredFormat = props.columnConfig.input?.dateFormat;
+    const dateFormat = configuredFormat || 'DD-MMM-YY';
+    const format = kind === 'datetime' ? `${dateFormat} HH:mm:ss` : dateFormat;
+    return moment.utc(value).local().format(format);
 }
 
 onMounted(() => {

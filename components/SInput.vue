@@ -88,6 +88,7 @@
           :multiple="multiple"
           :clearable="clearable"
           :placeholder="`Select ${caption || label || field}`"
+          :hide-placeholder="hidePlaceholder"
           @focus="onFocus"
           @item-added="onAddItem"
         >
@@ -236,10 +237,10 @@
     </label>
 
     <div class="bg-transparent" v-if="kind == 'datetime'">
-      {{ moment(value).local().format("DD-MMM-YYYY HH:mm:ssZ") }}
+      {{ formattedDateTime }}
     </div>
     <div class="bg-transparent" v-else-if="kind == 'date'">
-      {{ moment(value).local().format("DD-MMM-YYYY") }}
+      {{ formattedDate }}
     </div>
     <div class="bg-transparent text-right mt-2" v-else-if="kind == 'number'">
       {{ util.formatMoney(value, { decimal: decimal }) }}
@@ -352,6 +353,7 @@ const props = defineProps({
   keepErrorSection: { type: Boolean, default: false },
   width: { type: String, default: "" },
   showClearButton:{ type: Boolean, default: true },
+  hidePlaceholder: { type: Boolean, default: false },
 });
 
 const emit = defineEmits({
@@ -376,12 +378,12 @@ const value = computed({
   get() {
     switch (props.kind) {
       case "date":
-        if (props.modelValue) return moment.utc(props.modelValue).local().format("YYYY-MM-DD")
+        if (!isEmptyDate(props.modelValue)) return moment.utc(props.modelValue).local().format("YYYY-MM-DD")
           else return null;
 
       case "datetime":
       case "timestamp":
-        if (props.modelValue)  
+        if (!isEmptyDate(props.modelValue))
           return moment.utc(props.modelValue).local().format("YYYY-MM-DDTHH:mm")
           else return null;
 
@@ -427,6 +429,27 @@ function updateDateTimeValue(value) {
 
 const errorsTxt = computed(() => {
   return state.errors.filter((x) => x != "").join(", ");
+});
+
+function isEmptyDate(date) {
+  if (!date) return true;
+
+  const parsed = moment.utc(date);
+  return !parsed.isValid() || parsed.year() <= 1;
+}
+
+function formatDate(date, format) {
+  if (isEmptyDate(date)) return "";
+  return moment.utc(date).local().format(format);
+}
+
+const formattedDate = computed(() => {
+  return formatDate(props.modelValue, props.dateFormat || "DD-MMM-YY");
+});
+
+const formattedDateTime = computed(() => {
+  const dateFormat = props.dateFormat || "DD-MMM-YY";
+  return formatDate(props.modelValue, `${dateFormat} HH:mm:ss`);
 });
 
 onMounted(() => {

@@ -2,7 +2,7 @@
     <div class="sdd_root sdd" ref="root">
         <div class="sdd_row" v-if="!readOnly">
             <div class="sdd_toggle bg-amber-950">
-                <div class="text-gray-400 w-full sdd" @click="bodyClick" v-if="!open && !selectedLabel">
+                <div class="text-gray-400 w-full sdd" @click="bodyClick" v-if="!open && !selectedLabel && !hidePlaceholder">
                     {{ placeholder }}
                 </div>
                 <div class="sdd sdd_body" @click="bodyClick">
@@ -115,6 +115,7 @@ const props = defineProps({
     itemKey: { type: String, default: 'key' },
     itemLabel: { type: String, default: 'text' },
     placeholder: { type: String, default: 'Select an option' },
+    hidePlaceholder: { type: Boolean, default: false },
     searchable: { type: Boolean, default: true },
     clearable: { type: Boolean, default: true },
     multiple: { type: Boolean, default: false },

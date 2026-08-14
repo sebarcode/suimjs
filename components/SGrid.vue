@@ -430,6 +430,7 @@
                         :decimal="hdr.input.decimal"
                         :date-format="hdr.input.dateFormat"
                         :multiple="hdr.input.multiple"
+                        hide-placeholder
                         :lookup-labels="hdr.input.lookupLabels"
                         :lookup-payload-builder="resolveInputLookupPayloadBuilder(hdr.input.lookupPayloadBuilder, r, hdr, rIdx)"
                         :lookup-searchs="
