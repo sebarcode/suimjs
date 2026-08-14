@@ -164,22 +164,20 @@
 
       <!-- all other input type -->
       <div v-else>
-        <input
-          v-if="kind=='datetime'"
-          type="datetime-local"
-          :placeholder="caption || label"
-          class="input_field"
-          :value="value"
-          @input="updateDateTimeValue($event.target.value)"
+        <s-date-time
+          v-if="kind == 'date' || kind == 'datetime'"
           ref="control"
+          v-model="value"
+          :mode="kind"
+          :format="kind === 'date' ? dateOnlyFormat(dateFormat) : dateFormat"
+          :placeholder="caption || label"
           :disabled="disabled"
           @focus="onFocus"
-          autocomplete="off"
         />
 
         <input
           v-else-if="multiRow <= 1 && kind != 'number'"
-          :type="kind=='datetime' ? 'datetime-local' : kind"
+          :type="kind"
           :placeholder="caption || label"
           class="input_field"
           v-model="value"
@@ -304,6 +302,7 @@ import moment from "moment";
 import util from "../scripts/util";
 import SEditor from './SEditor.vue';
 import SJsonEditor from "./SJsonEditor.vue";
+import SDateTime from "./SDateTime.vue";
 
 const control = ref(null);
 const props = defineProps({
@@ -398,7 +397,7 @@ const value = computed({
         if (v == null || v == "") {
           v = null;
         } else {
-          v = moment(v, "YYYY-MM-DD").utc().format();
+          v = moment(v, [moment.ISO_8601, "YYYY-MM-DD"], true).utc().format();
         }
         break;
     
@@ -444,13 +443,16 @@ function formatDate(date, format) {
 }
 
 const formattedDate = computed(() => {
-  return formatDate(props.modelValue, props.dateFormat || "DD-MMM-YY");
+  return formatDate(props.modelValue, dateOnlyFormat(props.dateFormat));
 });
 
 const formattedDateTime = computed(() => {
-  const dateFormat = props.dateFormat || "DD-MMM-YY";
-  return formatDate(props.modelValue, `${dateFormat} HH:mm:ss`);
+  return formatDate(props.modelValue, props.dateFormat || "DD-MMM-YY HH:mm:ss");
 });
+
+function dateOnlyFormat(format) {
+  return String(format || "DD-MMM-YY").split(/[ T]/, 1)[0] || "DD-MMM-YY";
+}
 
 onMounted(() => {
   if (props.validateOnMount) validate();

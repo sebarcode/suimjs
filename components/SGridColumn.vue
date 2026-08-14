@@ -16,15 +16,15 @@
         <div v-else-if="columnConfig.kind == 'number'" style="text-align:right">
             {{ util.formatMoney(record[columnConfig.field], {decimal:columnConfig.decimal}) }}
         </div>
-        <div v-else-if="columnConfig.kind == 'date'">
+        <div v-else-if="displayKind == 'date'">
             <div v-if="hasDisplayDate(record[columnConfig.field])">
-                {{ formatDate(record[columnConfig.field], 'date') }}
+                {{ formatDate(record[columnConfig.field]) }}
             </div>
             <div v-else>&nbsp;</div>
         </div>
-        <div v-else-if="columnConfig.kind == 'datetime'">
+        <div v-else-if="displayKind == 'datetime'">
             <div v-if="hasDisplayDate(record[columnConfig.field])">
-                {{ formatDate(record[columnConfig.field], 'datetime') }}
+                {{ formatDate(record[columnConfig.field]) }}
             </div>
             <div v-else>&nbsp;</div>
         </div>
@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { inject, onMounted, reactive } from 'vue';
+import { computed, inject, onMounted, reactive } from 'vue';
 import util from '../scripts/util.js';
 import moment from 'moment';
 
@@ -50,6 +50,8 @@ const axios = inject("axios")
 const data = reactive({
     txt: ""
 })
+
+const displayKind = computed(() => props.columnConfig.input?.kind || props.columnConfig.kind);
 
 function getLabel() {
     if (props.columnConfig.input.lookupUrl != undefined && props.columnConfig.input.lookupUrl != "") {
@@ -76,11 +78,16 @@ function hasDisplayDate(value) {
     return date.isValid() && date.year() > 1;
 }
 
-function formatDate(value, kind) {
+function formatDate(value) {
     const configuredFormat = props.columnConfig.input?.dateFormat;
-    const dateFormat = configuredFormat || 'DD-MMM-YY';
-    const format = kind === 'datetime' ? `${dateFormat} HH:mm:ss` : dateFormat;
+    const format = displayKind.value === 'date'
+        ? dateOnlyFormat(configuredFormat)
+        : configuredFormat || 'DD-MMM-YY HH:mm:ss';
     return moment.utc(value).local().format(format);
+}
+
+function dateOnlyFormat(format) {
+    return String(format || 'DD-MMM-YY').split(/[ T]/, 1)[0] || 'DD-MMM-YY';
 }
 
 onMounted(() => {
