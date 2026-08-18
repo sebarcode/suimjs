@@ -449,6 +449,7 @@
                         :record="r"
                         :column-config="hdr"
                         :label-method="labelMethod"
+                        :id-field-name="idFieldName"
                       />
                     </div>
                   </slot>
@@ -660,6 +661,7 @@ const props = defineProps({
   disableDblClick: { type: Boolean, default: false },
   fixColumn: { type: Number, default: 0 },
   secondaryRow: { type: Boolean, default: false },
+  idFieldName: { type: String, default: "_id" },
 });
 
 const axios = inject("axios");
@@ -1489,7 +1491,7 @@ function setRecord(recordIndex, record) {
 
 function setRecordByID(record) {
   data.items.forEach((dt, index) => {
-    if (dt._id == record._id) {
+    if (dt[props.idFieldName] == record[props.idFieldName]) {
       data.items[index] = normalizeGridRow(record);   
     }
   });

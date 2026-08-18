@@ -98,6 +98,7 @@
         :hide-delete-button="gridHideDelete"
         :label-method="gridLabelMethod"
         :hide-refresh-button="gridHideRefresh"
+        :id-field-name="idFieldName"
         :hide-new-button="gridHideNew"
         :custom-filter="gridCustomFilter"
         :no-confirm-delete="gridNoConfirmDelete"
@@ -431,6 +432,7 @@ const props = defineProps({
   newRecordType: { type: String, default: "form" },
   //initFormMode: { type: String, default: "edit" },
   preSaveFn: { type: Function, default: null },
+  idFieldName: { type: String, default: "_id" },
 });
 
 const axios = inject("axios");
@@ -625,7 +627,7 @@ function selectData(dt, index, isAfterSave = false) {
   }
   
   data.loadingSelectData =true
-  axios.post(props.formRead, [dt._id]).then(
+  axios.post(props.formRead, [dt[props.idFieldName]]).then(
     (r) => {
       
      data.loadingSelectData = false
@@ -652,7 +654,7 @@ function selectData(dt, index, isAfterSave = false) {
 }
 
 function readFormRecord(dt) {
-  axios.post(props.formRead, [dt._id]).then(
+  axios.post(props.formRead, [dt[props.idFieldName]]).then(
     (r) => {      
       emit("formEditData", r.data);
       data.record = r.data;

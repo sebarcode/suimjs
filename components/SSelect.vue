@@ -303,7 +303,7 @@ async function getLookupLabel(id) {
 
   const url =
     props.lookupUrl +
-    (props.lookupUrl.indexOf("?") > 0 ? "&_id=" + id : "?_id=" + id);
+    (props.lookupUrl.indexOf("?") > 0 ? "&" + (props.lookupKey || "_id") + "=" + id : "?" + (props.lookupKey || "_id") + "=" + id);
 
   await axios.post(url, { Take: 1 }).then(
     (r) => {

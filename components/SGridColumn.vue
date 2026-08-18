@@ -42,7 +42,8 @@ import moment from 'moment';
 const props = defineProps({
     labelMethod: { type: String, default: "none" },
     record: { type: Object, default: () => { } },
-    columnConfig: { type: Object, default: () => { } }
+    columnConfig: { type: Object, default: () => { } },
+    idFieldName: { type: String, default: "_id" }
 })
 
 const axios = inject("axios")
@@ -57,7 +58,7 @@ function getLabel() {
     if (props.columnConfig.input.lookupUrl != undefined && props.columnConfig.input.lookupUrl != "") {
         axios.post(props.columnConfig.input.lookupUrl, {
             "Where": {
-                "Field": "_id", "Op": "$eq",
+                "Field": props.columnConfig.input.lookupKey || props.idFieldName, "Op": "$eq",
                 "Value": props.record[props.columnConfig.field]
             },
             "Select": props.columnConfig.input.lookupLabels,
