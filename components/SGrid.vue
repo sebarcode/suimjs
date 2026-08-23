@@ -354,7 +354,10 @@
             >
               <tr
                 class="suim_data_row cursor-pointer border-b-[1px] border-slate-200 last:border-none hover:bg-slate-200 group"
-                :class="{ 'even:bg-slate-100': !editor && !singleColor, 'hover:none':hideEdit}"
+                :class="[
+                  { 'even:bg-slate-100': !editor && !singleColor, 'hover:none':hideEdit },
+                  rowClass ? rowClass(r, rIdx) : ''
+                ]"
                 :data-row-index="rIdx"
                 @dblclick="selectData(r, 'detail', true)"
                 @focusin="onRowFocus(rIdx)"
@@ -661,6 +664,7 @@ const props = defineProps({
   disableDblClick: { type: Boolean, default: false },
   fixColumn: { type: Number, default: 0 },
   secondaryRow: { type: Boolean, default: false },
+  rowClass: { type: Function, default: null },
   idFieldName: { type: String, default: "_id" },
 });
 

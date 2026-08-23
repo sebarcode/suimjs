@@ -111,6 +111,7 @@
         :fix-column="gridFixColumn"
         :keyword-operation="gridKeywordOperation"
         :secondary-row="gridSecondaryRow"
+        :row-class="gridRowClass"
         @select-data="selectData"
         @new-data="newData"
         @get-data="getData"
@@ -395,6 +396,7 @@ const props = defineProps({
   gridPageSize: { type: Number, default: 20 },
   gridFixColumn: { type: Number, default: 0 },
   gridSecondaryRow: { type: Boolean, default: false },
+  gridRowClass: { type: Function, default: null },
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => undefined },
