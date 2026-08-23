@@ -273,32 +273,26 @@
                 data-role="data"
                 :data-col-index="hdrIndex"
               >
-                <div class="flex w-full items-center justify-between">
-                  <div class="grow">{{ hdr.label }}</div>
-                  <div 
-                    class="items-end justify-end align-right flex flex-col"
-                    v-if="props.config.setting.sortable?.indexOf(hdr.field) >= 0 && !hideSort"
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-1 text-inherit"
+                    :class="isSortable(hdr) ? 'cursor-pointer' : 'cursor-default'"
+                    :aria-label="isSortable(hdr) ? `Sort by ${hdr.label}` : undefined"
+                    @click="toggleSort(hdr)"
                   >
-                    <svg 
-                      :class="data.sortField === hdr.field && data.sortDirection === 'asc' ? 'text-grey-300 disabled cursor-not-allowed' : 'text-white cursor-pointer'" 
-                      class="h-3 w-3 -mb-1 cursor-pointer" 
-                      @click="changeSortOpts(hdr.field, 'asc')"
-                      fill="currentColor"  
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M7,14L12,9L17,14H7Z" />
-                    </svg>
-                    <svg 
-                      :class="data.sortField === hdr.field && data.sortDirection === 'desc' ? 'text-grey-300 disabled cursor-not-allowed' : 'text-white cursor-pointer'" 
-                      class="h-3 w-3 cursor-pointer"
-                      fill="currentColor" 
-                      viewBox="0 0 24 24"
-                      @click="changeSortOpts(hdr.field, 'desc')"
-                    >
-                      <path d="M7,10L12,15L17,10H7Z" />
-                    </svg>
-                  </div>
-                </div>
+                  <span class="grow">{{ hdr.label }}</span>
+                  <svg
+                    v-if="isSortable(hdr)"
+                    class="h-4 w-4 shrink-0"
+                    :class="data.sortField === hdr.field ? 'text-slate-700' : 'text-slate-400'"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path v-if="data.sortField === hdr.field && data.sortDirection === 'desc'" d="M7,10L12,15L17,10H7Z" />
+                    <path v-else d="M7,14L12,9L17,14H7Z" />
+                  </svg>
+                </button>
                 <button
                   type="button"
                   class="suim_col_resize_handle"
@@ -1279,6 +1273,19 @@ function checkUncheckAll(ev) {
   const checked = ev.target.checked;
   data.items.forEach((i) => (i.isSelected = checked));
   emit("checkUncheckAll", checked);
+}
+
+function isSortable(hdr = {}) {
+  return !props.hideSort && (props.config?.setting?.sortable || []).includes(hdr.field);
+}
+
+function toggleSort(hdr = {}) {
+  if (!isSortable(hdr)) return;
+
+  const direction = data.sortField === hdr.field && data.sortDirection === "asc"
+    ? "desc"
+    : "asc";
+  changeSortOpts(hdr.field, direction);
 }
 
 function changeSortOpts(field, direction) {
