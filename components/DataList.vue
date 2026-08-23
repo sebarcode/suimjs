@@ -112,6 +112,7 @@
         :keyword-operation="gridKeywordOperation"
         :secondary-row="gridSecondaryRow"
         :row-class="gridRowClass"
+        :fit-viewport="gridFitViewport"
         @select-data="selectData"
         @new-data="newData"
         @get-data="getData"
@@ -397,6 +398,7 @@ const props = defineProps({
   gridFixColumn: { type: Number, default: 0 },
   gridSecondaryRow: { type: Boolean, default: false },
   gridRowClass: { type: Function, default: null },
+  gridFitViewport: { type: Boolean, default: false },
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => undefined },

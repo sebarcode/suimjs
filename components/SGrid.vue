@@ -1,5 +1,5 @@
 <template>
-  <div ref="gridRoot" class="flex flex-col gap-1 suim_grid w-full max-w-full">
+  <div ref="gridRoot" class="flex flex-col gap-1 suim_grid w-full max-w-full" :class="{ 'suim_viewport_grid': fitViewport }">
     <s-modal :display="false" ref="deleteModal" @submit="confirmDelete">
       You will delete data ! Are you sure ?<br />
       Please be noted, this can not be undone !
@@ -238,6 +238,7 @@
           ref="tableScrollerEl"
           class="suim_area_table overflow-x-auto w-full max-w-full"
           :class="{ 'suim_grid_scroll': scrollMode }"
+          :style="tableScrollerStyle"
         >
           <table
             ref="tableEl"
@@ -548,7 +549,7 @@
           <slot name="grid_total" :item="data.total"></slot>
         </div>
 
-        <div v-if="!props.hideFooter" class="footer">
+        <div v-if="!props.hideFooter" ref="gridFooterEl" class="footer">
           <slot
             name="footer_1"
             v-bind="{
@@ -660,6 +661,7 @@ const props = defineProps({
   secondaryRow: { type: Boolean, default: false },
   rowClass: { type: Function, default: null },
   idFieldName: { type: String, default: "_id" },
+  fitViewport: { type: Boolean, default: false },
 });
 
 const axios = inject("axios");
@@ -747,13 +749,21 @@ const showInlineSearch = ref(false);
 const tableEl = ref(null);
 const tableScrollerEl = ref(null);
 const bottomScrollerEl = ref(null);
+const gridFooterEl = ref(null);
 const gridRoot = ref(null);
 const colLefts = ref({});
 const shortcutScopeId = `sgrid-shortcut-${++sGridShortcutScopeSeq}`;
 const bottomScrollWidth = ref("0px");
 const showBottomScrollbar = ref(false);
+const viewportTableHeight = ref("");
 let syncingMainScroll = false;
 let syncingBottomScroll = false;
+
+const tableScrollerStyle = computed(() => {
+  return props.fitViewport && viewportTableHeight.value
+    ? { maxHeight: viewportTableHeight.value }
+    : {};
+});
 
 function resetCustomFilter(){
   emit("resetCustomFilter")
@@ -1115,6 +1125,32 @@ function stickyTdBg(rowIndex) {
 
 let stickyObserver = null;
 let stickyTarget = null;
+let viewportObserver = null;
+
+function updateViewportHeight() {
+  if (!props.fitViewport || !tableScrollerEl.value || typeof window === "undefined") {
+    viewportTableHeight.value = "";
+    return;
+  }
+
+  const tableTop = tableScrollerEl.value.getBoundingClientRect().top;
+  const footerHeight = gridFooterEl.value?.offsetHeight || 0;
+  const bottomScrollbarHeight = bottomScrollerEl.value?.offsetHeight || 0;
+  const totalHeight = gridRoot.value?.querySelector(".suim_total_area")?.offsetHeight || 0;
+  const availableHeight = Math.floor(window.innerHeight - tableTop - footerHeight - bottomScrollbarHeight - totalHeight - 16);
+
+  viewportTableHeight.value = `${Math.max(0, availableHeight)}px`;
+  nextTick(updateBottomScrollbar);
+}
+
+function ensureViewportObserver() {
+  if (!props.fitViewport || typeof ResizeObserver === "undefined") return;
+  if (viewportObserver) viewportObserver.disconnect();
+
+  viewportObserver = new ResizeObserver(() => updateViewportHeight());
+  if (gridRoot.value) viewportObserver.observe(gridRoot.value);
+  if (gridFooterEl.value) viewportObserver.observe(gridFooterEl.value);
+}
 
 function ensureStickyObserver() {
   if (tableEl.value && tableEl.value !== stickyTarget) {
@@ -1248,7 +1284,11 @@ watch(
   () => [data.items.length, props.modelValue],
   () => {
     refreshSticky();
-    nextTick(updateBottomScrollbar);
+    nextTick(() => {
+      ensureViewportObserver();
+      updateViewportHeight();
+      updateBottomScrollbar();
+    });
   },
   { flush: "post" }
 );
@@ -1257,7 +1297,11 @@ watch(
   () => [props.config, props.fixColumn, props.editor, props.hideSelect],
   () => {
     refreshSticky();
-    nextTick(updateBottomScrollbar);
+    nextTick(() => {
+      ensureViewportObserver();
+      updateViewportHeight();
+      updateBottomScrollbar();
+    });
   },
   { flush: "post" }
 );
@@ -1583,6 +1627,7 @@ defineExpose({
 
 onMounted(() => {
   tableScrollerEl.value?.addEventListener("scroll", syncScrollFromMain, { passive: true });
+  window.addEventListener("resize", updateViewportHeight, { passive: true });
   sGridShortcutRegistry.set(shortcutScopeId, {
     id: shortcutScopeId,
     order: sGridShortcutScopeSeq,
@@ -1598,7 +1643,11 @@ onMounted(() => {
     resolveActiveShortcutScope();
   }
   refreshSticky();
-  nextTick(updateBottomScrollbar);
+  nextTick(() => {
+    ensureViewportObserver();
+    updateViewportHeight();
+    updateBottomScrollbar();
+  });
   //refreshData();
   //console.log(`mounting grid ${props.config.title}`);
 });
@@ -1606,6 +1655,7 @@ onMounted(() => {
 onUnmounted(() => {
   stopColumnResize();
   tableScrollerEl.value?.removeEventListener("scroll", syncScrollFromMain);
+  window.removeEventListener("resize", updateViewportHeight);
   document.removeEventListener("keydown", handleKeyDown);
   gridRoot.value?.removeEventListener("focusin", activateShortcutScope);
   gridRoot.value?.removeEventListener("mousedown", activateShortcutScope);
@@ -1616,6 +1666,7 @@ onUnmounted(() => {
     resolveActiveShortcutScope();
   }
   if (stickyObserver) stickyObserver.disconnect();
+  if (viewportObserver) viewportObserver.disconnect();
   //console.log(`unmounting grid ${props.config.title}`);
 });
 
@@ -1857,6 +1908,42 @@ const calcSearchQuery = computed(() => {
   max-width: 100%;
 }
 
+/* Keep the data area inside the viewport while controls and footer remain visible. */
+.suim_viewport_grid {
+  min-height: 0;
+}
+
+.suim_viewport_grid .suim_area_table {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  -ms-overflow-style: auto;
+}
+
+.suim_viewport_grid .suim_area_table::-webkit-scrollbar {
+  display: block;
+  width: 10px;
+  height: 0;
+}
+
+.suim_viewport_grid .suim_table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.suim_viewport_grid .suim_table thead tr:nth-child(2) td {
+  position: sticky;
+  top: 33px;
+  z-index: 4;
+}
+
+.suim_viewport_grid .footer {
+  flex: 0 0 auto;
+  background: #fff;
+}
+
 .suim_table tbody tr.suim_data_row + tr.suim_data_row,
 .suim_table tbody tr.suim_secondary_row + tr.suim_data_row {
   border-top: 1px solid #cbd5e1;
@@ -1870,7 +1957,7 @@ const calcSearchQuery = computed(() => {
 }
 
 .suim_grid_scroll thead th.suim_sticky {
-  z-index: 3;
+  z-index: 5;
 }
 
 /* Fixed (sticky) action column on the right when fixColumn > 0 */
@@ -1882,7 +1969,7 @@ const calcSearchQuery = computed(() => {
 }
 
 .suim_grid_scroll thead th.suim_sticky_right {
-  z-index: 3;
+  z-index: 5;
 }
 
 .suim_col_resize_handle {
