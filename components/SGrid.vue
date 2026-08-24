@@ -1513,7 +1513,7 @@ function selectData(data, index, dblclick) {
   if (dblclick && props.disableDblClick) return;
   if (dblclick && props.editor) return;
   data.currentIndex = index;
-  emit("selectData", data, index);
+  emit("selectData", data, index, dblclick === true);
 }
 function changePageSize(pageSize){
   data.pageSize = pageSize
