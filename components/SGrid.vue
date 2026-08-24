@@ -239,6 +239,10 @@
           class="suim_area_table overflow-x-auto w-full max-w-full"
           :class="{ 'suim_grid_scroll': scrollMode }"
           :style="tableScrollerStyle"
+          @pointerdown="startHorizontalDrag"
+          @pointermove="moveHorizontalDrag"
+          @pointerup="stopHorizontalDrag"
+          @pointercancel="stopHorizontalDrag"
         >
           <table
             ref="tableEl"
@@ -758,6 +762,14 @@ const showBottomScrollbar = ref(false);
 const viewportTableHeight = ref("");
 let syncingMainScroll = false;
 let syncingBottomScroll = false;
+const horizontalDrag = reactive({
+  active: false,
+  moved: false,
+  pointerId: null,
+  startX: 0,
+  startY: 0,
+  startScrollLeft: 0,
+});
 
 const tableScrollerStyle = computed(() => {
   return props.fitViewport && viewportTableHeight.value
@@ -1198,7 +1210,7 @@ function updateBottomScrollbar() {
     return;
   }
 
-  const scrollWidth = Math.ceil(table.scrollWidth || 0);
+  const scrollWidth = Math.ceil(Math.max(scroller.scrollWidth || 0, table.scrollWidth || 0));
   const clientWidth = Math.ceil(scroller.clientWidth || 0);
   bottomScrollWidth.value = `${scrollWidth}px`;
   showBottomScrollbar.value = scrollWidth > clientWidth + 1;
@@ -1206,6 +1218,48 @@ function updateBottomScrollbar() {
   if (bottomScrollerEl.value && !syncingMainScroll) {
     bottomScrollerEl.value.scrollLeft = scroller.scrollLeft;
   }
+}
+
+function isHorizontalDragTarget(target) {
+  if (!(target instanceof Element)) return false;
+  if (!target.closest("tbody")) return false;
+  return !target.closest("input, textarea, select, button, a, label, [contenteditable='true'], .suim_editor_input");
+}
+
+function startHorizontalDrag(event) {
+  if (!tableScrollerEl.value || !isHorizontalDragTarget(event.target)) return;
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+
+  horizontalDrag.active = true;
+  horizontalDrag.moved = false;
+  horizontalDrag.pointerId = event.pointerId;
+  horizontalDrag.startX = event.clientX;
+  horizontalDrag.startY = event.clientY;
+  horizontalDrag.startScrollLeft = tableScrollerEl.value.scrollLeft;
+  tableScrollerEl.value.setPointerCapture?.(event.pointerId);
+}
+
+function moveHorizontalDrag(event) {
+  if (!horizontalDrag.active || horizontalDrag.pointerId !== event.pointerId || !tableScrollerEl.value) return;
+
+  const deltaX = event.clientX - horizontalDrag.startX;
+  const deltaY = event.clientY - horizontalDrag.startY;
+  if (!horizontalDrag.moved) {
+    if (Math.abs(deltaX) < 4 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+    horizontalDrag.moved = true;
+  }
+
+  event.preventDefault();
+  tableScrollerEl.value.scrollLeft = horizontalDrag.startScrollLeft - deltaX;
+}
+
+function stopHorizontalDrag(event) {
+  if (!horizontalDrag.active || (event && horizontalDrag.pointerId !== event.pointerId)) return;
+  if (tableScrollerEl.value?.hasPointerCapture?.(horizontalDrag.pointerId)) {
+    tableScrollerEl.value.releasePointerCapture(horizontalDrag.pointerId);
+  }
+  horizontalDrag.active = false;
+  horizontalDrag.pointerId = null;
 }
 
 function syncScrollFromMain() {
@@ -1654,6 +1708,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopColumnResize();
+  stopHorizontalDrag();
   tableScrollerEl.value?.removeEventListener("scroll", syncScrollFromMain);
   window.removeEventListener("resize", updateViewportHeight);
   document.removeEventListener("keydown", handleKeyDown);
@@ -1914,9 +1969,10 @@ const calcSearchQuery = computed(() => {
 }
 
 .suim_viewport_grid .suim_area_table {
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   scrollbar-width: thin;
   -ms-overflow-style: auto;
 }
@@ -1924,7 +1980,23 @@ const calcSearchQuery = computed(() => {
 .suim_viewport_grid .suim_area_table::-webkit-scrollbar {
   display: block;
   width: 10px;
-  height: 0;
+  height: 10px;
+}
+
+.suim_bottom_scroller::-webkit-scrollbar {
+  display: block;
+  height: 12px;
+}
+
+.suim_bottom_scroller::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.suim_bottom_scroller::-webkit-scrollbar-thumb {
+  background: #64748b;
+  border: 2px solid #e2e8f0;
+  border-radius: 999px;
 }
 
 .suim_viewport_grid .suim_table thead th {
