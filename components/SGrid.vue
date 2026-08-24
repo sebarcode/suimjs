@@ -358,7 +358,7 @@
                   rowClass ? rowClass(r, rIdx) : ''
                 ]"
                 :data-row-index="rIdx"
-                @dblclick="selectData(r, 'detail', true)"
+                @dblclick="selectData(r, rIdx, true)"
                 @focusin="onRowFocus(rIdx)"
               >
                 <td
@@ -1509,11 +1509,11 @@ function confirmDelete() {
   data.deleteFn();
 }
 
-function selectData(data, index, dblclick) {
+function selectData(record, index, dblclick) {
   if (dblclick && props.disableDblClick) return;
   if (dblclick && props.editor) return;
   data.currentIndex = index;
-  emit("selectData", data, index, dblclick === true);
+  emit("selectData", record, index, dblclick === true);
 }
 function changePageSize(pageSize){
   data.pageSize = pageSize
