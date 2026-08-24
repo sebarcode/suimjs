@@ -358,7 +358,7 @@
                   rowClass ? rowClass(r, rIdx) : ''
                 ]"
                 :data-row-index="rIdx"
-                @dblclick="selectData(r, rIdx, true)"
+                @dblclick.capture="handleRowDblClick($event, r, rIdx)"
                 @focusin="onRowFocus(rIdx)"
               >
                 <td
@@ -1201,7 +1201,6 @@ function startHorizontalDrag(event) {
   horizontalDrag.startX = event.clientX;
   horizontalDrag.startY = event.clientY;
   horizontalDrag.startScrollLeft = tableScrollerEl.value.scrollLeft;
-  tableScrollerEl.value.setPointerCapture?.(event.pointerId);
 }
 
 function moveHorizontalDrag(event) {
@@ -1212,6 +1211,7 @@ function moveHorizontalDrag(event) {
   if (!horizontalDrag.moved) {
     if (Math.abs(deltaX) < 4 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
     horizontalDrag.moved = true;
+    tableScrollerEl.value.setPointerCapture?.(event.pointerId);
   }
 
   event.preventDefault();
@@ -1507,6 +1507,11 @@ function deleteData(record, dataIndex) {
 function confirmDelete() {
   deleteModal.value.hide();
   data.deleteFn();
+}
+
+function handleRowDblClick(event, record, index) {
+  if (!isHorizontalDragTarget(event.target)) return;
+  selectData(record, index, true);
 }
 
 function selectData(record, index, dblclick) {
