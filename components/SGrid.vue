@@ -536,15 +536,6 @@
         </div>
 
         <div
-          v-if="showBottomScrollbar"
-          ref="bottomScrollerEl"
-          class="suim_bottom_scroller"
-          @scroll="syncScrollFromBottom"
-        >
-          <div class="suim_bottom_scroller_inner" :style="{ width: bottomScrollWidth }"></div>
-        </div>
-
-        <div
           v-if="totalUrl !== ''"
           name="grid_total_area"
           class="suim_total_area"
@@ -752,16 +743,11 @@ const deleteModal = ref(null);
 const showInlineSearch = ref(false);
 const tableEl = ref(null);
 const tableScrollerEl = ref(null);
-const bottomScrollerEl = ref(null);
 const gridFooterEl = ref(null);
 const gridRoot = ref(null);
 const colLefts = ref({});
 const shortcutScopeId = `sgrid-shortcut-${++sGridShortcutScopeSeq}`;
-const bottomScrollWidth = ref("0px");
-const showBottomScrollbar = ref(false);
 const viewportTableHeight = ref("");
-let syncingMainScroll = false;
-let syncingBottomScroll = false;
 const horizontalDrag = reactive({
   active: false,
   moved: false,
@@ -1147,12 +1133,10 @@ function updateViewportHeight() {
 
   const tableTop = tableScrollerEl.value.getBoundingClientRect().top;
   const footerHeight = gridFooterEl.value?.offsetHeight || 0;
-  const bottomScrollbarHeight = bottomScrollerEl.value?.offsetHeight || 0;
   const totalHeight = gridRoot.value?.querySelector(".suim_total_area")?.offsetHeight || 0;
-  const availableHeight = Math.floor(window.innerHeight - tableTop - footerHeight - bottomScrollbarHeight - totalHeight - 16);
+  const availableHeight = Math.floor(window.innerHeight - tableTop - footerHeight - totalHeight - 16);
 
   viewportTableHeight.value = `${Math.max(0, availableHeight)}px`;
-  nextTick(updateBottomScrollbar);
 }
 
 function ensureViewportObserver() {
@@ -1201,25 +1185,6 @@ function refreshSticky() {
   nextTick(updateSticky);
 }
 
-function updateBottomScrollbar() {
-  const scroller = tableScrollerEl.value;
-  const table = tableEl.value;
-  if (!scroller || !table) {
-    showBottomScrollbar.value = false;
-    bottomScrollWidth.value = "0px";
-    return;
-  }
-
-  const scrollWidth = Math.ceil(Math.max(scroller.scrollWidth || 0, table.scrollWidth || 0));
-  const clientWidth = Math.ceil(scroller.clientWidth || 0);
-  bottomScrollWidth.value = `${scrollWidth}px`;
-  showBottomScrollbar.value = scrollWidth > clientWidth + 1;
-
-  if (bottomScrollerEl.value && !syncingMainScroll) {
-    bottomScrollerEl.value.scrollLeft = scroller.scrollLeft;
-  }
-}
-
 function isHorizontalDragTarget(target) {
   if (!(target instanceof Element)) return false;
   if (!target.closest("tbody")) return false;
@@ -1262,28 +1227,6 @@ function stopHorizontalDrag(event) {
   horizontalDrag.pointerId = null;
 }
 
-function syncScrollFromMain() {
-  if (!tableScrollerEl.value || !bottomScrollerEl.value) return;
-  syncingMainScroll = true;
-  if (!syncingBottomScroll) {
-    bottomScrollerEl.value.scrollLeft = tableScrollerEl.value.scrollLeft;
-  }
-  requestAnimationFrame(() => {
-    syncingMainScroll = false;
-  });
-}
-
-function syncScrollFromBottom() {
-  if (!tableScrollerEl.value || !bottomScrollerEl.value) return;
-  syncingBottomScroll = true;
-  if (!syncingMainScroll) {
-    tableScrollerEl.value.scrollLeft = bottomScrollerEl.value.scrollLeft;
-  }
-  requestAnimationFrame(() => {
-    syncingBottomScroll = false;
-  });
-}
-
 function setGridResizeCursor(active) {
   if (typeof document === "undefined") return;
   document.body.style.cursor = active ? "col-resize" : "";
@@ -1302,7 +1245,6 @@ function handleColumnResizeMove(event) {
     [resizeState.field]: `${nextWidth}px`,
   };
   refreshSticky();
-  nextTick(updateBottomScrollbar);
 }
 
 function stopColumnResize() {
@@ -1341,7 +1283,6 @@ watch(
     nextTick(() => {
       ensureViewportObserver();
       updateViewportHeight();
-      updateBottomScrollbar();
     });
   },
   { flush: "post" }
@@ -1354,7 +1295,6 @@ watch(
     nextTick(() => {
       ensureViewportObserver();
       updateViewportHeight();
-      updateBottomScrollbar();
     });
   },
   { flush: "post" }
@@ -1680,7 +1620,6 @@ defineExpose({
 });
 
 onMounted(() => {
-  tableScrollerEl.value?.addEventListener("scroll", syncScrollFromMain, { passive: true });
   window.addEventListener("resize", updateViewportHeight, { passive: true });
   sGridShortcutRegistry.set(shortcutScopeId, {
     id: shortcutScopeId,
@@ -1700,7 +1639,6 @@ onMounted(() => {
   nextTick(() => {
     ensureViewportObserver();
     updateViewportHeight();
-    updateBottomScrollbar();
   });
   //refreshData();
   //console.log(`mounting grid ${props.config.title}`);
@@ -1709,7 +1647,6 @@ onMounted(() => {
 onUnmounted(() => {
   stopColumnResize();
   stopHorizontalDrag();
-  tableScrollerEl.value?.removeEventListener("scroll", syncScrollFromMain);
   window.removeEventListener("resize", updateViewportHeight);
   document.removeEventListener("keydown", handleKeyDown);
   gridRoot.value?.removeEventListener("focusin", activateShortcutScope);
@@ -1947,18 +1884,6 @@ const calcSearchQuery = computed(() => {
   display: none;
 }
 
-.suim_bottom_scroller {
-  overflow-x: auto;
-  overflow-y: hidden;
-  max-width: 100%;
-  height: 14px;
-  scrollbar-width: thin;
-}
-
-.suim_bottom_scroller_inner {
-  height: 1px;
-}
-
 .suim_grid {
   max-width: 100%;
 }
@@ -1981,22 +1906,6 @@ const calcSearchQuery = computed(() => {
   display: block;
   width: 10px;
   height: 10px;
-}
-
-.suim_bottom_scroller::-webkit-scrollbar {
-  display: block;
-  height: 12px;
-}
-
-.suim_bottom_scroller::-webkit-scrollbar-track {
-  background: #e2e8f0;
-  border-radius: 999px;
-}
-
-.suim_bottom_scroller::-webkit-scrollbar-thumb {
-  background: #64748b;
-  border: 2px solid #e2e8f0;
-  border-radius: 999px;
 }
 
 .suim_viewport_grid .suim_table thead th {
