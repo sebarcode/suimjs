@@ -893,9 +893,8 @@ function save(saveData, cbOK, cbFalse, disableNotif) {
     emit("postSave", saveData, data.currentIndex);
     if (!stayOnForm.value) {
       data.controlMode = "grid";
-    } else {
-      if (disableNotif!==true) util.showInfo("data has been saved");
     }
+    if (disableNotif !== true) util.showInfo("Data has been saved.");
     cbOK();
     return;
   }
@@ -916,9 +915,9 @@ function save(saveData, cbOK, cbFalse, disableNotif) {
           })
         });
       } else {
-        if (disableNotif!==true) util.showInfo("data has been saved");
         selectData(data.record, "detail", true);
       }
+      if (disableNotif !== true) util.showInfo("Data has been saved.");
       cbOK();
     },
     (e) => {
