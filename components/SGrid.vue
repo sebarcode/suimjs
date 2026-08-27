@@ -1396,6 +1396,11 @@ function queryParam() {
   }
 
   param.Select = props.config.fields.map((f) => f.field);
+  // A hidden key must still be returned so DataList can open/update a row.
+  // Without it, idFieldName resolves to an empty value on row selection.
+  if (props.idFieldName && !param.Select.includes(props.idFieldName)) {
+    param.Select.push(props.idFieldName);
+  }
   return param;
 }
 

@@ -15,7 +15,7 @@
 
     <div
       v-if="data.listCfg.setting && gridMode == 'list'"
-      v-show="data.controlMode == 'grid'"
+      v-show="isGridVisible"
     >
       <s-list
         ref="gridCtl"
@@ -75,7 +75,7 @@
 
     <div
       v-if="data.listCfg.setting && gridMode == 'grid'"
-      v-show="data.controlMode == 'grid'"
+      v-show="isGridVisible"
     >
       <s-grid
         ref="gridCtl"
@@ -231,8 +231,139 @@
       </s-grid>
     </div>
 
+    <div
+      v-if="isOverlayForm"
+      class="form_view_overlay"
+      :class="`form_view_${normalizedFormViewMethod}`"
+    >
+      <div
+        class="form_view_backdrop"
+        aria-hidden="true"
+      ></div>
+      <section class="form_view_panel" :style="formViewPanelStyle">
+        <header class="form_view_header">
+          <span>{{ title }}</span>
+        </header>
+        <s-form
+          v-if="data.formCfg && data.formCfg.setting"
+          ref="formCtl"
+          v-model="data.record"
+          :keep-label="formKeepLabel"
+          :config="data.formCfg"
+          :mode="data.formMode"
+          class="form_view_form"
+          :auto-focus="formAutoFocus"
+          :focus="formFocus"
+          @submitForm="save"
+          :showButtonsOnAllTabs="formShowButtonsOnAllTabs"
+          :only-icon-top="formOnlyIcon"
+          :tabs="formTabTitles"
+          :initialTab="formInitialTab"
+          @cancelForm="cancelForm"
+          :hide-buttons="formHideButtons"
+          :hide-submit="['edit','view'].includes(data.formMode) && gridHideEdit && !data.isAfterSave ? true : formHideSubmit"
+          :hide-cancel="formHideCancel"
+          @fieldChange="handleFormFieldChange"
+          @recordChange="handleFormRecordChange"
+        >
+          <template
+            v-for="name in formFieldInputHeaderSlotNames"
+            v-slot:[name]="slotData"
+          >
+            <slot
+              :name="'form_' + name"
+              :item="slotData.item"
+              :config="slotData.config"
+              :mode="slotData.mode"
+            ></slot>
+          </template>
+
+          <template
+            v-for="name in formFieldInputSlotNames"
+            v-slot:[name]="slotData"
+          >
+            <slot
+              :name="'form_' + name"
+              :item="slotData.item"
+              :config="slotData.config"
+              :mode="slotData.mode"
+            ></slot>
+          </template>
+
+          <template
+            v-for="name in formFieldInputFooterSlotNames"
+            v-slot:[name]="slotData"
+          >
+            <slot
+              :name="'form_' + name"
+              :item="slotData.item"
+              :config="slotData.config"
+              :mode="slotData.mode"
+            ></slot>
+          </template>
+
+          <template
+            v-for="name in formFieldInputOptionSlotNames"
+            v-slot:[name]="slotData"
+          >
+            <slot :name="'form_' + name" :option="slotData.option" :mode="slotData.mode"></slot>
+          </template>
+
+          <template
+            v-for="name in formFieldInputSelectedOptionSlotNames"
+            v-slot:[name]="slotData"
+          >
+            <slot :name="'form_' + name" :option="slotData.option" :mode="slotData.mode"></slot>
+          </template>
+
+          <template v-for="tabName in formTabNames" v-slot:[tabName]="slotData">
+            <slot
+              :name="'form_' + tabName"
+              :item="slotData.item"
+              :config="{
+                formMode: data.formMode,
+                appMode: data.controlMode,
+                formCfg: data.formCfg,
+              }"
+              :mode="slotData.mode"
+            >
+              {{ tabName }}
+            </slot>
+          </template>
+
+          <template #form_header="{ item, config, mode}">
+            <slot name="form_header" :item="item" :config="config"  :mode="mode"></slot>
+          </template>
+
+          <template #loader>
+            <slot name="form_loader"></slot>
+          </template>
+
+          <template #buttons>
+            <slot name="form_buttons"></slot>
+          </template>
+
+          <template #buttons_1="{ item, config,inSubmission,loading, mode}">
+            <slot name="form_buttons_1" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
+          </template>
+
+          <template #buttons_2="{ item, config,inSubmission,loading,  mode}">
+            <slot name="form_buttons_2" :item="item" :config="config" :in-submission="inSubmission" :loading="loading" :mode="mode"></slot>
+          </template>
+
+          <template v-slot:footer_1="{ item, config, mode}">
+            <slot name="form_footer_1" :item="item" :config="config" :mode="mode"></slot>
+          </template>
+
+          <template v-slot:footer_2="{ item, config, mode}">
+            <slot name="form_footer_2" :item="item" :config="config" :mode="mode"></slot>
+          </template>
+        </s-form>
+      </section>
+    </div>
+
     <s-form
-      v-if="data.controlMode == 'form' && data.formCfg && data.formCfg.setting"
+      v-if="isInlineForm"
       ref="formCtl"
       v-model="data.record"
       :keep-label="formKeepLabel"
@@ -432,6 +563,18 @@ const props = defineProps({
   formTabsEdit: { type: Array, default: () => [] },
   formTabsView: { type: Array, default: () => [] },
   formInitialTab: { type: Number, default: 0 },
+  // inline keeps the existing DataList behavior. modal and sidebar keep the
+  // grid visible and show the form above it.
+  formViewMethod: { type: String, default: "" },
+  formViewMethodInsert: { type: String, default: "" },
+  formViewMethodUpdate: { type: String, default: "" },
+  formModalSize: { type: [String, Number], default: undefined },
+  formSidebarSize: { type: [String, Number], default: undefined },
+  // Snake_case aliases keep form parameters compatible with server-driven
+  // configuration and existing conventions.
+  form_view_method: { type: String, default: "inline" },
+  form_modal_size: { type: [String, Number], default: "32rem" },
+  form_sidebar_size: { type: [String, Number], default: "32rem" },
   initAppMode: { type: String, default: "grid" },
   newRecordType: { type: String, default: "form" },
   //initFormMode: { type: String, default: "edit" },
@@ -482,6 +625,43 @@ const data = reactive({
 
 const gridCtl = ref(null);
 const formCtl = ref(null);
+
+const resolvedFormViewMethod = computed(() => {
+  if (data.formMode == "new" && props.formViewMethodInsert) {
+    return props.formViewMethodInsert;
+  }
+  if (data.formMode == "edit" && props.formViewMethodUpdate) {
+    return props.formViewMethodUpdate;
+  }
+  return props.formViewMethod || props.form_view_method || "inline";
+});
+
+const normalizedFormViewMethod = computed(() => {
+  const value = String(resolvedFormViewMethod.value).toLowerCase();
+  return ["inline", "modal", "sidebar"].includes(value) ? value : "inline";
+});
+
+const isInlineForm = computed(() =>
+  data.controlMode == "form" && normalizedFormViewMethod.value == "inline" && data.formCfg && data.formCfg.setting
+);
+
+const isOverlayForm = computed(() =>
+  data.controlMode == "form" && normalizedFormViewMethod.value != "inline"
+);
+
+const isGridVisible = computed(() =>
+  data.controlMode == "grid" || normalizedFormViewMethod.value != "inline"
+);
+
+const formViewPanelStyle = computed(() => {
+  const isModal = normalizedFormViewMethod.value == "modal";
+  const isSidebar = normalizedFormViewMethod.value == "sidebar";
+  if (!isModal && !isSidebar) return {};
+  const size = isModal
+    ? props.formModalSize ?? props.form_modal_size
+    : props.formSidebarSize ?? props.form_sidebar_size;
+  return { width: typeof size == "number" ? `${size}px` : size || "32rem" };
+});
 
  
 watch(
@@ -694,10 +874,8 @@ function getData(keyword) {
 }
 
 function cancelForm() {
+  // Cancel does not persist any data, so keep the current grid result intact.
   data.controlMode = "grid";
-  nextTick(() => {
-    gridCtl.value.refreshData();
-  });
 }
 
 function save(saveData, cbOK, cbFalse, disableNotif) {
@@ -1050,3 +1228,69 @@ onMounted(() => {
   refreshForm();
 });
 </script>
+
+<style scoped>
+.form_view_overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+}
+
+.form_view_backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  background: rgb(0 0 0 / 60%);
+  cursor: default;
+}
+
+.form_view_panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  background: white;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 25%);
+}
+
+.form_view_modal {
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.form_view_modal .form_view_panel {
+  width: min(32rem, 100%);
+}
+
+.form_view_sidebar {
+  justify-content: flex-end;
+}
+
+.form_view_sidebar .form_view_panel {
+  max-width: 100vw;
+  max-height: 100vh;
+  height: 100%;
+}
+
+.form_view_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 600;
+}
+
+.form_view_form {
+  padding: 1rem;
+}
+</style>
