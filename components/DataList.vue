@@ -1,6 +1,6 @@
 <template> 
   <s-card
-    :title="title"
+    :title="resolvedGridTitle"
     class="w-full bg-white suim_datalist"
     hide-footer
     :no-gap="noGap"
@@ -242,7 +242,7 @@
       ></div>
       <section class="form_view_panel" :style="formViewPanelStyle">
         <header class="form_view_header">
-          <span>{{ title }}</span>
+          <span>{{ resolvedFormTitle }}</span>
         </header>
         <s-form
           v-if="data.formCfg && data.formCfg.setting"
@@ -503,6 +503,8 @@ import formConfig from "../scripts/form_config.js";
 const props = defineProps({
   noGap: { type: Boolean },
   title: { type: String, default: "" },
+  gridTitle: { type: String, default: "" },
+  formTitle: { type: String, default: "" },
   hideTitle: { type: Boolean },
   gridEditor: { type: Boolean },
   gridEditorNoForm: { type: Boolean },
@@ -625,6 +627,9 @@ const data = reactive({
 
 const gridCtl = ref(null);
 const formCtl = ref(null);
+
+const resolvedGridTitle = computed(() => props.gridTitle || props.title);
+const resolvedFormTitle = computed(() => props.formTitle || props.title);
 
 const resolvedFormViewMethod = computed(() => {
   if (data.formMode == "new" && props.formViewMethodInsert) {
