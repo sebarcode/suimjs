@@ -1,7 +1,7 @@
 <template>
     <div class="modal_fullbg" v-if="data.displayModal">&nbsp;</div>
 
-    <div class="w-full h-full z-50 flex items-center justify-center" style="position: fixed; inset: 0;" v-if="data.displayModal">
+    <div class="w-full h-full flex items-center justify-center" style="position: fixed; inset: 0; z-index: 9999;" v-if="data.displayModal">
         <div class="modal_container">
             <slot name="title">
                 <div class="modal_title bg-primary text-white" v-if="!hideTitle">
@@ -91,6 +91,7 @@ defineExpose({
 .modal_fullbg {
     position: fixed;
     inset: 0;
+    z-index: 9998;
     width: 100%;
     height: 100%;
     background: black;
