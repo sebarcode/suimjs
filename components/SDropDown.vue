@@ -7,8 +7,7 @@
                 </div>
                 <div class="sdd sdd_body" @click="bodyClick">
                     <div v-if="!open && selectedLabel" 
-                        class="sdd sdd_selected_label" 
-                        @click="clickBody">
+                        class="sdd sdd_selected_label">
                         {{ selectedLabel }}
                     </div>
                     <input v-if="open && searchable" 
@@ -301,8 +300,12 @@ function handleDropdownKeydown(e){
 }
 
 function bodyClick(ev){
-    // If dropdown already open, let input handle interactions.
-    if (open.value) return;
+    // The same trigger toggles the list in both directions. This also lets a
+    // second click on the open search input close the dropdown.
+    if (open.value) {
+        close();
+        return;
+    }
     toggle();
 }
 
