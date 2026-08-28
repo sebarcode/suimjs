@@ -235,10 +235,12 @@
       v-if="isOverlayForm"
       class="form_view_overlay"
       :class="`form_view_${normalizedFormViewMethod}`"
+      @click.self="cancelForm"
     >
       <div
         class="form_view_backdrop"
         aria-hidden="true"
+        @click="cancelForm"
       ></div>
       <section class="form_view_panel" :style="formViewPanelStyle">
         <header class="form_view_header">
