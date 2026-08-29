@@ -1596,6 +1596,32 @@ function getSortDirection() {
   return data.sortDirection;
 }
 
+function getKeyword() {
+  return data.keyword;
+}
+
+function getCurrentPage() {
+  return data.currentPage;
+}
+
+function getPageSize() {
+  return data.pageSize;
+}
+
+function setKeyword(keyword) {
+  data.keyword = keyword == undefined || keyword == null ? "" : String(keyword);
+}
+
+function setCurrentPage(page) {
+  const value = Number(page);
+  if (Number.isFinite(value) && value > 0) data.currentPage = Math.floor(value);
+}
+
+function setPageSize(pageSize) {
+  const value = Number(pageSize);
+  if (Number.isFinite(value) && value > 0) data.pageSize = Math.floor(value);
+}
+
 function setSortDirection(d) {
   data.sortDirection = d;
 }
@@ -1622,6 +1648,12 @@ defineExpose({
   setSortField,
   getSortDirection,
   setSortDirection,
+  getKeyword,
+  setKeyword,
+  getCurrentPage,
+  setCurrentPage,
+  getPageSize,
+  setPageSize,
   setLoading,
   getLoading,
   setRecords,

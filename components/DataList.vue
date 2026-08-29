@@ -885,6 +885,26 @@ function cancelForm() {
   data.controlMode = "grid";
 }
 
+function captureGridState() {
+  if (!gridCtl.value) return null;
+  return {
+    keyword: gridCtl.value.getKeyword?.(),
+    currentPage: gridCtl.value.getCurrentPage?.(),
+    pageSize: gridCtl.value.getPageSize?.(),
+    sortField: gridCtl.value.getSortField?.(),
+    sortDirection: gridCtl.value.getSortDirection?.(),
+  };
+}
+
+function restoreGridState(state) {
+  if (!state || !gridCtl.value) return;
+  gridCtl.value.setKeyword?.(state.keyword);
+  gridCtl.value.setCurrentPage?.(state.currentPage);
+  gridCtl.value.setPageSize?.(state.pageSize);
+  if (state.sortField != undefined) gridCtl.value.setSortField?.(state.sortField);
+  if (state.sortDirection != undefined) gridCtl.value.setSortDirection?.(state.sortDirection);
+}
+
 function save(saveData, cbOK, cbFalse, disableNotif) {
   if (props.preSaveFn) {
     const result = props.preSaveFn(saveData);
@@ -909,6 +929,7 @@ function save(saveData, cbOK, cbFalse, disableNotif) {
   axios.post(saveEndPoint, saveData).then(
     (r) => {
       let record = r.data;
+      const gridState = captureGridState();
       data.record = record;
       emit("postSave", record);
       emit("gridRowUpdated", record);
@@ -917,7 +938,10 @@ function save(saveData, cbOK, cbFalse, disableNotif) {
         data.controlMode = "grid";
         // Refresh the grid with its existing state.  Saving a form must not
         // discard keyword/custom filters, current page, or page size.
-        nextTick(() => gridCtl.value.refreshData());
+        nextTick(() => {
+          restoreGridState(gridState);
+          gridCtl.value.refreshData();
+        });
       } else {
         selectData(data.record, "detail", true);
       }
@@ -936,6 +960,7 @@ function gridRowUpdated(dt) {
 }
 
 function refreshList() {
+  const gridState = captureGridState();
   data.loadingGridCfg = true
   loadGridConfig(axios, props.gridConfig).then(
     (r) => {
@@ -946,6 +971,7 @@ function refreshList() {
 
       util.nextTickN(1, () => {
         if (gridCtl.value) {
+          restoreGridState(gridState);
           gridCtl.value.refreshData();
           return;
         }
