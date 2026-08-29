@@ -223,10 +223,9 @@ const selected = ref(props.multiple ? [] : null);
 async function fetchSelected(values) {
     if (!props.lookupUrl) return;
     if (values == undefined || values === null || values.length == 0) return;
-    const lookupValues = Array.isArray(values) ? values.map(normalizeLookupValue) : normalizeLookupValue(values);
     const payload = props.multiple ? 
-        { Where: { Op: '$in', Field: props.lookupKey, Value: lookupValues } } :
-        { Where: { Field: props.lookupKey, Op: '$eq', Value: [lookupValues] } };
+        { Where: { Op: '$in', Field: props.lookupKey, Value: values } } :
+        { Where: { Field: props.lookupKey, Op: '$eq', Value: [values] } };
 
     try {
         const result = await getCachedLookup(
@@ -310,13 +309,6 @@ function bodyClick(ev){
         return;
     }
     toggle();
-}
-
-function normalizeLookupValue(value) {
-    if (/id$/i.test(String(props.lookupKey || '')) && value !== '' && value !== null && Number.isFinite(Number(value))) {
-        return Number(value);
-    }
-    return value;
 }
 
 function focusTrigger() {
