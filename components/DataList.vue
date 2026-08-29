@@ -915,12 +915,9 @@ function save(saveData, cbOK, cbFalse, disableNotif) {
       
       if (!stayOnForm.value) {
         data.controlMode = "grid";
-        nextTick(() => { 
-          gridCtl.value.resetFilter()
-          nextTick(() => {
-            gridCtl.value.refreshData();
-          })
-        });
+        // Refresh the grid with its existing state.  Saving a form must not
+        // discard keyword/custom filters, current page, or page size.
+        nextTick(() => gridCtl.value.refreshData());
       } else {
         selectData(data.record, "detail", true);
       }
