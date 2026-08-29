@@ -247,7 +247,9 @@ async function fetchSelected(values) {
 const selectedLabel = computed(() => {
     if (props.multiple) {
         if (!selected.value || selected.value.length === 0) return '';
-        return selected.value.map(s => s.label).join('; ');
+        const first = selected.value[0]?.label || '';
+        const remaining = selected.value.length - 1;
+        return remaining > 0 ? `${first}, +${remaining}` : first;
     }
     return selected.value ? selected.value.label : '';
 });
