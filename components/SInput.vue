@@ -57,7 +57,7 @@
             (value && value.length > 0) ||
             !isNaN(value) ||
             useList ||
-            kind == 'md' || kind == 'date' || kind == 'time' ||
+            kind == 'md' || kind == 'date' || kind == 'week' || kind == 'time' ||
             kind == 'markdown' ||
             keepLabel
           "
@@ -165,14 +165,14 @@
       <!-- all other input type -->
       <div v-else>
         <s-date-time
-          v-if="kind == 'date' || kind == 'datetime'"
+          v-if="kind == 'date' || kind == 'week' || kind == 'datetime'"
           ref="control"
           v-model="value"
           :mode="kind"
-          :format="kind === 'date' ? dateOnlyFormat(dateFormat) : dateFormat"
+          :format="kind === 'date' || kind === 'week' ? dateOnlyFormat(dateFormat) : dateFormat"
           :placeholder="caption || label"
           :disabled="disabled"
-          :style="{ width: kind === 'date' ? '120px' : '150px' }"
+          :style="{ width: kind === 'date' || kind === 'week' ? '120px' : '150px' }"
           @focus="onFocus"
         />
 
@@ -378,6 +378,7 @@ const value = computed({
   get() {
     switch (props.kind) {
       case "date":
+      case "week":
         if (!isEmptyDate(props.modelValue)) return moment.utc(props.modelValue).local().format("YYYY-MM-DD")
           else return null;
 
@@ -395,6 +396,7 @@ const value = computed({
   set(v) {
     switch (props.kind) {
       case "date":
+      case "week":
         if (v == null || v == "") {
           v = null;
         } else {

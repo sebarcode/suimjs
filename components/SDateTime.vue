@@ -10,7 +10,7 @@
         :placeholder="placeholder || formatValue"
         :disabled="disabled"
         :aria-invalid="invalidTypedValue"
-        :title="invalidTypedValue ? `Tanggal tidak valid. Gunakan format ${formatValue}` : ''"
+        :title="invalidTypedValue ? `Invalid date. Use format ${formatValue}` : ''"
         autocomplete="off"
         @input="onInput"
         @focus="emit('focus')"
@@ -79,7 +79,7 @@ import moment from 'moment';
 
 const props = defineProps({
   modelValue: { type: [String, Date, Number, Object], default: null },
-  mode: { type: String, default: 'date', validator: value => ['date', 'datetime'].includes(value) },
+  mode: { type: String, default: 'date', validator: value => ['date', 'datetime', 'week'].includes(value) },
   format: { type: String, default: '' },
   placeholder: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
@@ -101,7 +101,7 @@ const selectedDate = ref(null);
 
 const formatValue = computed(() => {
   const format = normalizeFormat(props.format || (props.mode === 'datetime' ? 'DD-MMM-YY HH:mm:ss' : 'DD-MMM-YY'));
-  return props.mode === 'date' ? dateOnlyFormat(format) : format;
+  return props.mode === 'date' || props.mode === 'week' ? dateOnlyFormat(format) : format;
 });
 const monthNames = moment.months();
 const weekdays = moment.weekdaysMin(true);
@@ -120,7 +120,7 @@ const calendarDays = computed(() => {
       date,
       key: date.format('YYYY-MM-DD'),
       inCurrentMonth: date.month() === pickerMonth.value,
-      selected: !!selected && date.isSame(selected, 'day'),
+      selected: !!selected && (props.mode === 'week' ? date.isSame(selected, 'week') : date.isSame(selected, 'day')),
       today: date.isSame(today, 'day'),
     };
   });
@@ -179,7 +179,7 @@ function emitValue(date) {
     return;
   }
 
-  const result = props.mode === 'date'
+  const result = props.mode === 'date' || props.mode === 'week'
     ? moment(date.format('YYYY-MM-DD'), 'YYYY-MM-DD').utc().format()
     : date.clone().utc().format();
   emit('update:modelValue', result);
@@ -243,7 +243,7 @@ function changeMonth(amount) {
 }
 
 function selectDate(date) {
-  const selected = date.clone();
+  const selected = props.mode === 'week' ? date.clone().startOf('week') : date.clone();
   if (props.mode === 'datetime') {
     const [hour, minute, second] = pickerTime.value.split(':').map(Number);
     selected.hour(hour || 0).minute(minute || 0).second(second || 0);
@@ -268,7 +268,7 @@ function applyDateTime() {
 }
 
 function setToday() {
-  const date = moment();
+  const date = props.mode === 'week' ? moment().startOf('week') : moment();
   selectedDate.value = date;
   pickerMonth.value = date.month();
   pickerYear.value = date.year();
