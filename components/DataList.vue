@@ -832,7 +832,11 @@ function selectData(dt, index, isAfterSave = false) {
       data.isAfterSave = isAfterSave
       
       data.record = r.data;
-      if (props.formConfigView && data.formMode == "view") refreshForm()
+      // Insert, edit, and view may use different server-side form
+      // configurations. Clear the previous mode before loading the new one
+      // so an earlier insert form cannot leak into an edit form.
+      data.formCfg = {};
+      refreshForm();
       nextTick(() => {
         emit("formLoaded", data.record);
       });
@@ -865,6 +869,7 @@ function newData(dt) {
       data.record = dt == undefined ? {} : dt;
       data.controlMode = "form";
       data.formMode = "new";
+      data.formCfg = {};
       nextTick(() => {
         if (props.formConfigNew) refreshForm()
         emit("gridRowUpdated", data.record);
@@ -984,6 +989,7 @@ function refreshList() {
 
 function refreshForm() {
   if (props.formConfig == undefined || props.formConfig == "") return;
+  const requestedMode = data.formMode;
   let configSource = props.formConfig;
   if (data.formMode == "new" && props.formConfigNew) {
     configSource = props.formConfigNew;
@@ -992,6 +998,9 @@ function refreshForm() {
   }
   loadFormConfig(axios, configSource).then(
     (r) => {
+      // A slower request from a previous form mode must not overwrite the
+      // configuration for the form currently being displayed.
+      if (data.formMode != requestedMode) return;
       emit("alterFormConfig", r);
       data.formCfg = r;
     },
