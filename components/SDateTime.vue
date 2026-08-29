@@ -64,8 +64,8 @@
       </div>
 
       <div class="s-date-time__actions">
-        <button type="button" @click="setToday">Hari ini</button>
-        <button type="button" @click="clear">Kosongkan</button>
+        <button type="button" @click="setToday">Today</button>
+        <button type="button" @click="clear">Clear</button>
         <button v-if="mode === 'datetime'" type="button" class="s-date-time__apply" @click="applyDateTime">Terapkan</button>
       </div>
     </div>
