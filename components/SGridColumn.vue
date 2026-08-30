@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="columnConfig.labelField!=''">
+        <div v-if="columnConfig.labelField">
             {{ record[columnConfig.labelField] }}
         </div>
         <div

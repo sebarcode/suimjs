@@ -47,13 +47,14 @@
       <div class="s-date-time__weekdays">
         <div v-for="day in weekdays" :key="day">{{ day }}</div>
       </div>
-      <div class="s-date-time__days">
+      <div class="s-date-time__days" @mouseleave="hoveredWeek = null">
         <button
           v-for="day in calendarDays"
           :key="day.key"
           type="button"
           class="s-date-time__day"
-          :class="{ 's-date-time__day--outside': !day.inCurrentMonth, 's-date-time__day--selected': day.selected, 's-date-time__day--today': day.today }"
+          :class="{ 's-date-time__day--outside': !day.inCurrentMonth, 's-date-time__day--selected': day.selected, 's-date-time__day--week-hover': day.weekHovered, 's-date-time__day--today': day.today }"
+          @mouseenter="hoverDate(day.date)"
           @click="selectDate(day.date)"
         >{{ day.date.date() }}</button>
       </div>
@@ -98,6 +99,7 @@ const pickerMonth = ref(moment().month());
 const pickerYear = ref(moment().year());
 const pickerTime = ref('00:00:00');
 const selectedDate = ref(null);
+const hoveredWeek = ref(null);
 
 const formatValue = computed(() => {
   const format = normalizeFormat(props.format || (props.mode === 'datetime' ? 'DD-MMM-YY HH:mm:ss' : 'DD-MMM-YY'));
@@ -121,6 +123,7 @@ const calendarDays = computed(() => {
       key: date.format('YYYY-MM-DD'),
       inCurrentMonth: date.month() === pickerMonth.value,
       selected: !!selected && (props.mode === 'week' ? date.isSame(selected, 'week') : date.isSame(selected, 'day')),
+      weekHovered: props.mode === 'week' && !!hoveredWeek.value && date.isSame(hoveredWeek.value, 'week'),
       today: date.isSame(today, 'day'),
     };
   });
@@ -155,6 +158,7 @@ function formatModelValue(value) {
 function syncPicker(value = props.modelValue) {
   const date = modelDate(value) || moment();
   selectedDate.value = date.clone();
+  hoveredWeek.value = null;
   pickerMonth.value = date.month();
   pickerYear.value = date.year();
   pickerTime.value = date.format('HH:mm:ss');
@@ -257,6 +261,10 @@ function selectDate(date) {
   emitValue(selected);
 }
 
+function hoverDate(date) {
+  if (props.mode === 'week') hoveredWeek.value = date.clone();
+}
+
 function applyDateTime() {
   const selected = (selectedDate.value || moment({ year: pickerYear.value, month: pickerMonth.value, day: 1 })).clone();
   const [hour, minute, second] = pickerTime.value.split(':').map(Number);
@@ -340,6 +348,7 @@ defineExpose({ focus });
 .s-date-time__weekdays { color: #6b7280; font-size: .75rem; margin-bottom: .2rem; }
 .s-date-time__day { background: transparent; border: 0; border-radius: .2rem; cursor: pointer; height: 2rem; margin: 1px; }
 .s-date-time__day:hover { background: #e5e7eb; }
+.s-date-time__day--week-hover { background: color-mix(in srgb, var(--primary-color, #0f766e) 18%, white); }
 .s-date-time__day--outside { color: #9ca3af; }
 .s-date-time__day--today { box-shadow: inset 0 0 0 1px #0f766e; }
 .s-date-time__day--selected { background: var(--primary-color, #0f766e); color: white; }

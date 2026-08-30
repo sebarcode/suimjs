@@ -537,6 +537,7 @@ const props = defineProps({
   formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => undefined },
+  formConfigUpdate: { type: [String, Object], default: () => undefined },
   formConfigView: { type: [String, Object], default: () => undefined },
   formDefaultMode: { type: String, default: "edit" },
   formOnlyIcon: { type: Boolean, default: false },
@@ -871,7 +872,7 @@ function newData(dt) {
       data.formMode = "new";
       data.formCfg = {};
       nextTick(() => {
-        if (props.formConfigNew) refreshForm()
+        refreshForm();
         emit("gridRowUpdated", data.record);
         emit("formLoaded", data.record);
       });
@@ -993,6 +994,8 @@ function refreshForm() {
   let configSource = props.formConfig;
   if (data.formMode == "new" && props.formConfigNew) {
     configSource = props.formConfigNew;
+  } else if (data.formMode == "edit" && props.formConfigUpdate) {
+    configSource = props.formConfigUpdate;
   } else if (data.formMode == "view" && props.formConfigView) {
     configSource = props.formConfigView;
   }
