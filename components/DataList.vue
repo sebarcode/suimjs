@@ -242,8 +242,16 @@
         aria-hidden="true"
         @click="cancelForm"
       ></div>
-      <section class="form_view_panel" :style="formViewPanelStyle">
-        <header class="form_view_header">
+      <section ref="formViewPanel" class="form_view_panel" :style="formViewPanelStyle">
+        <div
+          v-if="normalizedFormViewMethod === 'sidebar'"
+          class="form_view_resize_handle"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize form sidebar"
+          @pointerdown.stop.prevent="startSidebarResize"
+        ></div>
+        <header v-if="!hideTitle" class="form_view_header">
           <span>{{ resolvedFormTitle }}</span>
         </header>
         <s-form
@@ -498,6 +506,7 @@ import {
   nextTick,
   computed,
   watch,
+  onBeforeUnmount,
 } from "vue";
 import util from "../scripts/util.js";
 import formConfig from "../scripts/form_config.js";
@@ -630,6 +639,9 @@ const data = reactive({
 
 const gridCtl = ref(null);
 const formCtl = ref(null);
+const formViewPanel = ref(null);
+const sidebarWidth = ref(null);
+let stopSidebarResize = null;
 
 const resolvedGridTitle = computed(() => props.gridTitle || props.title);
 const resolvedFormTitle = computed(() => props.formTitle || props.title);
@@ -667,8 +679,40 @@ const formViewPanelStyle = computed(() => {
   if (!isModal && !isSidebar) return {};
   const size = isModal
     ? props.formModalSize ?? props.form_modal_size
-    : props.formSidebarSize ?? props.form_sidebar_size;
+    : sidebarWidth.value ?? props.formSidebarSize ?? props.form_sidebar_size;
   return { width: typeof size == "number" ? `${size}px` : size || "32rem" };
+});
+
+function startSidebarResize(event) {
+  if (event.button !== undefined && event.button !== 0) return;
+  stopSidebarResize?.();
+  const startWidth = formViewPanel.value?.getBoundingClientRect().width;
+  if (!startWidth) return;
+  const startX = event.clientX;
+
+  const onPointerMove = (moveEvent) => {
+    const maxWidth = Math.max(240, window.innerWidth - 24);
+    const minWidth = Math.min(320, maxWidth);
+    const nextWidth = startWidth + startX - moveEvent.clientX;
+    sidebarWidth.value = Math.min(maxWidth, Math.max(minWidth, nextWidth));
+  };
+  stopSidebarResize = () => {
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+    document.body.style.removeProperty("cursor");
+    document.body.style.removeProperty("user-select");
+    stopSidebarResize = null;
+  };
+  const onPointerUp = () => stopSidebarResize?.();
+
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+  window.addEventListener("pointermove", onPointerMove);
+  window.addEventListener("pointerup", onPointerUp, { once: true });
+}
+
+onBeforeUnmount(() => {
+  stopSidebarResize?.();
 });
 
  
@@ -1319,6 +1363,22 @@ onMounted(() => {
   max-width: 100vw;
   max-height: 100vh;
   height: 100%;
+}
+
+.form_view_resize_handle {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.form_view_resize_handle:hover,
+.form_view_resize_handle:active {
+  background: rgb(30 58 138 / 20%);
 }
 
 .form_view_header {

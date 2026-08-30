@@ -16,6 +16,8 @@ class formInput {
         this.required = input && input.required===true
         this.rules = input && input.rules ? input.rules : []
         this.multiRow = input && input.multiRow ? input.multiRow : 1
+        const span = Number(input && (input.colSpan || input.width))
+        this.colSpan = Number.isInteger(span) && span > 0 ? span : 'auto'
         this.useList = input && input.useList ? input.useList : false
         this.multiple = input && input.multiple ? input.multiple : false
         this.items = input && input.items ? input.items.map(el => {

@@ -7,8 +7,8 @@ class formRow {
         inputFields.forEach(el => {
             const input = new formInput(el)
             this.inputs.push(input)
-            if (!isNaN(input.width) && !input.width=="0") {
-                this.colCount += parseInt(input.width)
+            if (Number.isInteger(input.colSpan) && input.colSpan > 0) {
+                this.colCount += input.colSpan
             } else {
                 this.colCount++
             }

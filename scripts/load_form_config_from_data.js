@@ -9,7 +9,8 @@ const loadFormConfigFromData = (r) => {
             const inputRows = s.rows.map(row => {
                 const modeledRow = {}
                 modeledRow.inputs =  row.map(f => {
-                    f.colSpan = isNaN(f.width=="") || f.width=="0" ? "auto" : f.width 
+                    const span = Number(f.colSpan || f.width)
+                    f.colSpan = Number.isInteger(span) && span > 0 ? span : "auto"
                     return f
                 })
                 modeledRow.colCount = s.autoCol > 0 ? s.autoCol : row.length
