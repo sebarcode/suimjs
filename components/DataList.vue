@@ -501,6 +501,7 @@ import loadGridConfig from "../scripts/load_grid_config.js";
 import {
   reactive,
   inject,
+  provide,
   onMounted,
   ref,
   nextTick,
@@ -588,7 +589,7 @@ const props = defineProps({
   // configuration and existing conventions.
   form_view_method: { type: String, default: "inline" },
   form_modal_size: { type: [String, Number], default: "32rem" },
-  form_sidebar_size: { type: [String, Number], default: "32rem" },
+  form_sidebar_size: { type: [String, Number], default: undefined },
   initAppMode: { type: String, default: "grid" },
   newRecordType: { type: String, default: "form" },
   //initFormMode: { type: String, default: "edit" },
@@ -641,7 +642,16 @@ const gridCtl = ref(null);
 const formCtl = ref(null);
 const formViewPanel = ref(null);
 const sidebarWidth = ref(null);
+const viewportWidth = ref(typeof window == "undefined" ? 0 : window.innerWidth);
+const xiSidebarWidth = ref(0);
 let stopSidebarResize = null;
+let xiSidebarObserver = null;
+
+// A nested DataList (for example ClientContact inside Client) receives the
+// level of its parent and opens its own overlay one level deeper.
+const parentDataListLevel = inject("suimDataListLevel", 0);
+const dataListLevel = parentDataListLevel + 1;
+provide("suimDataListLevel", dataListLevel);
 
 const resolvedGridTitle = computed(() => props.gridTitle || props.title);
 const resolvedFormTitle = computed(() => props.formTitle || props.title);
@@ -673,14 +683,48 @@ const isGridVisible = computed(() =>
   data.controlMode == "grid" || normalizedFormViewMethod.value != "inline"
 );
 
+const defaultSidebarSize = computed(() => {
+  if (viewportWidth.value <= 1024) return "32rem";
+  return dataListLevel >= 2 ? "480px" : "720px";
+});
+
+const availableSidebarWidth = computed(() =>
+  Math.max(0, viewportWidth.value - xiSidebarWidth.value)
+);
+
+function updateViewportWidth() {
+  viewportWidth.value = window.innerWidth;
+  updateXiSidebarWidth();
+}
+
+function updateXiSidebarWidth() {
+  if (typeof document == "undefined") return;
+  const panel = document.querySelector(".xisb_root.xisb_open .xisb_panel");
+  const nextWidth = panel ? Math.round(panel.getBoundingClientRect().width) : 0;
+  if (nextWidth && isOverlayForm.value && normalizedFormViewMethod.value == "sidebar" && window.innerWidth - nextWidth < 320) {
+    document.querySelector(".xisb_root.xisb_open .xisb_backdrop")?.click();
+    xiSidebarWidth.value = 0;
+    return;
+  }
+  if (xiSidebarWidth.value != nextWidth) xiSidebarWidth.value = nextWidth;
+}
+
+function closeXiSidebarWhenFormCannotFit() {
+  if (!xiSidebarWidth.value || availableSidebarWidth.value >= 320) return;
+  document.querySelector(".xisb_root.xisb_open .xisb_backdrop")?.click();
+  xiSidebarWidth.value = 0;
+}
+
 const formViewPanelStyle = computed(() => {
   const isModal = normalizedFormViewMethod.value == "modal";
   const isSidebar = normalizedFormViewMethod.value == "sidebar";
   if (!isModal && !isSidebar) return {};
   const size = isModal
     ? props.formModalSize ?? props.form_modal_size
-    : sidebarWidth.value ?? props.formSidebarSize ?? props.form_sidebar_size;
-  return { width: typeof size == "number" ? `${size}px` : size || "32rem" };
+    : sidebarWidth.value ?? props.formSidebarSize ?? props.form_sidebar_size ?? defaultSidebarSize.value;
+  const style = { width: typeof size == "number" ? `${size}px` : size || "32rem" };
+  if (isSidebar && xiSidebarWidth.value) style.maxWidth = `${availableSidebarWidth.value}px`;
+  return style;
 });
 
 function startSidebarResize(event) {
@@ -691,7 +735,7 @@ function startSidebarResize(event) {
   const startX = event.clientX;
 
   const onPointerMove = (moveEvent) => {
-    const maxWidth = Math.max(240, window.innerWidth - 24);
+    const maxWidth = Math.max(240, availableSidebarWidth.value || window.innerWidth - 24);
     const minWidth = Math.min(320, maxWidth);
     const nextWidth = startWidth + startX - moveEvent.clientX;
     sidebarWidth.value = Math.min(maxWidth, Math.max(minWidth, nextWidth));
@@ -713,6 +757,16 @@ function startSidebarResize(event) {
 
 onBeforeUnmount(() => {
   stopSidebarResize?.();
+  window.removeEventListener("resize", updateViewportWidth);
+  xiSidebarObserver?.disconnect();
+});
+
+watch(isOverlayForm, (isVisible) => {
+  if (!isVisible || normalizedFormViewMethod.value != "sidebar") return;
+  nextTick(() => {
+    updateXiSidebarWidth();
+    closeXiSidebarWhenFormCannotFit();
+  });
 });
 
  
@@ -1309,6 +1363,15 @@ defineExpose({
 });
 
 onMounted(() => {
+  updateViewportWidth();
+  window.addEventListener("resize", updateViewportWidth);
+  xiSidebarObserver = new MutationObserver(updateXiSidebarWidth);
+  xiSidebarObserver.observe(document.body, {
+    attributes: true,
+    childList: true,
+    subtree: true,
+    attributeFilter: ["class"],
+  });
   refreshList();
   refreshForm();
 });
