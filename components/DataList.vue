@@ -525,7 +525,7 @@ const props = defineProps({
   gridFields: { type: Array, default: () => [] },
   gridHideControl: { type: Boolean, default: false },
   gridHideAction: { type: Boolean, default: false },
-  gridActionSize: { type: [String, Number], default: "120px" },
+  gridActionSize: { type: [String, Number], default: "60px" },
   gridHideSearch: { type: Boolean, default: false },
   gridHideSelect: { type: Boolean, default: false },
   gridHideDetail: { type: Boolean },
