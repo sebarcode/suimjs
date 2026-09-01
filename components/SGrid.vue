@@ -308,7 +308,7 @@
               <th
                 class="header_column_action"
                 :class="{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }"
-                :style="scrollMode ? 'right:0px' : ''"
+                :style="[actionColumnStyle, scrollMode ? { right: '0px' } : {}]"
                 data-role="action"
                 v-if="!hideAction"
               >
@@ -340,7 +340,7 @@
                 v-if="!hideAction"
                 class="whitespace-nowrap px-2 py-1"
                 :class="{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }"
-                :style="scrollMode ? 'right:0px' : ''"
+                :style="[actionColumnStyle, scrollMode ? { right: '0px' } : {}]"
               ></td>
             </tr>
           </thead>
@@ -460,7 +460,7 @@
                 <td
                   class="whitespace-nowrap px-2 py-1 align-top items-center flex gap-[2px]"
                   :class="[{ 'suim_sticky': scrollMode, 'suim_sticky_right': scrollMode }, scrollMode ? stickyTdBg(rIdx) : '']"
-                  :style="scrollMode ? 'right:0px' : ''"
+                  :style="[actionColumnStyle, scrollMode ? { right: '0px' } : {}]"
                   data-role="action"
                   v-if="!hideAction"
                 >
@@ -648,6 +648,7 @@ const props = defineProps({
   hideSelect: { type: Boolean, default: false },
   hideDetail: { type: Boolean, default: false },
   hideAction: { type: Boolean, default: false },
+  actionSize: { type: [String, Number], default: "120px" },
   totalUrl: { type: String, default: "" },
   inlineSearch: { type: Boolean, default: false },
   keywordOperation: { type: String, default: "" },
@@ -660,6 +661,12 @@ const props = defineProps({
 });
 
 const axios = inject("axios");
+
+const actionColumnStyle = computed(() => {
+  const value = String(props.actionSize ?? "120px").trim();
+  const width = /^\d+(?:\.\d+)?$/.test(value) ? `${value}px` : value || "120px";
+  return { width, minWidth: width, maxWidth: width };
+});
 
 const keywordOp = computed(() => {
   return (

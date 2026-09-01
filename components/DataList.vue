@@ -87,6 +87,7 @@
         :delete-url="data.gridDeleteUrl"
         :config="data.listCfg"
         :hide-action="gridHideAction"
+        :action-size="gridActionSize"
         :hide-search="gridHideSearch"
         :hide-control="gridHideControl"
         :hide-detail="gridHideDetail"
@@ -524,6 +525,7 @@ const props = defineProps({
   gridFields: { type: Array, default: () => [] },
   gridHideControl: { type: Boolean, default: false },
   gridHideAction: { type: Boolean, default: false },
+  gridActionSize: { type: [String, Number], default: "120px" },
   gridHideSearch: { type: Boolean, default: false },
   gridHideSelect: { type: Boolean, default: false },
   gridHideDetail: { type: Boolean },
