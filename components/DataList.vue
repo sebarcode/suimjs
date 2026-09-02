@@ -1011,13 +1011,19 @@ function restoreGridState(state) {
   if (state.sortDirection != undefined) gridCtl.value.setSortDirection?.(state.sortDirection);
 }
 
-function save(saveData, cbOK, cbFalse, disableNotif) {
-  if (props.preSaveFn) {
-    const result = props.preSaveFn(saveData);
-    if (result === false) {
-      if (cbFalse) cbFalse();
-      return;
+async function save(saveData, cbOK, cbFalse, disableNotif) {
+  try {
+    if (props.preSaveFn) {
+      const result = await props.preSaveFn(saveData);
+      if (result === false) {
+        if (cbFalse) cbFalse();
+        return;
+      }
     }
+  } catch (error) {
+    util.showError(error);
+    if (cbFalse) cbFalse();
+    return;
   }
   const saveEndPoint =
     data.formMode == "new" ? props.formInsert : props.formUpdate;
