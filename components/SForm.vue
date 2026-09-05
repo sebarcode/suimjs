@@ -299,7 +299,7 @@
             <span>Add {{ data.formInsert.sourceInput?.label || 'record' }}</span>
             <button type="button" class="sform-insert-close" aria-label="Close" @click="closeFormInsert">×</button>
           </header>
-          <div v-if="data.formInsert.loading" class="sform-insert-status">Loading form…</div>
+          <div v-if="data.formInsert.loading" class="sform-insert-status"><mdicon name="loading" size="16" class="sform-insert-spinner" /> Loading form…</div>
           <div v-else-if="data.formInsert.error" class="sform-insert-error">{{ data.formInsert.error }}</div>
           <s-form
             v-else-if="data.formInsert.config"
@@ -586,13 +586,15 @@ async function openFormInsert(input) {
     record: {},
   };
   try {
-    const config = await loadFormConfig(axios, input.formInsertConfig);
+    const config = await loadFormConfig(axios, input.formInsertConfig, { timeout: 10000 });
     if (!config?.setting || !config?.sectionGroups) {
       throw new Error("Invalid form insert configuration.");
     }
     data.formInsert.config = config;
   } catch (error) {
-    data.formInsert.error = error?.message || "Unable to load the insert form.";
+    data.formInsert.error = error?.code === "ECONNABORTED"
+      ? "Loading the insert form timed out. Please try again."
+      : error?.response?.data?.message || error?.message || "Unable to load the insert form.";
   } finally {
     data.formInsert.loading = false;
   }
@@ -982,6 +984,16 @@ function handleKeyDown(event) {
     font-size: 1.25rem;
     line-height: 1;
   }
+
+  .sform-insert-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sform-insert-spinner { animation: sform-insert-spin 0.85s linear infinite; }
+
+  @keyframes sform-insert-spin { to { transform: rotate(360deg); } }
 
   .sform-insert-status,
   .sform-insert-error { padding: 0.5rem 0; }

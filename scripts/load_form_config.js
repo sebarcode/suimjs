@@ -1,8 +1,8 @@
 import createFormConfig from "./create_form_config"
 import formConfigModeled from "./form-config-modeled"
 
-const loadFormConfig = async (axios, url) => {
-    const r = (await axios.post(url)).data
+const loadFormConfig = async (axios, url, requestConfig = undefined) => {
+    const r = (await axios.post(url, undefined, requestConfig)).data
     const cfg = new formConfigModeled()
     cfg.setting = r.setting
 
