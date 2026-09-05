@@ -84,6 +84,7 @@
           :lookup-labels="lookupLabels"
           :lookup-searchs="lookupSearchs"
           :lookup-payload-builder="lookupPayloadBuilder"
+          :show-insert-button="canInsertLookupRecord"
           :read-only="disabled"
           :multiple="multiple"
           :clearable="clearable"
@@ -91,6 +92,7 @@
           :hide-placeholder="hidePlaceholder"
           @focus="onFocus"
           @item-added="onAddItem"
+          @insert-request="requestFormInsert"
         >
           <template #item="opts">
             <slot name="sdd_item" v-bind="opts"></slot>
@@ -344,6 +346,9 @@ const props = defineProps({
   lookupFormat1: { type: String, default: "" },
   lookupFormat2: { type: String, default: "" },
   lookupPayloadBuilder: { type: Function },
+  formInsertConfig: { type: String, default: "" },
+  formInsertSize: { type: Number, default: 240 },
+  formInsertApi: { type: String, default: "" },
   dateFormat: { type: String, default: "" },
   decimal: { type: Number, default: 0 },
   multiple: { type: Boolean, default: false },
@@ -361,6 +366,7 @@ const emit = defineEmits({
   "update:modelValue": null,
   focus: null,
   addItem :null,
+  formInsert: null,
   change: null,
 });
 
@@ -431,6 +437,16 @@ function updateDateTimeValue(value) {
 
 const errorsTxt = computed(() => {
   return state.errors.filter((x) => x != "").join(", ");
+});
+
+const canInsertLookupRecord = computed(() => {
+  return !!(
+    props.lookupUrl &&
+    props.formInsertConfig &&
+    props.formInsertApi &&
+    !props.disabled &&
+    !props.readOnly
+  );
 });
 
 function isEmptyDate(date) {
@@ -551,6 +567,9 @@ function searchText () {
 function onAddItem(v){
   emit("addItem", props.field, v)
 
+}
+function requestFormInsert() {
+  if (canInsertLookupRecord.value) emit("formInsert", props.field);
 }
 defineExpose({ validate, focus, debug, value2, isValid, searchText});
 </script>

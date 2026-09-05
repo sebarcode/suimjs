@@ -174,6 +174,9 @@
                         :lookup-format1="input.lookupFormat1"
                         :lookup-format2="input.lookupFormat2"
                         :lookup-payload-builder="input.lookupPayloadBuilder"
+                        :form-insert-config="input.formInsertConfig"
+                        :form-insert-size="input.formInsertSize"
+                        :form-insert-api="input.formInsertApi"
                         :decimal="input.decimal"
                         :date-format="input.dateFormat"
                         :multiple="input.multiple"
@@ -185,6 +188,7 @@
                             ? input.lookupLabels
                             : input.lookupSearchs
                         "
+                        @form-insert="openFormInsert(input)"
                         v-model="value[input.field]"
                       />
     
@@ -213,6 +217,9 @@
                         :lookup-format1="input.lookupFormat1"
                         :lookup-format2="input.lookupFormat2"
                         :lookup-payload-builder="input.lookupPayloadBuilder"
+                        :form-insert-config="input.formInsertConfig"
+                        :form-insert-size="input.formInsertSize"
+                        :form-insert-api="input.formInsertApi"
                         :decimal="input.decimal"
                         :date-format="input.dateFormat"
                         :multiple="input.multiple"
@@ -224,6 +231,7 @@
                             ? input.lookupLabels
                             : input.lookupSearchs
                         "
+                        @form-insert="openFormInsert(input)"
                         v-model="value[input.field]"
                         :class="{checkboxOffset: input.kind=='checkbox'}"
                         ref="inputs"
@@ -285,14 +293,55 @@
         </div>
       </div>
     </div>
+    <teleport to="body">
+      <div v-if="data.formInsert.open" class="sform-insert-backdrop" @mousedown.self="closeFormInsert">
+        <section class="sform-insert-modal" :style="{ width: formInsertModalWidth }" role="dialog" aria-modal="true">
+          <header class="sform-insert-header">
+            <span>Add {{ data.formInsert.sourceInput?.label || 'record' }}</span>
+            <button type="button" class="sform-insert-close" aria-label="Close" @click="closeFormInsert">×</button>
+          </header>
+          <div v-if="data.formInsert.loading" class="sform-insert-status">Loading form…</div>
+          <div v-else-if="data.formInsert.error" class="sform-insert-error">{{ data.formInsert.error }}</div>
+          <s-form
+            v-else-if="data.formInsert.config"
+            :config="data.formInsert.config"
+            v-model="data.formInsert.record"
+            mode="new"
+            keep-label
+            no-exclusive-buttons
+            @submit-form="submitFormInsert"
+            @cancel-form="closeFormInsert"
+          >
+            <template
+              v-for="modalInput in formInsertInputs"
+              :key="`form_insert_input_${modalInput.field}`"
+              v-if="hasFormInsertSlot(modalInput.field, 'input') || hasFormInsertSlot(modalInput.field, 'view')"
+              v-slot:[`input_${modalInput.field}`]="slotProps"
+            >
+              <slot
+                v-if="hasFormInsertSlot(modalInput.field, 'input')"
+                :name="formInsertSlotName(modalInput.field, 'input')"
+                v-bind="slotProps"
+              ></slot>
+              <slot
+                v-else-if="hasFormInsertSlot(modalInput.field, 'view')"
+                :name="formInsertSlotName(modalInput.field, 'view')"
+                v-bind="slotProps"
+              ></slot>
+            </template>
+          </s-form>
+        </section>
+      </div>
+    </teleport>
 </template>
   
 <script setup>
-import { ref, reactive, computed, onMounted, watch, nextTick, getCurrentInstance } from "vue";
+import { ref, reactive, computed, onMounted, watch, nextTick, getCurrentInstance, inject, useSlots } from "vue";
 import SFormButtons from "./SFormButtons.vue";
 import SInput from "./SInput.vue";
 import { onUnmounted } from "vue";
 import { activeSFormId, nextSFormInstanceId } from "./sform-exclusive-state.js";
+import loadFormConfig from "../scripts/load_form_config.js";
 
 const inputs = ref([]);
 const formRoot = ref(null);
@@ -301,6 +350,8 @@ const formInstanceId = nextSFormInstanceId();
 const buttonsTopCtl = ref(null);
 const buttonsBottomCtl = ref(null);
 const instance = getCurrentInstance();
+const axios = inject("axios");
+const slots = useSlots();
 
 const props = defineProps({
   config: {
@@ -369,6 +420,27 @@ const data = reactive({
   currentTab: props.initialTab,
   changeFields: [],
   configStamp: 0,
+  formInsert: {
+    open: false,
+    loading: false,
+    error: "",
+    sourceInput: null,
+    config: null,
+    record: {},
+  },
+});
+
+const formInsertInputs = computed(() => {
+  const config = data.formInsert.config;
+  if (!config?.sectionGroups) return [];
+  return config.sectionGroups.flatMap(group =>
+    group.sections.flatMap(section => section.rows.flatMap(row => row.inputs || []))
+  );
+});
+
+const formInsertModalWidth = computed(() => {
+  const size = Number(data.formInsert.sourceInput?.formInsertSize);
+  return `${size > 0 ? size : 240}px`;
 });
 
 const isLockedByOtherForm = computed(() => {
@@ -469,6 +541,90 @@ function handleChange(name, value1, value2, oldValue) {
   nextTick(() => {
     emit("fieldChange", name, value1, value2, oldValue);
   });
+}
+
+function formInsertSlotName(entryField, variant) {
+  const sourceField = data.formInsert.sourceInput?.field || "";
+  return `form_insert_${sourceField}_${entryField}_${variant}`;
+}
+
+function hasFormInsertSlot(entryField, variant) {
+  return !!slots[formInsertSlotName(entryField, variant)];
+}
+
+function closeFormInsert() {
+  data.formInsert.open = false;
+  data.formInsert.loading = false;
+  data.formInsert.error = "";
+  data.formInsert.sourceInput = null;
+  data.formInsert.config = null;
+  data.formInsert.record = {};
+}
+
+async function openFormInsert(input) {
+  if (!input?.lookupUrl || !input.formInsertConfig || !input.formInsertApi) return;
+  if (!axios) {
+    data.formInsert = {
+      ...data.formInsert,
+      open: true,
+      loading: false,
+      error: "Axios is not available for form insert.",
+      sourceInput: input,
+      config: null,
+      record: {},
+    };
+    return;
+  }
+
+  data.formInsert = {
+    ...data.formInsert,
+    open: true,
+    loading: true,
+    error: "",
+    sourceInput: input,
+    config: null,
+    record: {},
+  };
+  try {
+    const config = await loadFormConfig(axios, input.formInsertConfig);
+    if (!config?.setting || !config?.sectionGroups) {
+      throw new Error("Invalid form insert configuration.");
+    }
+    data.formInsert.config = config;
+  } catch (error) {
+    data.formInsert.error = error?.message || "Unable to load the insert form.";
+  } finally {
+    data.formInsert.loading = false;
+  }
+}
+
+async function submitFormInsert(record, done, failed) {
+  const sourceInput = data.formInsert.sourceInput;
+  if (!sourceInput || !axios) {
+    failed?.();
+    return;
+  }
+
+  try {
+    const response = await axios.post(sourceInput.formInsertApi, record);
+    const created = response?.data?.data ?? response?.data;
+    const key = created?.[sourceInput.lookupKey];
+    if (key === undefined || key === null || key === "") {
+      throw new Error(`Insert response does not contain lookup key '${sourceInput.lookupKey}'.`);
+    }
+
+    const oldValue = value.value[sourceInput.field];
+    const label = (sourceInput.lookupLabels || [])
+      .map(field => created?.[field])
+      .filter(item => item !== undefined && item !== null && item !== "")
+      .join(" - ");
+    handleChange(sourceInput.field, key, label || key, oldValue);
+    done?.();
+    closeFormInsert();
+  } catch (error) {
+    data.formInsert.error = error?.response?.data?.message || error?.message || "Unable to create the lookup record.";
+    failed?.();
+  }
 }
 
 const value = computed({
@@ -788,5 +944,47 @@ function handleKeyDown(event) {
   .colSpan11 { grid-column: span 11 / span 11; }
   .colSpan12 { grid-column: span 12 / span 12; }
   .col-auto { grid-column: span 1 / span 1; }
+
+  .sform-insert-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .sform-insert-modal {
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    background: white;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
+  }
+
+  .sform-insert-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  .sform-insert-close {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .sform-insert-status,
+  .sform-insert-error { padding: 0.5rem 0; }
+  .sform-insert-error { color: #b91c1c; }
   </style>
   

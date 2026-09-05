@@ -35,6 +35,7 @@
                     @keydown.space.prevent="bodyClick"
                 >
                     <button v-if="showClearButton" @click.stop="clearSelection" class="sdd_clear_btn" title="Clear selection" type="button">✕</button>
+                    <button v-if="showInsertButton" @click.stop="requestInsert" class="sdd_insert_btn" title="Add new item" type="button">+</button>
                     <svg class="sdd_chev" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.12 1.0l-4.25 4.653a.75.75 0 01-1.07 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
                 </div>
             </div>
@@ -127,9 +128,10 @@ const props = defineProps({
     lookupLabels: { type: Array, default: () => [] },
     lookupSearchs: { type: Array, default: () => [] },
     lookupPayloadBuilder: { type: Function },
+    showInsertButton: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['update:modelValue', 'change', 'item-added']);
+const emit = defineEmits(['update:modelValue', 'change', 'item-added', 'insert-request']);
 
 const axios = inject('axios');
 const root = ref(null);
@@ -411,6 +413,12 @@ function move(dir){
     if (!list.length) return;
     if (highlighted.value === -1) highlighted.value = 0;
     else highlighted.value = Math.max(0, Math.min(list.length - 1, highlighted.value + dir));
+}
+
+function requestInsert() {
+    if (!props.showInsertButton || props.readOnly) return;
+    close();
+    emit('insert-request');
 }
 
 function dropdownItems() {
