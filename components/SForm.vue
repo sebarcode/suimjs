@@ -292,7 +292,6 @@
           </div>
         </div>
       </div>
-    </div>
     <teleport to="body">
       <div v-if="data.formInsert.open" class="sform-insert-backdrop" @mousedown.self="closeFormInsert">
         <section class="sform-insert-modal" :style="{ width: formInsertModalWidth }" role="dialog" aria-modal="true">
@@ -333,6 +332,7 @@
         </section>
       </div>
     </teleport>
+    </div>
 </template>
   
 <script setup>
