@@ -347,7 +347,7 @@ const props = defineProps({
   lookupFormat2: { type: String, default: "" },
   lookupPayloadBuilder: { type: Function },
   formInsertConfig: { type: String, default: "" },
-  formInsertSize: { type: Number, default: 240 },
+  formInsertSize: { type: [String, Number], default: 240 },
   formInsertApi: { type: String, default: "" },
   dateFormat: { type: String, default: "" },
   decimal: { type: Number, default: 0 },

@@ -440,9 +440,24 @@ const formInsertInputs = computed(() => {
 });
 
 const formInsertModalWidth = computed(() => {
-  const size = Number(data.formInsert.sourceInput?.formInsertSize);
-  return `${size > 0 ? size : 240}px`;
+  return normalizeFormInsertSize(data.formInsert.sourceInput?.formInsertSize);
 });
+
+function normalizeFormInsertSize(size) {
+  if (typeof size === "number") return size > 0 ? `${size}px` : "240px";
+
+  const value = String(size ?? "").trim();
+  if (value === "") return "240px";
+  if (/^\d+(?:\.\d+)?$/.test(value)) return `${value}px`;
+
+  if (typeof CSS !== "undefined" && typeof CSS.supports === "function") {
+    return CSS.supports("width", value) ? value : "240px";
+  }
+
+  return /^(?:\d+(?:\.\d+)?(?:px|%|vw|vh|vmin|vmax|em|rem|ch|ex|cm|mm|in|pt|pc)|(?:min|max|clamp|calc|var)\(.+\))$/i.test(value)
+    ? value
+    : "240px";
+}
 
 const isLockedByOtherForm = computed(() => {
   if (props.noExclusiveButtons) return false;
