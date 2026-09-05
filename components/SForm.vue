@@ -314,7 +314,6 @@
             <template
               v-for="modalInput in formInsertInputs"
               :key="`form_insert_input_${modalInput.field}`"
-              v-if="hasFormInsertSlot(modalInput.field, 'input') || hasFormInsertSlot(modalInput.field, 'view')"
               v-slot:[`input_${modalInput.field}`]="slotProps"
             >
               <slot
@@ -435,6 +434,8 @@ const formInsertInputs = computed(() => {
   if (!config?.sectionGroups) return [];
   return config.sectionGroups.flatMap(group =>
     group.sections.flatMap(section => section.rows.flatMap(row => row.inputs || []))
+  ).filter(input =>
+    hasFormInsertSlot(input.field, "input") || hasFormInsertSlot(input.field, "view")
   );
 });
 
