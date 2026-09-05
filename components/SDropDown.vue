@@ -154,7 +154,8 @@ function updateDropdownPosition() {
         top: `${rect.bottom}px`,
         left: `${rect.left}px`,
         width: `${rect.width}px`,
-        zIndex: 9999,
+        // Keep lookup options above form-insert modals, which use z-index 10000.
+        zIndex: 10010,
     };
 }
 
