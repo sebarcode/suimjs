@@ -10,8 +10,12 @@
         <div v-else-if="Array.isArray(record[columnConfig.field])" class="flex gap-1">
             <div v-for="itv in record[columnConfig.field]">{{ itv }}</div>
         </div>
-        <div v-else-if="columnConfig.kind == 'checkbox'" class="flex gap-1 text-center text-green-500">
-            <mdicon name="check-bold" size="16" v-if="record[columnConfig.field]" />
+        <div v-else-if="isBooleanKind" class="flex justify-center">
+            <mdicon
+                :name="booleanValue ? 'check-bold' : 'close'"
+                size="16"
+                :class="booleanValue ? 'text-green-500' : 'text-slate-400'"
+            />
         </div>
         <div v-else-if="columnConfig.kind == 'number'" style="text-align:right">
             {{ util.formatMoney(record[columnConfig.field], {decimal:columnConfig.decimal}) }}
@@ -53,6 +57,11 @@ const data = reactive({
 })
 
 const displayKind = computed(() => props.columnConfig.input?.kind || props.columnConfig.kind);
+const isBooleanKind = computed(() => ["bool", "boolean", "checkbox"].includes(String(displayKind.value || "").toLowerCase()));
+const booleanValue = computed(() => {
+    const value = props.record[props.columnConfig.field];
+    return value === true || value === 1 || value === "true" || value === "1";
+});
 
 function getLabel() {
     if (props.columnConfig.input.lookupUrl != undefined && props.columnConfig.input.lookupUrl != "") {

@@ -58,7 +58,7 @@
               :field="sfield.field.input.field"
               :kind="sfield.field.input.kind"
               :label="
-                sfield.field.input.kind == 'checkbox' || sfield.field.input.kind == 'bool'
+                isBooleanKind(sfield.field.input.kind)
                   ? ''
                   : sfield.field.input.label
               "
@@ -96,7 +96,7 @@
               :field="sfield.field.input.field"
               :kind="sfield.field.input.kind"
               :label="
-                sfield.field.input.kind == 'checkbox' || sfield.field.input.kind == 'bool'
+                isBooleanKind(sfield.field.input.kind)
                   ? ''
                   : sfield.field.input.label
               "
@@ -138,7 +138,7 @@
               :field="sfield.field.input.field"
               :kind="sfield.field.input.kind"
               :label="
-                sfield.field.input.kind == 'checkbox' || sfield.field.input.kind == 'bool'
+                isBooleanKind(sfield.field.input.kind)
                   ? ''
                   : sfield.field.input.label
               "
@@ -396,7 +396,7 @@
                       )"
                       class="suim_editor_input"
                       :class="{
-                        'suim_editor_bool': hdr.input.kind == 'checkbox' || hdr.input.kind == 'bool',
+                        'suim_editor_bool': isBooleanKind(hdr.input.kind),
                         'suim_editor_input_focused': isEditorCellFocused(rIdx, hdr.input.field)
                       }"
                       @mouseenter="showEditorTooltip($event, r, hdr, rIdx)"
@@ -411,7 +411,7 @@
                         :field="hdr.input.field"
                         :kind="hdr.input.kind"
                         :label="
-                          hdr.input.kind == 'checkbox' || hdr.input.kind == 'bool'
+                          isBooleanKind(hdr.input.kind)
                             ? ''
                             : hdr.input.label
                         "
@@ -661,6 +661,10 @@ const props = defineProps({
 });
 
 const axios = inject("axios");
+
+function isBooleanKind(kind) {
+  return ["bool", "boolean", "checkbox"].includes(String(kind || "").toLowerCase());
+}
 
 const actionColumnStyle = computed(() => {
   const value = String(props.actionSize ?? "120px").trim();
@@ -1755,6 +1759,7 @@ const computedSearchableFields = () => {
             ops.push('equal', 'not equal', 'before', 'after', 'on or before', 'on or after');
             break;
           case 'bool':
+          case 'boolean':
           case 'checkbox':
             ops.push('is', 'is not');
             break;
@@ -1861,7 +1866,7 @@ const calcSearchQuery = computed(() => {
           });
         }
       }
-    } else if (sf.field.input.kind=='checkbox') {
+    } else if (isBooleanKind(sf.field.input.kind)) {
       if (sf.value1===true) {
         parts.push({
           Field: sf.field.field,

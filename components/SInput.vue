@@ -28,11 +28,11 @@
     </div>
 
     <!-- checkbox -->
-    <div v-else-if="kind == 'bool' || kind == 'checkbox'">
+    <div v-else-if="isBooleanKind">
       <label class="input_label" v-if="!hideLabel && label">{{ label }}</label>
       <div>
         <input :disabled="disabled || readOnly"
-          :type="kind == 'bool' ? 'checkbox' : kind"
+          type="checkbox"
           v-model="value"
           ref="control"
           @focus="onFocus"
@@ -246,6 +246,9 @@
     <div class="bg-transparent text-right mt-2" v-else-if="kind == 'number'">
       {{ util.formatMoney(value, { decimal: decimal }) }}
     </div>
+    <div class="bg-transparent" v-else-if="isBooleanKind">
+      <input type="checkbox" :checked="booleanValue" disabled :aria-label="label || field" />
+    </div>
     <div class="bg-transparent" v-else-if="lookupUrl && lookupUrl != ''">
       {{ state.fieldLabel }}
     </div>
@@ -438,6 +441,11 @@ function updateDateTimeValue(value) {
 const errorsTxt = computed(() => {
   return state.errors.filter((x) => x != "").join(", ");
 });
+
+// Support the current backend metadata name ("boolean") as well as the
+// legacy Suim aliases ("bool" and "checkbox").
+const isBooleanKind = computed(() => ["bool", "boolean", "checkbox"].includes(String(props.kind).toLowerCase()));
+const booleanValue = computed(() => props.modelValue === true || props.modelValue === 1 || props.modelValue === "true" || props.modelValue === "1");
 
 const canInsertLookupRecord = computed(() => {
   return !!(
