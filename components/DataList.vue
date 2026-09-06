@@ -1089,7 +1089,10 @@ function refreshList() {
         }
       })
     },
-    (e) => data.loadingGridCfg = false
+    (e) => {
+      data.loadingGridCfg = false;
+      util.showError(e);
+    }
   );
   if (typeof props.gridRead == "string") data.gridReadUrl = props.gridRead;
 }
@@ -1113,7 +1116,11 @@ function refreshForm() {
       emit("alterFormConfig", r);
       data.formCfg = r;
     },
-    //(e) => util.showError(e)
+    (e) => {
+      // The form cannot be rendered without its configuration. Previously
+      // this path failed silently and left users with an empty modal/panel.
+      util.showError(e);
+    }
   );
 }
 

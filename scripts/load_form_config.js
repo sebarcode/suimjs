@@ -3,6 +3,9 @@ import formConfigModeled from "./form-config-modeled"
 
 const loadFormConfig = async (axios, url, requestConfig = undefined) => {
     const r = (await axios.post(url, undefined, requestConfig)).data
+    if (!r || typeof r !== 'object' || !r.setting || !Array.isArray(r.sectionGroups)) {
+        throw new Error('Invalid form configuration response.')
+    }
     const cfg = new formConfigModeled()
     cfg.setting = r.setting
 
