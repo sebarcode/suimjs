@@ -83,6 +83,7 @@
         :hide-select="gridHideSelect"
         :editor="gridEditor"
         :read-url="data.gridReadUrl"
+        :insert-url="gridInsert"
         :update-url="data.gridUpdateUrl"
         :delete-url="data.gridDeleteUrl"
         :config="data.listCfg"
@@ -120,6 +121,7 @@
         @delete-data="handleGridRowDelete"
         @row-updated="gridRowUpdated"
         @row-field-changed="handleGridFieldChanged"
+        @form-insert="handleGridFormInsert"
         @save-row-data="handleGridRowSave"
         @row-deleted="handleGridRowDeleted"
         @grid-refreshed="handleGridRefreshed"
@@ -569,6 +571,7 @@ const props = defineProps({
   listKeywordOperation: { type: String, default: "" },
   gridConfig: { type: [String, Object], default: () => {} },
   gridRead: { type: String, default: "" },
+  gridInsert: { type: String, default: "" },
   gridUpdate: { type: String, default: "" },
   gridDelete: { type: String, default: "" },
   gridTotalUrl: { type: String, default: "" },
@@ -617,6 +620,7 @@ const emit = defineEmits({
   gridRowDelete: null,
   gridRowSave: null,
   gridRowFieldChanged: null,
+  gridFormInsert: null,
   controlModeChanged: null,
   formModeChanged: null,
   gridCheckUncheckAll: null,
@@ -811,6 +815,10 @@ function handleGridRefreshed() {
 
 function handleGridFieldChanged(name, v1, v2, old, record) {
   emit("gridRowFieldChanged", name, v1, v2, old, record);
+}
+
+function handleGridFormInsert(field, record, header, index) {
+  emit("gridFormInsert", field, record, header, index);
 }
 
 function handleGridRowDeleted(record) {

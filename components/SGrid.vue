@@ -429,6 +429,9 @@
                         :allow-add="hdr.input.allowAdd"
                         :lookup-format1="hdr.input.lookupFormat1"
                         :lookup-format2="hdr.input.lookupFormat2"
+                        :form-insert-config="hdr.input.formInsertConfig"
+                        :form-insert-size="hdr.input.formInsertSize"
+                        :form-insert-api="hdr.input.formInsertApi"
                         :decimal="hdr.input.decimal"
                         :date-format="hdr.input.dateFormat"
                         :multiple="hdr.input.multiple"
@@ -443,6 +446,7 @@
                         "
                         @focus="rowFieldFocus"
                         @change="rowFieldChanged"
+                        @form-insert="requestFormInsert($event, r, hdr, rIdx)"
                         v-model="r[hdr.input.field]"
                       />
                     </div>
@@ -621,6 +625,7 @@ const props = defineProps({
   config: { type: Object, default: () => {} },
   customFilter: { type: Object, default: () => {} },
   readUrl: { type: String, default: "" },
+  insertUrl: { type: String, default: "" },
   updateUrl: { type: String, default: "" },
   deleteUrl: { type: String, default: "" },
   pageSize: { type: Number, default: 20 },
@@ -695,6 +700,7 @@ const emit = defineEmits({
   checkUncheckAll: null,
   checkUncheck: null,
   resetCustomFilter:null,
+  formInsert: null,
 });
 
 const data = reactive({
@@ -931,16 +937,18 @@ function hideEditorTooltip() {
 }
 
 function saveRowData(r, rowIndex) {
+  const hasID = r?.[props.idFieldName] !== undefined && r?.[props.idFieldName] !== null && String(r[props.idFieldName]).trim() !== "";
+  const saveUrl = hasID ? props.updateUrl : (props.insertUrl || props.updateUrl);
   if (
-    props.updateUrl == undefined ||
-    props.updateUrl == "" ||
-    props.updateUrl == null
+    saveUrl == undefined ||
+    saveUrl == "" ||
+    saveUrl == null
   ) {
     emit("saveRowData", r, rowIndex);
     return Promise.resolve();
   }
 
-  return axios.post(props.updateUrl, r).then(
+  return axios.post(saveUrl, r).then(
     (r) => {
       r = r.data;
       r.suimRecordChange = false;
@@ -1011,6 +1019,10 @@ function rowFieldChanged(name, v1, v2) {
     data.recordChanged = true;
     emit("rowFieldChanged", name, v1, v2, current, current);
   }
+}
+
+function requestFormInsert(field, record, header, rowIndex) {
+  emit("formInsert", field, record, header, rowIndex);
 }
 
 const selecteds = computed(() => {

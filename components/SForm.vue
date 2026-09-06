@@ -284,8 +284,10 @@
         <div
           v-if="tabs.length > 1"
           v-for="(tabName, tabIdx) in tabs.slice(1, tabs.length)"
+          v-show="data.currentTab == tabIdx + 1"
+          class="form_tab_content"
         >
-          <div v-show="data.currentTab == tabIdx + 1">
+          <div class="form_tab_canvas">
             <slot :name="'tab_' + tabName.replace(' ', '_')" :item="modelValue" :mode="mode">
               {{ tabName }}
             </slot>
@@ -921,6 +923,19 @@ function handleKeyDown(event) {
 
   .form_button_top {
     flex-grow: 1;
+  }
+
+  .form_tab_content,
+  .form_tab_canvas {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .form_tab_canvas {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .form-section-content {
