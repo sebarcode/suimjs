@@ -176,13 +176,13 @@
         </template>
 
         <template
-          v-for="slotname in gridFieldInputSlotNames"
+          v-for="slotname in getGridFieldSlots()"
+          :key="slotname.gridSlotName"
           v-slot:[slotname.itemSlotName]="slotData"
         >
           <slot
             :name="slotname.gridSlotName"
-            :item="slotData.item"
-            :header="slotData.header"
+            v-bind="slotData"
           ></slot>
         </template>
 
@@ -280,53 +280,11 @@
           @recordChange="handleFormRecordChange"
         >
           <template
-            v-for="name in formFieldInputHeaderSlotNames"
-            v-slot:[name]="slotData"
+            v-for="slotInfo in getFormFieldSlots()"
+            :key="slotInfo.parentSlotName"
+            v-slot:[slotInfo.childSlotName]="slotData"
           >
-            <slot
-              :name="'form_' + name"
-              :item="slotData.item"
-              :config="slotData.config"
-              :mode="slotData.mode"
-            ></slot>
-          </template>
-
-          <template
-            v-for="name in formFieldInputSlotNames"
-            v-slot:[name]="slotData"
-          >
-            <slot
-              :name="'form_' + name"
-              :item="slotData.item"
-              :config="slotData.config"
-              :mode="slotData.mode"
-            ></slot>
-          </template>
-
-          <template
-            v-for="name in formFieldInputFooterSlotNames"
-            v-slot:[name]="slotData"
-          >
-            <slot
-              :name="'form_' + name"
-              :item="slotData.item"
-              :config="slotData.config"
-              :mode="slotData.mode"
-            ></slot>
-          </template>
-
-          <template
-            v-for="name in formFieldInputOptionSlotNames"
-            v-slot:[name]="slotData"
-          >
-            <slot :name="'form_' + name" :option="slotData.option" :mode="slotData.mode"></slot>
-          </template>
-
-          <template
-            v-for="name in formFieldInputSelectedOptionSlotNames"
-            v-slot:[name]="slotData"
-          >
-            <slot :name="'form_' + name" :option="slotData.option" :mode="slotData.mode"></slot>
+            <slot :name="slotInfo.parentSlotName" v-bind="slotData"></slot>
           </template>
 
           <template v-for="tabName in formTabNames" v-slot:[tabName]="slotData">
@@ -398,53 +356,11 @@
       @recordChange="handleFormRecordChange"
     >
       <template
-        v-for="name in formFieldInputHeaderSlotNames"
-        v-slot:[name]="slotData"
+        v-for="slotInfo in getFormFieldSlots()"
+        :key="slotInfo.parentSlotName"
+        v-slot:[slotInfo.childSlotName]="slotData"
       >
-        <slot
-          :name="'form_' + name"
-          :item="slotData.item"
-          :config="slotData.config"
-          :mode="slotData.mode"
-        ></slot>
-      </template>
-
-      <template
-        v-for="name in formFieldInputSlotNames"
-        v-slot:[name]="slotData"
-      >
-        <slot
-          :name="'form_' + name"
-          :item="slotData.item"
-          :config="slotData.config"
-          :mode="slotData.mode"
-        ></slot>
-      </template>
-
-      <template
-        v-for="name in formFieldInputFooterSlotNames"
-        v-slot:[name]="slotData"
-      >
-        <slot
-          :name="'form_' + name"
-          :item="slotData.item"
-          :config="slotData.config"
-          :mode="slotData.mode"
-        ></slot>
-      </template>
-
-      <template
-        v-for="name in formFieldInputOptionSlotNames"
-        v-slot:[name]="slotData"
-      >
-        <slot :name="'form_' + name" :option="slotData.option" :mode="slotData.mode"></slot>
-      </template>
-
-      <template
-        v-for="name in formFieldInputSelectedOptionSlotNames"
-        v-slot:[name]="slotData"
-      >
-        <slot :name="'form_' + name" :option="slotData.option" :mode="slotData.mode"></slot>
+        <slot :name="slotInfo.parentSlotName" v-bind="slotData"></slot>
       </template>
 
       <template v-for="tabName in formTabNames" v-slot:[tabName]="slotData">
@@ -511,6 +427,7 @@ import {
   computed,
   watch,
   onBeforeUnmount,
+  useSlots,
 } from "vue";
 import util from "../scripts/util.js";
 import formConfig from "../scripts/form_config.js";
@@ -524,7 +441,6 @@ const props = defineProps({
   gridEditor: { type: Boolean },
   gridEditorNoForm: { type: Boolean },
   gridSingleColor: { type: Boolean },
-  gridFields: { type: Array, default: () => [] },
   gridHideControl: { type: Boolean, default: false },
   gridHideAction: { type: Boolean, default: false },
   gridActionSize: { type: [String, Number], default: "60px" },
@@ -548,7 +464,6 @@ const props = defineProps({
   gridSecondaryRow: { type: Boolean, default: false },
   gridRowClass: { type: Function, default: null },
   gridFitViewport: { type: Boolean, default: false },
-  formFields: { type: Array, default: () => [] },
   formConfig: { type: [String, Object], default: () => {} },
   formConfigNew: { type: [String, Object], default: () => undefined },
   formConfigUpdate: { type: [String, Object], default: () => undefined },
@@ -603,6 +518,7 @@ const props = defineProps({
 });
 
 const axios = inject("axios");
+const slots = useSlots();
 const emit = defineEmits({
   postSave: null,
   formFieldChange: null,
@@ -863,56 +779,23 @@ const formTabNames = computed({
   },
 });
 
-const formFieldInputSlotNames = computed({
-  get() {
-    return props.formFields.map((el) => {
-      return "input_" + el;
-    });
-  },
-});
+function getFormFieldSlots() {
+  return Object.keys(slots)
+    .filter((name) => name.startsWith("form_input_"))
+    .map((parentSlotName) => ({
+      parentSlotName,
+      childSlotName: parentSlotName.slice("form_".length),
+    }));
+}
 
-const formFieldInputHeaderSlotNames = computed({
-  get() {
-    return props.formFields.map((el) => {
-      return "input_" + el + "_header";
-    });
-  },
-});
-
-const formFieldInputFooterSlotNames = computed({
-  get() {
-    return props.formFields.map((el) => {
-      return "input_" + el + "_footer";
-    });
-  },
-});
-
-const formFieldInputOptionSlotNames = computed({
-  get() {
-    return props.formFields.map((el) => {
-      return "input_" + el + "_option";
-    });
-  },
-});
-
-const formFieldInputSelectedOptionSlotNames = computed({
-  get() {
-    return props.formFields.map((el) => {
-      return "input_" + el + "_selected-option";
-    });
-  },
-});
-
-const gridFieldInputSlotNames = computed({
-  get() {
-    return props.gridFields.map((el) => {
-      return {
-        itemSlotName: "item_" + el,
-        gridSlotName: "grid_" + el,
-      };
-    });
-  },
-});
+function getGridFieldSlots() {
+  return (data.listCfg.fields || [])
+    .map((fieldConfig) => ({
+      itemSlotName: "item_" + fieldConfig.field,
+      gridSlotName: "grid_" + fieldConfig.field,
+    }))
+    .filter((slotName) => slots[slotName.gridSlotName]);
+}
 
 function selectData(dt, index, isAfterSave = false) {
   if (props.formRead == "") {
