@@ -63,6 +63,7 @@
 <script setup>
 import { computed, inject, onMounted, reactive, ref, watch } from "vue";
 import util from '../scripts/util';
+import { buildLookupRequest } from '../scripts/lookup_request.mjs';
 
 const props = defineProps({
   modelValue: { type: [String, Number, Array], default: () => "" },
@@ -138,7 +139,6 @@ function fetchOptions(search, loading) {
     if (props.lookupPayloadBuilder==undefined || props.lookupPayloadBuilder==null) {
       if (search != "") data.filterTxt = search;
       qp.Take =20
-      qp.Sort = [props.lookupLabels[0]]
       qp.Select = props.lookupLabels 
       let idInSelect = false;
       const selectedFields = props.lookupLabels.map(x => {
@@ -202,8 +202,14 @@ function fetchOptions(search, loading) {
     } else {
       qp = props.lookupPayloadBuilder(search)
     }
+    const request = buildLookupRequest(
+      props.lookupUrl,
+      qp,
+      props.lookupLabels,
+      props.lookupSearchs
+    );
     if (loading) loading(true);
-    axios.post(props.lookupUrl, qp).then(
+    axios.post(request.url, request.payload).then(
       (r) => {
         if (r.data && r.data.error) {
           if (loading) loading(false)
@@ -301,11 +307,17 @@ function value2(key) {
 async function getLookupLabel(id) {
   if (props.lookupUrl == "") return id;
 
-  const url =
-    props.lookupUrl +
-    (props.lookupUrl.indexOf("?") > 0 ? "&" + (props.lookupKey || "_id") + "=" + id : "?" + (props.lookupKey || "_id") + "=" + id);
+  const request = buildLookupRequest(
+    props.lookupUrl,
+    {
+      Take: 1,
+      Where: { Field: props.lookupKey || "_id", Op: "$eq", Value: id },
+    },
+    props.lookupLabels,
+    props.lookupSearchs
+  );
 
-  await axios.post(url, { Take: 1 }).then(
+  await axios.post(request.url, request.payload).then(
     (r) => {
       if (r.data.length == 0) return "";
 

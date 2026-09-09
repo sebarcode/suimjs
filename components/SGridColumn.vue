@@ -41,6 +41,7 @@
 <script setup>
 import { computed, inject, onMounted, reactive } from 'vue';
 import util from '../scripts/util.js';
+import { buildLookupRequest } from '../scripts/lookup_request.mjs';
 import moment from 'moment';
 
 const props = defineProps({
@@ -65,14 +66,15 @@ const booleanValue = computed(() => {
 
 function getLabel() {
     if (props.columnConfig.input.lookupUrl != undefined && props.columnConfig.input.lookupUrl != "") {
-        axios.post(props.columnConfig.input.lookupUrl, {
+        const request = buildLookupRequest(props.columnConfig.input.lookupUrl, {
             "Where": {
                 "Field": props.columnConfig.input.lookupKey || props.idFieldName, "Op": "$eq",
                 "Value": props.record[props.columnConfig.field]
             },
             "Select": props.columnConfig.input.lookupLabels,
             "Take": 1
-        }).then(r => {
+        }, props.columnConfig.input.lookupLabels, props.columnConfig.input.lookupSearchs);
+        axios.post(request.url, request.payload).then(r => {
             if (r.data.length > 0) data.txt = props.columnConfig.input.lookupLabels.map(l => {
                 return r.data[0][l]
             }).join(" | ")

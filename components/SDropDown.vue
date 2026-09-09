@@ -108,6 +108,7 @@
 <script setup>
 import { ref, reactive, watch, onMounted, onBeforeUnmount, computed, inject, nextTick } from 'vue';
 import { getCachedLookup } from '../scripts/lookup_cache';
+import { buildLookupRequest } from '../scripts/lookup_request.mjs';
 
 const props = defineProps({
     modelValue: { type: [Array, String, Object, Number, null], default: null },
@@ -229,13 +230,19 @@ async function fetchSelected(values) {
     const payload = props.multiple ? 
         { Where: { Op: '$in', Field: props.lookupKey, Value: values } } :
         { Where: { Field: props.lookupKey, Op: '$eq', Value: [values] } };
+    const request = buildLookupRequest(
+        props.lookupUrl,
+        payload,
+        props.lookupLabels,
+        props.lookupSearchs
+    );
 
     try {
         const result = await getCachedLookup(
-            props.lookupUrl,
-            payload,
+            request.url,
+            request.payload,
             async () => {
-                const resp = await axios.post(props.lookupUrl, payload);
+                const resp = await axios.post(request.url, request.payload);
                 return Array.isArray(resp?.data) ? resp.data : [];
             }
         );
@@ -665,11 +672,17 @@ function manageLookup() {
                     }
                 }
             }
-            return await getCachedLookup(
+            const request = buildLookupRequest(
                 props.lookupUrl,
                 payload,
+                props.lookupLabels,
+                props.lookupSearchs
+            );
+            return await getCachedLookup(
+                request.url,
+                request.payload,
                 async () => {
-                    const response = await axios.post(props.lookupUrl, payload);
+                    const response = await axios.post(request.url, request.payload);
                     return Array.isArray(response?.data) ? response.data : [];
                 }
             );
