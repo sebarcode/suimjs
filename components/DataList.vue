@@ -406,6 +406,50 @@
         <slot name="form_footer_2" :item="item" :config="config" :mode="mode"></slot>
       </template>
     </s-form>
+
+    <teleport to="body">
+      <div
+        v-if="gridInsertForm.open"
+        class="grid_insert_backdrop"
+        @mousedown.self="closeGridInsertForm"
+      >
+        <section
+          class="grid_insert_modal"
+          :style="{ width: gridInsertFormWidth }"
+          role="dialog"
+          aria-modal="true"
+        >
+          <header class="grid_insert_header">
+            <span>Add {{ gridInsertForm.label }}</span>
+            <button
+              type="button"
+              class="grid_insert_close"
+              aria-label="Close"
+              @click="closeGridInsertForm"
+            >
+              <mdicon name="close" size="18" />
+            </button>
+          </header>
+          <div v-if="gridInsertForm.loading" class="grid_insert_status">
+            <mdicon name="loading" size="16" class="grid_insert_spinner" />
+            Loading form...
+          </div>
+          <div v-else-if="gridInsertForm.error" class="grid_insert_error">
+            {{ gridInsertForm.error }}
+          </div>
+          <s-form
+            v-else-if="gridInsertForm.config"
+            v-model="gridInsertForm.record"
+            :config="gridInsertForm.config"
+            mode="new"
+            keep-label
+            no-exclusive-buttons
+            @submit-form="submitGridInsertForm"
+            @cancel-form="closeGridInsertForm"
+          />
+        </section>
+      </div>
+    </teleport>
   </s-card>
 </template>
 
@@ -428,6 +472,7 @@ import {
   watch,
   onBeforeUnmount,
   useSlots,
+  getCurrentInstance,
 } from "vue";
 import util from "../scripts/util.js";
 import formConfig from "../scripts/form_config.js";
@@ -519,6 +564,7 @@ const props = defineProps({
 
 const axios = inject("axios");
 const slots = useSlots();
+const instance = getCurrentInstance();
 const emit = defineEmits({
   postSave: null,
   formFieldChange: null,
@@ -559,6 +605,23 @@ const data = reactive({
   loadingSelectData: false,
   isAfterSave: false
 });
+
+const gridInsertForm = reactive({
+  open: false,
+  loading: false,
+  error: "",
+  config: null,
+  record: {},
+  target: null,
+  field: "",
+  input: null,
+  rowIndex: -1,
+  label: "record",
+});
+
+const gridInsertFormWidth = computed(() =>
+  normalizeGridInsertFormSize(gridInsertForm.input?.formInsertSize)
+);
 
 const gridCtl = ref(null);
 const formCtl = ref(null);
@@ -733,8 +796,126 @@ function handleGridFieldChanged(name, v1, v2, old, record) {
   emit("gridRowFieldChanged", name, v1, v2, old, record);
 }
 
+function hasGridFormInsertListener() {
+  const vnodeProps = instance?.vnode?.props || {};
+  return Boolean(vnodeProps.onGridFormInsert || vnodeProps["onGrid-form-insert"]);
+}
+
+function normalizeGridInsertFormSize(size) {
+  if (typeof size === "number") return size > 0 ? `${size}px` : "240px";
+
+  const value = String(size ?? "").trim();
+  if (value === "") return "240px";
+  if (/^\d+(?:\.\d+)?$/.test(value)) return `${value}px`;
+
+  if (typeof CSS !== "undefined" && typeof CSS.supports === "function") {
+    return CSS.supports("width", value) ? value : "240px";
+  }
+
+  return /^(?:\d+(?:\.\d+)?(?:px|%|vw|vh|vmin|vmax|em|rem|ch|ex|cm|mm|in|pt|pc)|(?:min|max|clamp|calc|var)\(.+\))$/i.test(value)
+    ? value
+    : "240px";
+}
+
+function closeGridInsertForm() {
+  gridInsertForm.open = false;
+  gridInsertForm.loading = false;
+  gridInsertForm.error = "";
+  gridInsertForm.config = null;
+  gridInsertForm.record = {};
+  gridInsertForm.target = null;
+  gridInsertForm.field = "";
+  gridInsertForm.input = null;
+  gridInsertForm.rowIndex = -1;
+  gridInsertForm.label = "record";
+}
+
+async function openGridInsertForm(field, record, header, index) {
+  const input = header?.input;
+  if (!input?.lookupUrl || !input.formInsertConfig || !input.formInsertApi) return;
+
+  gridInsertForm.open = true;
+  gridInsertForm.loading = true;
+  gridInsertForm.error = "";
+  gridInsertForm.config = null;
+  gridInsertForm.record = {};
+  gridInsertForm.target = record;
+  gridInsertForm.field = field;
+  gridInsertForm.input = input;
+  gridInsertForm.rowIndex = index;
+  gridInsertForm.label = input.label || header?.label || field;
+
+  if (!axios) {
+    gridInsertForm.loading = false;
+    gridInsertForm.error = "Axios is not available for form insert.";
+    return;
+  }
+
+  try {
+    const config = await loadFormConfig(axios, input.formInsertConfig, { timeout: 10000 });
+    if (!config?.setting || !config?.sectionGroups) {
+      throw new Error("Invalid form insert configuration.");
+    }
+    gridInsertForm.config = config;
+  } catch (error) {
+    gridInsertForm.error = error?.code === "ECONNABORTED"
+      ? "Loading the insert form timed out. Please try again."
+      : error?.response?.data?.message || error?.message || "Unable to load the insert form.";
+  } finally {
+    gridInsertForm.loading = false;
+  }
+}
+
+async function submitGridInsertForm(record, done, failed) {
+  const input = gridInsertForm.input;
+  if (!input || !axios) {
+    failed?.();
+    return;
+  }
+
+  try {
+    const response = await axios.post(input.formInsertApi, record);
+    const created = response?.data?.data ?? response?.data;
+    const key = created?.[input.lookupKey];
+    if (key === undefined || key === null || key === "") {
+      throw new Error(`Insert response does not contain lookup key '${input.lookupKey}'.`);
+    }
+
+    const oldValue = gridInsertForm.target?.[gridInsertForm.field];
+    const label = (input.lookupLabels || [])
+      .map(field => created?.[field])
+      .filter(value => value !== undefined && value !== null && value !== "")
+      .join(" - ");
+    const updatedRecord = {
+      ...gridInsertForm.target,
+      [gridInsertForm.field]: key,
+      suimRecordChange: !props.gridAutoCommitLine,
+    };
+    if (input.labelField) updatedRecord[input.labelField] = label || key;
+
+    gridCtl.value?.setRecord(gridInsertForm.rowIndex, updatedRecord);
+    emit(
+      "gridRowFieldChanged",
+      gridInsertForm.field,
+      key,
+      label || key,
+      oldValue,
+      updatedRecord
+    );
+    done?.();
+    closeGridInsertForm();
+  } catch (error) {
+    gridInsertForm.error = error?.response?.data?.message || error?.message || "Unable to create the lookup record.";
+    failed?.();
+  }
+}
+
 function handleGridFormInsert(field, record, header, index) {
-  emit("gridFormInsert", field, record, header, index);
+  if (hasGridFormInsertListener()) {
+    emit("gridFormInsert", field, record, header, index);
+    return;
+  }
+  openGridInsertForm(field, record, header, index);
 }
 
 function handleGridRowDeleted(record) {
@@ -1362,5 +1543,70 @@ onMounted(() => {
 
 .form_view_form {
   padding: 1rem;
+}
+
+.grid_insert_backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 60%);
+}
+
+.grid_insert_modal {
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 25%);
+}
+
+.grid_insert_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #172554;
+  font-weight: 600;
+}
+
+.grid_insert_close {
+  padding: 0.25rem;
+  color: #172554;
+  cursor: pointer;
+}
+
+.grid_insert_modal :deep(.suim_form) {
+  padding: 1rem;
+}
+
+.grid_insert_status,
+.grid_insert_error {
+  padding: 1rem;
+}
+
+.grid_insert_status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #475569;
+}
+
+.grid_insert_error {
+  color: #b91c1c;
+}
+
+.grid_insert_spinner {
+  animation: grid-insert-spin 0.85s linear infinite;
+}
+
+@keyframes grid-insert-spin {
+  to { transform: rotate(360deg); }
 }
 </style>
