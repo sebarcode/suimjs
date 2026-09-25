@@ -56,8 +56,21 @@
         <teleport to="body">
             <transition name="fade">
                 <div v-if="open" ref="dropdownEl" class="sdd_dropdown sdd" :style="dropdownStyle" @keydown="handleDropdownKeydown">
+                    <div v-if="showMultiClearButton" class="sdd_multi_clear">
+                        <span>{{ selected.length }} selected</span>
+                        <button
+                            type="button"
+                            class="sdd_multi_clear_btn"
+                            title="Clear all selections"
+                            aria-label="Clear all selections"
+                            @click.stop="clearAllSelections"
+                            @keydown.enter.stop
+                            @keydown.space.stop>
+                            <mdicon name="close" size="16" />
+                        </button>
+                    </div>
                     <ul class="sdd_list">
-                        <li v-if="filtered.length === 0" class="sdd_noresult">
+                        <li v-if="displayedItems.length === 0" class="sdd_noresult">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="text-gray-500">No results</div>
                                 <button
@@ -70,7 +83,7 @@
                                 </button>
                             </div>
                         </li>
-                    <li v-for="(it, idx) in filtered"
+                    <li v-for="(it, idx) in displayedItems"
                         :key="it._uid"
                         :class="['sdd_item', highlighted === idx ? 'sdd_highlighted' : '']"
                         :tabindex="0"
@@ -109,6 +122,7 @@
 import { ref, reactive, watch, onMounted, onBeforeUnmount, computed, inject, nextTick } from 'vue';
 import { getCachedLookup } from '../scripts/lookup_cache';
 import { buildLookupRequest } from '../scripts/lookup_request.mjs';
+import { selectedItemsFirst } from '../scripts/dropdown_selection.mjs';
 
 const props = defineProps({
     modelValue: { type: [Array, String, Object, Number, null], default: null },
@@ -370,6 +384,14 @@ function clearSelection(){
     emit('change', null);
 }
 
+function clearAllSelections() {
+    clearSelection();
+    nextTick(() => {
+        if (searchInput.value) searchInput.value.focus();
+        else focusDropdownItem(0);
+    });
+}
+
 /**
  * Create a new item from the current search text (or given value), append to list and emit 'item-added'.
  * Returns the created normalized item.
@@ -417,7 +439,7 @@ function highlight(idx){ highlighted.value = idx; }
 
 function move(dir){
     if (!data.items.length) return;
-    const list = filtered.value;
+    const list = displayedItems.value;
     if (!list.length) return;
     if (highlighted.value === -1) highlighted.value = 0;
     else highlighted.value = Math.max(0, Math.min(list.length - 1, highlighted.value + dir));
@@ -443,7 +465,7 @@ function focusDropdownItem(index) {
 }
 
 function handleSearchArrowDown() {
-    const list = filtered.value;
+    const list = displayedItems.value;
     if (!list.length) return;
 
     const nextIndex = highlighted.value < 0 ? 0 : Math.min(list.length - 1, highlighted.value + 1);
@@ -453,7 +475,7 @@ function handleSearchArrowDown() {
 }
 
 function handleSearchArrowUp() {
-    const list = filtered.value;
+    const list = displayedItems.value;
     if (!list.length) return;
 
     if (highlighted.value <= 0) {
@@ -468,7 +490,7 @@ function handleSearchArrowUp() {
 }
 
 function chooseHighlighted(returnFocus = false){
-    const list = filtered.value;
+    const list = displayedItems.value;
     if (highlighted.value >=0 && highlighted.value < list.length){ select(list[highlighted.value], !props.multiple, returnFocus); }
 }
 
@@ -477,7 +499,7 @@ function handleSearchEnter() {
 }
 
 function handleSearchTabNavigation(event) {
-    if (!event.shiftKey && filtered.value.length > 0) {
+    if (!event.shiftKey && displayedItems.value.length > 0) {
         // Tab forward - move focus to first dropdown item
         event.preventDefault();
         focusDropdownItem(0);
@@ -512,7 +534,7 @@ function handleItemKeydown(event, item, index) {
                 }
             } else {
                 // Tab forward - move to next item or let it bubble to next element outside dropdown
-                if (index < filtered.value.length - 1) {
+                if (index < displayedItems.value.length - 1) {
                     event.preventDefault();
                     focusDropdownItem(index + 1);
                 }
@@ -527,7 +549,7 @@ function handleItemKeydown(event, item, index) {
 }
 
 function moveToNextItem(currentIndex) {
-    const nextIndex = Math.min(filtered.value.length - 1, currentIndex + 1);
+    const nextIndex = Math.min(displayedItems.value.length - 1, currentIndex + 1);
     focusDropdownItem(nextIndex);
 }
 
@@ -619,7 +641,16 @@ watch(() => highlighted.value, (idx) => {
 
 const filtered = ref([]);
 
-watch(() => filtered.value, (list) => {
+const displayedItems = computed(() => {
+    if (!props.multiple) return filtered.value;
+    return selectedItemsFirst(filtered.value, selected.value);
+});
+
+const showMultiClearButton = computed(() => {
+    return props.multiple && props.clearable && selected.value.length > 1;
+});
+
+watch(() => displayedItems.value, (list) => {
     if (highlighted.value >= list.length) {
         highlighted.value = list.length > 0 ? list.length - 1 : -1;
     }
@@ -802,5 +833,34 @@ defineExpose({ options, setSelected, value2 });
 <style scoped>
 .sdd_insert_btn {
     cursor: pointer;
+}
+
+.sdd_multi_clear {
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    display: flex;
+    font-size: 0.75rem;
+    justify-content: space-between;
+    padding: 0.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.sdd_multi_clear_btn {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: #9ca3af;
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    padding: 0;
+}
+
+.sdd_multi_clear_btn:hover {
+    color: #374151;
 }
 </style>
