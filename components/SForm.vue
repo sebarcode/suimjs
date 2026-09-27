@@ -48,9 +48,9 @@
             </div>
             <div class="sform_tab_close">
               <button
+                type="button"
                 class="close-button"
-                @click="onCancelForm"
-                :disabled="isLockedByOtherForm"
+                @click="activateAndCancelForm"
               >
                 <mdicon name="close" size="16"></mdicon>
               </button>
@@ -660,6 +660,11 @@ const value = computed({
 function onCancelForm() {
   if (isLockedByOtherForm.value) return;
   emit("cancelForm");
+}
+
+function activateAndCancelForm() {
+  markAsActive();
+  onCancelForm();
 }
 
 function calcChangeFields(cfg) {
