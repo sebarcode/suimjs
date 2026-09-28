@@ -1,6 +1,6 @@
 <template>
-  <div class="seditor_root">
-    <div class="seditor_actions" v-if="showToggle">
+  <div class="seditor_root" :class="{ 'seditor_root--disabled': disabled }">
+    <div class="seditor_actions" v-if="showToggle && !disabled">
       <button type="button" class="seditor_toggle_btn" @click="toggleMode">
         {{ localMode === 'rich' ? 'Switch to plain text' : 'Switch to rich text' }}
       </button>
@@ -12,6 +12,7 @@
       content-type="html"
       :toolbar="toolbarOptions"
       :options="editorOptions"
+      :read-only="disabled"
       theme="snow"
     />
 
@@ -20,6 +21,7 @@
       v-model="internalValue"
       :rows="textareaRows"
       class="seditor_textarea"
+      :disabled="disabled"
     ></textarea>
   </div>
 </template>
@@ -57,6 +59,7 @@ const props = defineProps({
   showToggle: { type: Boolean, default: true },
   // rows for plain textarea
   textareaRows: { type: Number, default: 8 },
+  disabled: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -150,6 +153,20 @@ function toggleMode() {
   border-radius: 6px; 
   min-height: 120px; 
   resize: vertical; 
+}
+
+.seditor_root--disabled :deep(.ql-toolbar) {
+  display: none;
+}
+
+.seditor_root--disabled :deep(.ql-container),
+.seditor_root--disabled .seditor_textarea:disabled {
+  background: var(--color-bgpopup, #ffffff);
+  border-color: var(--color-input-border, var(--border-medium, #cbd5e1));
+  color: var(--color-input-text, #111827);
+  cursor: not-allowed;
+  opacity: 1;
+  -webkit-text-fill-color: var(--color-input-text, #111827);
 }
 
 /* Enhanced Quill Editor Styles */

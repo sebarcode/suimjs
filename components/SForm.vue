@@ -1,5 +1,15 @@
 <template>
-  <div ref="formRoot" class="suim_form" :class="[focus ? 'focus' :'', data.inSubmission || data.loading ? 'loading' :''] " @focusin="markAsActive" @mousedown="markAsActive">
+  <div
+    ref="formRoot"
+    class="suim_form"
+    :class="[
+      focus ? 'focus' : '',
+      data.inSubmission || data.loading ? 'loading' : '',
+      mode == 'view' ? 'suim_form--view' : '',
+    ]"
+    @focusin="markAsActive"
+    @mousedown="markAsActive"
+  >
       <!-- reactive stamp to force re-render when config is mutated via setFieldAttr/setSectionAttr/removeField -->
       <div hidden>{{ data.configStamp }}</div>
       
@@ -168,6 +178,7 @@
                         :rules="input.rules"
                         :required="input.required"
                         :read-only="input.readOnly"
+                        :view-mode="mode == 'view'"
                         :lookup-url="input.lookupUrl"
                         :lookup-key="input.lookupKey"
                         :allow-add="input.allowAdd"
@@ -211,6 +222,7 @@
                         :rules="input.rules"
                         :required="input.required"
                         :read-only="input.readOnly"
+                        :view-mode="mode == 'view'"
                         :lookup-url="input.lookupUrl"
                         :lookup-key="input.lookupKey"
                         :allow-add="input.allowAdd"
@@ -480,7 +492,7 @@ function markAsActive(event) {
 }
 
 const inputIsDisabled = (input) => {
-  if (props.mode == "view") return input.disabled===false ? false : true;
+  if (props.mode == "view") return true;
   if (input.readOnly) return true;
   if (input.disabled) return true;
   

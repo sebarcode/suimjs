@@ -1,5 +1,9 @@
 <template>
-  <div v-if="!readOnly" class="suim_input">
+  <div
+    v-if="!readOnly || viewMode"
+    class="suim_input"
+    :class="{ 'suim_input--view': viewMode }"
+  >
     <!-- radio -->
     <div v-if="kind == 'radio'" class="flex flex-col gap-2">
       <div v-for="(item, itemIndex) in items" class="flex gap-2 radio-item">
@@ -9,6 +13,7 @@
           class="bg-slate-800"
           :id="field + '_' + itemIndex"
           v-model="value"
+          :disabled="controlDisabled"
           @focus="onFocus"
         />
         <label :for="field + '_' + itemIndex">{{ item.text }}</label>
@@ -31,7 +36,7 @@
     <div v-else-if="isBooleanKind">
       <label class="input_label" v-if="!hideLabel && label">{{ label }}</label>
       <div>
-        <input :disabled="disabled || readOnly"
+        <input :disabled="controlDisabled"
           type="checkbox"
           v-model="value"
           ref="control"
@@ -85,7 +90,8 @@
           :lookup-searchs="lookupSearchs"
           :lookup-payload-builder="lookupPayloadBuilder"
           :show-insert-button="canInsertLookupRecord"
-          :read-only="disabled"
+          :read-only="readOnly && !viewMode"
+          :disabled="controlDisabled"
           :multiple="multiple"
           :clearable="clearable"
           :placeholder="`Select ${caption || label || field}`"
@@ -115,7 +121,7 @@
           :lookup-labels="lookupLabels"
           :lookup-searchs="lookupSearchs"
           :lookup-payload-builder="lookupPayloadBuilder"
-          :disabled="disabled"
+          :disabled="controlDisabled"
           :multiple="multiple"
           :clearable="clearable"
           @focus="onFocus"
@@ -132,12 +138,12 @@
 
       <!-- html -->
       <div v-else-if="kind == 'html'" class="flex flex-col gap-0">
-        <s-editor ref="control" v-model="value" />
+        <s-editor ref="control" v-model="value" :disabled="controlDisabled" />
       </div>
 
       <!-- json -->
       <div v-else-if="kind == 'json'" class="flex flex-col gap-0">
-        <s-json-editor ref="control" v-model="value" />
+        <s-json-editor ref="control" v-model="value" :disabled="controlDisabled" />
       </div>
 
       <!-- password -->
@@ -148,12 +154,14 @@
           class="input_field"
           v-model="value"
           ref="control"
-          :disabled="disabled"
+          :disabled="controlDisabled"
           @focus="onFocus"
           autocomplete="off"
         />
         <button
           class="input_icon"
+          type="button"
+          :disabled="controlDisabled"
           @click="state.showPassword = !state.showPassword"
         >
           <mdicon
@@ -173,7 +181,7 @@
           :mode="kind"
           :format="kind === 'date' || kind === 'week' ? dateOnlyFormat(dateFormat) : dateFormat"
           :placeholder="caption || label"
-          :disabled="disabled"
+          :disabled="controlDisabled"
           :style="{ width: kind === 'date' || kind === 'week' ? '120px' : '150px' }"
           @focus="onFocus"
         />
@@ -185,7 +193,7 @@
           class="input_field"
           v-model="value"
           ref="control"
-          :disabled="disabled"
+          :disabled="controlDisabled"
           @focus="onFocus"
           autocomplete="off"
         />
@@ -197,23 +205,20 @@
           :format-code="undefined"
           v-model="value"
           ref="control"
-          :disabled="disabled"
+          :disabled="controlDisabled"
           @focus="onFocus"
         />
         <textarea
-          v-else-if="multiRow > 1 && !disabled"
+          v-else-if="multiRow > 1"
           :rows="multiRow"
           type="text"
           :placeholder="caption || label"
           class="input_field"
           ref="control"
           v-model="value"
-          :readonly="disabled || readOnly"
+          :disabled="controlDisabled"
           @focus="onFocus"
         ></textarea>
-        <div v-else-if="multiRow > 1 && disabled">
-          {{  value }}
-        </div>
       </div>
       <div class="text-[0.7em] italic opacity-40">{{ hint }}</div>
       <div class="input_error"
@@ -297,6 +302,32 @@
   display: block;
   background-color: #000000;
 }
+
+.suim_input--view .input_field:disabled,
+.suim_input--view textarea:disabled,
+.suim_input--view select:disabled {
+  background-color: var(--color-bgpopup, #ffffff) !important;
+  border: 1px solid var(--color-input-border, var(--border-medium, #cbd5e1)) !important;
+  color: var(--color-input-text, #111827) !important;
+  cursor: not-allowed;
+  opacity: 1 !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+  -webkit-text-fill-color: var(--color-input-text, #111827);
+}
+
+.suim_input--view button:disabled,
+.suim_input--view input[type="checkbox"]:disabled,
+.suim_input--view input[type="radio"]:disabled {
+  accent-color: var(--color-primary, #1b2b5d);
+  color: inherit;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+}
+
+.suim_input--view .radio-item label {
+  color: var(--color-input-text, var(--text-primary, #111827));
+}
 </style>
 
 <script setup>
@@ -336,6 +367,7 @@ const props = defineProps({
   allowAdd: { type: Boolean, default: false },
   required: { type: Boolean, default: false },
   readOnly: { type: Boolean },
+  viewMode: { type: Boolean, default: false },
   hideLabel: { type: Boolean },
   keepLabel: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
@@ -374,6 +406,8 @@ const emit = defineEmits({
 });
 
 const axios = inject("axios");
+
+const controlDisabled = computed(() => props.disabled || (props.readOnly && props.viewMode));
 
 const state = reactive({
   errors: [],

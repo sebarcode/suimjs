@@ -1,5 +1,5 @@
 <template>
-    <div class="suim_jsoneditor">
+    <div class="suim_jsoneditor" :class="{ 'suim_jsoneditor--disabled': disabled }">
         <div ref="editorContainer" class="jsoneditor_container"></div>
     </div>
 </template>
@@ -10,7 +10,8 @@ import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 const props = defineProps({
     modelValue: { type: [Object, Array, String, Number, Boolean, null], default: () => ({}) },
     mode: { type: String, default: 'tree' },
-    options: { type: Object, default: () => ({}) }
+    options: { type: Object, default: () => ({}) },
+    disabled: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
@@ -43,7 +44,11 @@ function getEditorValue() {
 }
 
 onMounted(async () => {
-    const defaultOptions = Object.assign({ mode: props.mode, navigationBar: false, mainMenuBar: false }, props.options)
+    const defaultOptions = Object.assign(
+        { mode: props.disabled ? 'view' : props.mode, navigationBar: false, mainMenuBar: false },
+        props.options,
+        { mode: props.disabled ? 'view' : props.mode, onEditable: () => !props.disabled }
+    )
     try {
         const mod = await import('jsoneditor')
         await import('jsoneditor/dist/jsoneditor.css')
@@ -119,6 +124,11 @@ watch(() => props.modelValue, (nv) => {
     }
 }, { deep: true })
 
+watch(() => props.disabled, (disabled) => {
+    if (!editor?.setMode) return
+    editor.setMode(disabled ? 'view' : props.mode)
+})
+
 defineExpose({
     getJson: getEditorValue,
     setJson: setEditorValue
@@ -130,5 +140,11 @@ defineExpose({
     width: 100%;
     min-height: 200px;
     height: 300px;
+}
+
+.suim_jsoneditor--disabled {
+    color: var(--color-input-text, #111827);
+    cursor: not-allowed;
+    opacity: 1;
 }
 </style>

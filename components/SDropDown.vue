@@ -1,7 +1,7 @@
 <template>
-    <div class="sdd_root sdd" ref="root">
+    <div class="sdd_root sdd" :class="{ 'sdd_disabled': disabled }" :aria-disabled="disabled" ref="root">
         <div class="sdd_row" v-if="!readOnly">
-            <div class="sdd_toggle bg-amber-950">
+            <div class="sdd_toggle bg-amber-950" :aria-disabled="disabled">
                 <div class="text-gray-400 w-full sdd" @click="bodyClick" v-if="!open && !selectedLabel && !hidePlaceholder">
                     {{ placeholder }}
                 </div>
@@ -29,13 +29,13 @@
                     class="sdd sdd_actions"
                     ref="triggerEl"
                     role="button"
-                    tabindex="0"
+                    :tabindex="disabled ? -1 : 0"
                     @click="bodyClick"
                     @keydown.enter.prevent="bodyClick"
                     @keydown.space.prevent="bodyClick"
                 >
-                    <button v-if="showClearButton" @click.stop="clearSelection" class="sdd_clear_btn" title="Clear selection" type="button">✕</button>
-                    <button v-if="showInsertButton" @pointerdown.stop @click.stop="requestInsert" class="sdd_insert_btn" title="Add new item" type="button"><mdicon name="plus" size="16" /></button>
+                    <button v-if="showClearButton" :disabled="disabled" @click.stop="clearSelection" class="sdd_clear_btn" title="Clear selection" type="button">✕</button>
+                    <button v-if="showInsertButton" :disabled="disabled" @pointerdown.stop @click.stop="requestInsert" class="sdd_insert_btn" title="Add new item" type="button"><mdicon name="plus" size="16" /></button>
                     <svg class="sdd_chev" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.12 1.0l-4.25 4.653a.75.75 0 01-1.07 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
                 </div>
             </div>
@@ -136,6 +136,7 @@ const props = defineProps({
     multiple: { type: Boolean, default: false },
     minimalKeywordLength: { type: Number, default: 0 },
     readOnly: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false },
     allowAdd: { type: Boolean, default: false },
     searchFn: { type: Function, default: null },
     lookupUrl: { type: String, default: "" },
@@ -326,6 +327,7 @@ function handleDropdownKeydown(e){
 }
 
 function bodyClick(ev){
+    if (props.disabled) return;
     // The same trigger toggles the list in both directions. This also lets a
     // second click on the open search input close the dropdown.
     if (open.value) {
@@ -349,6 +351,7 @@ function close(returnFocus = false){
 }
 
 function select(it, closeAfterSelect = !props.multiple, returnFocus = false){
+    if (props.disabled) return;
     if (props.multiple) {
         // toggle membership
         const idx = selected.value.findIndex(s => s._uid === it._uid || s.key === it.key);
@@ -369,6 +372,7 @@ function select(it, closeAfterSelect = !props.multiple, returnFocus = false){
 }
 
 function clearSelection(){
+    if (props.disabled) return;
     if (data.lookupUrl && data.searchFn && typeof data.searchFn === 'function') 
         filtered.value = [];
 
@@ -385,6 +389,7 @@ function clearSelection(){
 }
 
 function clearAllSelections() {
+    if (props.disabled) return;
     clearSelection();
     nextTick(() => {
         if (searchInput.value) searchInput.value.focus();
@@ -446,7 +451,7 @@ function move(dir){
 }
 
 function requestInsert() {
-    if (!props.showInsertButton || props.readOnly) return;
+    if (!props.showInsertButton || props.readOnly || props.disabled) return;
     close();
     emit('insert-request');
 }
@@ -627,6 +632,10 @@ watch(() => open.value, (nv) => {
     } else {
         dropdownStyle.value = {};
     }
+});
+
+watch(() => props.disabled, (disabled) => {
+    if (disabled) close();
 });
 
 watch(() => highlighted.value, (idx) => {
@@ -833,6 +842,23 @@ defineExpose({ options, setSelected, value2 });
 <style scoped>
 .sdd_insert_btn {
     cursor: pointer;
+}
+
+.sdd_disabled .sdd_toggle {
+    background: var(--color-bgpopup, #ffffff) !important;
+    border-color: var(--color-input-border, var(--border-medium, #cbd5e1)) !important;
+    color: var(--color-input-text, #111827) !important;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+.sdd_disabled :deep(.sdd_selected_label),
+.sdd_disabled :deep(.sdd_chev),
+.sdd_disabled :deep(.text-gray-400),
+.sdd_disabled :deep(button:disabled) {
+    color: var(--color-input-text, #111827) !important;
+    cursor: not-allowed;
+    opacity: 1;
 }
 
 .sdd_multi_clear {
