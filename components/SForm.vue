@@ -177,7 +177,6 @@
                         :items="input.items"
                         :rules="input.rules"
                         :required="input.required"
-                        :read-only="input.readOnly"
                         :view-mode="mode == 'view'"
                         :lookup-url="input.lookupUrl"
                         :lookup-key="input.lookupKey"
