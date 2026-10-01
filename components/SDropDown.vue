@@ -1,11 +1,23 @@
 <template>
     <div class="sdd_root sdd" :class="{ 'sdd_disabled': disabled }" :aria-disabled="disabled" ref="root">
         <div class="sdd_row" v-if="!readOnly">
-            <div class="sdd_toggle bg-amber-950" :aria-disabled="disabled">
-                <div class="text-gray-400 w-full sdd" @click="bodyClick" v-if="!open && !selectedLabel && !hidePlaceholder">
+            <div
+                class="sdd_toggle bg-amber-950"
+                ref="triggerEl"
+                role="combobox"
+                :tabindex="disabled ? -1 : 0"
+                :aria-disabled="disabled"
+                :aria-expanded="open"
+                @click="openDropdown"
+                @focus="handleTriggerFocus"
+                @keydown.down.prevent.self="openDropdown"
+                @keydown.enter.prevent.self="openDropdown"
+                @keydown.space.prevent.self="openDropdown"
+            >
+                <div class="text-gray-400 w-full sdd" v-if="!open && !selectedLabel && !hidePlaceholder">
                     {{ placeholder }}
                 </div>
-                <div class="sdd sdd_body" @click="bodyClick">
+                <div class="sdd sdd_body">
                     <div v-if="!open && selectedLabel" 
                         class="sdd sdd_selected_label">
                         {{ selectedLabel }}
@@ -27,12 +39,6 @@
                 </div>
                 <div
                     class="sdd sdd_actions"
-                    ref="triggerEl"
-                    role="button"
-                    :tabindex="disabled ? -1 : 0"
-                    @click="bodyClick"
-                    @keydown.enter.prevent="bodyClick"
-                    @keydown.space.prevent="bodyClick"
                 >
                     <button v-if="showClearButton" :disabled="disabled" @click.stop="clearSelection" class="sdd_clear_btn" title="Clear selection" type="button">✕</button>
                     <button v-if="showInsertButton" :disabled="disabled" @pointerdown.stop @click.stop="requestInsert" class="sdd_insert_btn" title="Add new item" type="button"><mdicon name="plus" size="16" /></button>
@@ -147,7 +153,7 @@ const props = defineProps({
     showInsertButton: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['update:modelValue', 'change', 'item-added', 'insert-request']);
+const emit = defineEmits(['update:modelValue', 'change', 'item-added', 'insert-request', 'focus']);
 
 const axios = inject('axios');
 const root = ref(null);
@@ -158,6 +164,7 @@ const open = ref(false);
 const search = ref('');
 const highlighted = ref(-1);
 const dropdownStyle = ref({});
+let suppressOpenOnFocus = false;
 
 let scrollListener = null;
 let resizeListener = null;
@@ -288,20 +295,19 @@ const showClearButton = computed(() => {
     return props.clearable && hasSelection.value && !!props.lookupUrl;
 });
 
-function toggle(){
-    open.value = !open.value;
-    if (open.value) {
-        highlighted.value = -1;
-        // focus search input on next tick, or first item if not searchable
-        nextTick(() => {
-            if (searchInput.value) {
-                searchInput.value.focus();
-            } else {
-                const firstItem = dropdownEl.value?.querySelector('.sdd_item');
-                if (firstItem) firstItem.focus();
-            }
-        });
-    }
+function openDropdown(){
+    if (props.disabled || props.readOnly || open.value) return;
+    open.value = true;
+    highlighted.value = -1;
+    // focus search input on next tick, or first item if not searchable
+    nextTick(() => {
+        if (searchInput.value) {
+            searchInput.value.focus();
+        } else {
+            const firstItem = dropdownEl.value?.querySelector('.sdd_item');
+            if (firstItem) firstItem.focus();
+        }
+    });
 }
 
 function handleDropdownKeydown(e){
@@ -326,15 +332,13 @@ function handleDropdownKeydown(e){
     }
 }
 
-function bodyClick(ev){
-    if (props.disabled) return;
-    // The same trigger toggles the list in both directions. This also lets a
-    // second click on the open search input close the dropdown.
-    if (open.value) {
-        close();
+function handleTriggerFocus(){
+    emit('focus');
+    if (suppressOpenOnFocus) {
+        suppressOpenOnFocus = false;
         return;
     }
-    toggle();
+    openDropdown();
 }
 
 function focusTrigger() {
@@ -347,7 +351,15 @@ function close(returnFocus = false){
     open.value = false;
     search.value = '';
     highlighted.value = -1;
-    if (returnFocus) focusTrigger();
+    if (returnFocus) {
+        suppressOpenOnFocus = true;
+        focusTrigger();
+    }
+}
+
+function focus() {
+    if (props.disabled || props.readOnly) return;
+    triggerEl.value?.focus?.();
 }
 
 function select(it, closeAfterSelect = !props.multiple, returnFocus = false){
@@ -835,7 +847,7 @@ function value2(key) {
   return opts && opts.length > 0 ? opts[0].label : key;
 }
 
-defineExpose({ options, setSelected, value2 });
+defineExpose({ options, setSelected, value2, focus });
 
 </script>
 
