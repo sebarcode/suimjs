@@ -115,7 +115,7 @@
         :secondary-row="gridSecondaryRow"
         :row-class="gridRowClass"
         :fit-viewport="gridFitViewport"
-        @select-data="selectData"
+        @select-data="(record, index) => selectData(record, index)"
         @new-data="newData"
         @get-data="getData"
         @delete-data="handleGridRowDelete"
