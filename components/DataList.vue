@@ -1120,15 +1120,15 @@ async function save(saveData, cbOK, cbFalse, disableNotif) {
       
       if (!stayOnForm.value) {
         data.controlMode = "grid";
-        // Refresh the grid with its existing state.  Saving a form must not
-        // discard keyword/custom filters, current page, or page size.
-        nextTick(() => {
-          restoreGridState(gridState);
-          gridCtl.value.refreshData();
-        });
       } else {
         selectData(data.record, "detail", true);
       }
+      // Refresh after every successful save, including when the form stays open,
+      // while preserving keyword, filters, sorting, and pagination.
+      nextTick(() => {
+        restoreGridState(gridState);
+        gridCtl.value?.refreshData();
+      });
       if (disableNotif !== true) util.showInfo("Data has been saved.");
       cbOK();
     },
