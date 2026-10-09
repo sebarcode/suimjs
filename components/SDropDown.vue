@@ -61,7 +61,7 @@
 
         <teleport to="body">
             <transition name="fade">
-                <div v-if="open" ref="dropdownEl" class="sdd_dropdown sdd" :style="dropdownStyle" @keydown="handleDropdownKeydown">
+                <div v-if="open" ref="dropdownEl" class="sdd_dropdown sdd" :style="dropdownStyle" @scroll.passive="handleLookupScroll" @keydown="handleDropdownKeydown">
                     <div v-if="showMultiClearButton" class="sdd_multi_clear">
                         <span>{{ selected.length }} selected</span>
                         <button
@@ -76,7 +76,7 @@
                         </button>
                     </div>
                     <ul class="sdd_list">
-                        <li v-if="displayedItems.length === 0" class="sdd_noresult">
+                        <li v-if="displayedItems.length === 0 && !lookupState.loading && !lookupState.error" class="sdd_noresult">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="text-gray-500">No results</div>
                                 <button
@@ -111,6 +111,11 @@
                                 </slot>
                             </div>
                         </li>
+                        <li v-if="lookupState.loading" class="sdd_lookup_status" role="status">Loading...</li>
+                        <li v-else-if="lookupState.error" class="sdd_lookup_status" role="status">
+                            Unable to load options.
+                            <button type="button" @click.stop="loadMoreItems">Retry</button>
+                        </li>
                     </ul>
                 </div>
             </transition>
@@ -129,6 +134,7 @@ import { ref, reactive, watch, onMounted, onBeforeUnmount, computed, inject, nex
 import { getCachedLookup } from '../scripts/lookup_cache';
 import { buildLookupRequest } from '../scripts/lookup_request.mjs';
 import { selectedItemsFirst } from '../scripts/dropdown_selection.mjs';
+import { createLookupPager } from '../scripts/lookup_pagination.mjs';
 
 const props = defineProps({
     modelValue: { type: [Array, String, Object, Number, null], default: null },
@@ -141,6 +147,7 @@ const props = defineProps({
     clearable: { type: Boolean, default: true },
     multiple: { type: Boolean, default: false },
     minimalKeywordLength: { type: Number, default: 0 },
+    maxResultCount: { type: Number, default: 100 },
     readOnly: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
     allowAdd: { type: Boolean, default: false },
@@ -165,6 +172,37 @@ const search = ref('');
 const highlighted = ref(-1);
 const dropdownStyle = ref({});
 let suppressOpenOnFocus = false;
+let fetchGeneration = 0;
+const lookupState = reactive({});
+const lookupPager = createLookupPager(async (request) => {
+    return getCachedLookup(request.url, request.payload, async () => {
+        const response = await axios.post(request.url, request.payload);
+        return response?.data;
+    });
+}, lookupState);
+const usesPagedLookup = computed(() => !!props.lookupUrl && typeof props.searchFn !== 'function');
+
+function syncLookupItems() {
+    filtered.value = joinWithSelected(normalizeList(lookupState.items));
+}
+
+async function loadMoreItems() {
+    if (!open.value || props.disabled || props.readOnly || !usesPagedLookup.value) return;
+    const generation = fetchGeneration;
+    if (await lookupPager.loadMore()) {
+        const scrollTop = dropdownEl.value?.scrollTop || 0;
+        syncLookupItems();
+        await nextTick();
+        if (generation === fetchGeneration && dropdownEl.value) dropdownEl.value.scrollTop = scrollTop;
+    }
+}
+
+function handleLookupScroll(event) {
+    const list = event.currentTarget;
+    if (list.scrollHeight - list.scrollTop - list.clientHeight <= 16 && !lookupState.error) {
+        loadMoreItems();
+    }
+}
 
 let scrollListener = null;
 let resizeListener = null;
@@ -218,15 +256,17 @@ function normalizeList(list){
             
     for (let i=0;i<list.length;i++){
         const el = list[i];
+        const key = el && typeof el === 'object' ? el[keyField] ?? el.key ?? i : el;
+        const uid = props.lookupUrl ? `lookup_${typeof key}_${key}` : `i_${i}`;
         if (typeof el === 'string' || typeof el === 'number'){
-            out.push({ _uid: `i_${i}`, key: el, label: String(el), original: el });
+            out.push({ _uid: uid, key: el, label: String(el), original: el });
         } else if (el && typeof el === 'object'){
             let concatenatedLabel = '';
             if (props.lookupUrl && props.lookupLabels && props.lookupLabels.length > 0) {
                 concatenatedLabel = props.lookupLabels.map(lf => el[lf] ?? '').filter(v => v).join(' - ');
             }
             out.push({ 
-                _uid: `i_${i}`, 
+                _uid: uid,
                 key: el[keyField] ?? el.key ?? i, 
                 label: concatenatedLabel || el[labelField] || el.label  || String(el[keyField] || el.key || i), 
                 original: el,
@@ -366,7 +406,7 @@ function select(it, closeAfterSelect = !props.multiple, returnFocus = false){
     if (props.disabled) return;
     if (props.multiple) {
         // toggle membership
-        const idx = selected.value.findIndex(s => s._uid === it._uid || s.key === it.key);
+        const idx = selected.value.findIndex(s => s.key === it.key);
         if (idx >= 0) selected.value.splice(idx, 1);
         else selected.value.push(it);
         // emit array of keys
@@ -633,6 +673,8 @@ onMounted(()=>{
 onBeforeUnmount(()=>{
     document.removeEventListener('click', onClickOutside);
     detachDropdownListeners();
+    fetchGeneration++;
+    lookupPager.clear();
 });
 
 watch(() => open.value, (nv) => {
@@ -643,6 +685,8 @@ watch(() => open.value, (nv) => {
         });
     } else {
         dropdownStyle.value = {};
+        fetchGeneration++;
+        lookupPager.clear();
     }
 });
 
@@ -686,67 +730,39 @@ function joinWithSelected(normalizedResult) {
         }
     } else {
         if (selected.value && !normalizedResult.find(it => it.key === selected.value.key)) {
-            normalizedResult.push({ _uid: `x_${Date.now()}`, 
-                key: selected.value.key, 
-                label: String(selected.value.key), 
-                original: selected.value.key });
+            normalizedResult.push(selected.value);
         }
     }
     return normalizedResult;
 }
 
-function manageLookup() {
-    if (!props.lookupUrl) return;
-    if (!axios) {
-        console.warn('SDropDown: axios instance not found in context, cannot perform lookup');
-        return;
-    }
-
-    if(props.searchFn && typeof props.searchFn === 'function') {
-        // if custom search function is provided, do not perform lookup
-        return;
-    }
-
-    data.searchFn = async (q) => {
-        if (q.length < (props.minimalKeywordLength || 0)) return [];
-        try {
-            const payload = {};
-            if (props.lookupPayloadBuilder && typeof props.lookupPayloadBuilder === 'function') {
-                Object.assign(payload, props.lookupPayloadBuilder(q));
-            } else {
-                payload.Take = props.maxResultCount || 100;
-                const trimmedQ = q.trim();
-                if (trimmedQ && trimmedQ.length > 0 && props.lookupSearchs && props.lookupSearchs.length > 0) {
-                    if (props.lookupSearchs.length === 1) {
-                        payload.Where = { Field: props.lookupSearchs[0], Op: '$contains', Value: [trimmedQ] };
-                    } else {
-                        payload.Where = { Op: '$or', Items: props.lookupSearchs.map(fld => ({ Field: fld, Op: '$contains', Value: [trimmedQ] })) };
-                    }
-                }
-            }
-            const request = buildLookupRequest(
-                props.lookupUrl,
-                payload,
-                props.lookupLabels,
-                props.lookupSearchs
-            );
-            return await getCachedLookup(
-                request.url,
-                request.payload,
-                async () => {
-                    const response = await axios.post(request.url, request.payload);
-                    return Array.isArray(response?.data) ? response.data : [];
-                }
-            );
-        } catch (error) {
-            console.error('SDropDown: lookup error', error);
-            return [];
+function buildPagedLookup(q) {
+    const payload = {};
+    if (typeof props.lookupPayloadBuilder === 'function') {
+        Object.assign(payload, props.lookupPayloadBuilder(q));
+    } else {
+        const trimmedQ = q.trim();
+        if (trimmedQ && props.lookupSearchs.length > 0) {
+            payload.Where = props.lookupSearchs.length === 1
+                ? { Field: props.lookupSearchs[0], Op: '$contains', Value: [trimmedQ] }
+                : { Op: '$or', Items: props.lookupSearchs.map(Field => ({ Field, Op: '$contains', Value: [trimmedQ] })) };
         }
-    };
-} 
+    }
+    if (payload.Take == null) payload.Take = props.maxResultCount;
+    const request = buildLookupRequest(props.lookupUrl, payload, props.lookupLabels, props.lookupSearchs);
+    // A unique tie breaker keeps rows with the same label in a stable page order.
+    if (props.lookupKey) {
+        const sort = Array.isArray(request.payload.Sort) ? request.payload.Sort : [];
+        if (!sort.some(field => field.replace(/^-/, '') === props.lookupKey)) {
+            request.payload.Sort = [...sort, props.lookupKey];
+        }
+    }
+    return request;
+}
 
 async function fetchItems(nv) {
-    manageLookup();
+    const generation = ++fetchGeneration;
+    lookupPager.clear();
 
     // transform search value, trim and lowercase for comparison and if it is using api then do not transform as it can be anything
     // use ' ' (space) as search term to trigger api call without filtering
@@ -756,9 +772,22 @@ async function fetchItems(nv) {
         return;
     }
 
+    highlighted.value = -1;
+    if (dropdownEl.value) dropdownEl.value.scrollTop = 0;
+    if (usesPagedLookup.value) {
+        filtered.value = joinWithSelected([]);
+        if (!axios || q.length < props.minimalKeywordLength) return;
+        const request = buildPagedLookup(q);
+        const keyField = props.lookupKey || 'key';
+        const getKey = row => row && typeof row === 'object' ? row[keyField] ?? row.key ?? row : row;
+        if (await lookupPager.reset(request, getKey)) syncLookupItems();
+        return;
+    }
+
     if (data.searchFn && typeof data.searchFn === 'function' && q.length >= props.minimalKeywordLength) {
         // use custom search function
         const result = await data.searchFn(q);
+        if (generation !== fetchGeneration) return;
         if (result && Array.isArray(result)) {
             filtered.value = joinWithSelected(normalizeList(result));
             //filtered.value = normalizeList(result);
@@ -796,11 +825,16 @@ watch(() => search.value, (nv) => {
     fetchItems(nv);
 });
 
-watch(() => props.lookupUrl, () => {
+watch(() => [props.lookupUrl, props.lookupKey, props.lookupLabels, props.lookupSearchs,
+    props.lookupPayloadBuilder, props.maxResultCount, props.minimalKeywordLength, props.searchFn], () => {
+    data.searchFn = props.searchFn;
     if (open.value) {
         fetchItems(search.value);
+    } else {
+        fetchGeneration++;
+        lookupPager.clear();
     }
-});
+}, { deep: true });
 
 
 // when modelValue changes, sync the internal selected representation
@@ -852,6 +886,17 @@ defineExpose({ options, setSelected, value2, focus });
 </script>
 
 <style scoped>
+.sdd_lookup_status {
+    padding: 0.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.sdd_lookup_status button {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
 .sdd_insert_btn {
     cursor: pointer;
 }
