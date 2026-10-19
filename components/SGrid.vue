@@ -269,26 +269,26 @@
                 :key="'grid_col_' + hdrIndex"
                 class="whitespace-nowrap text-ellipsis relative"
                 :class="{
-                  'text-right': hdr.align == 'right' || hdr.kind == 'number',
-                  'pr-4': hdr.align == 'right' || hdr.kind == 'number',
-                  'text-left': !(hdr.align == 'right' || hdr.kind == 'number'),
+                  'text-right': columnHeaderAlign(hdr) === 'right',
+                  'pr-4': columnHeaderAlign(hdr) === 'right',
+                  'text-left': columnHeaderAlign(hdr) === 'left',
                   'suim_sticky': isFixedColumn(hdrIndex),
                 }"
-                :style="[columnWidthStyle(hdr), isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '']"
+                :style="[columnWidthStyle(hdr), { textAlign: columnHeaderAlign(hdr) }, isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '']"
                 data-role="data"
                 :data-col-index="hdrIndex"
               >
                   <button
                     type="button"
-                    class="flex w-full items-center gap-1 text-inherit"
+                    class="suim_column_header"
                     :class="isSortable(hdr) ? 'cursor-pointer' : 'cursor-default'"
                     :aria-label="isSortable(hdr) ? `Sort by ${hdr.label}` : undefined"
                     @click="toggleSort(hdr)"
                   >
-                  <span class="grow">{{ hdr.label }}</span>
+                  <span class="suim_column_header_label" :style="{ textAlign: columnHeaderAlign(hdr) }">{{ hdr.label }}</span>
                   <svg
                     v-if="isSortable(hdr)"
-                    class="h-4 w-4 shrink-0"
+                    class="suim_column_header_sort"
                     :class="data.sortField === hdr.field ? 'text-slate-700' : 'text-slate-400'"
                     fill="currentColor"
                     viewBox="0 0 24 24"
@@ -669,6 +669,13 @@ const axios = inject("axios");
 
 function isBooleanKind(kind) {
   return ["bool", "boolean", "checkbox"].includes(String(kind || "").toLowerCase());
+}
+
+function columnHeaderAlign(column) {
+  const align = String(column.align || "").toLowerCase();
+  if (["left", "center", "right"].includes(align)) return align;
+  const kind = String(column.input?.kind || column.kind || "").toLowerCase();
+  return ["number", "int", "integer", "float", "decimal"].includes(kind) ? "right" : "left";
 }
 
 const actionColumnStyle = computed(() => {
@@ -1935,6 +1942,26 @@ const calcSearchQuery = computed(() => {
 </script>
 <style scoped>
 /* ...existing code... */
+
+.suim_column_header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.25rem;
+  color: inherit;
+  text-align: inherit;
+}
+
+.suim_column_header_label {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.suim_column_header_sort {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
 
 /* Responsive grid table */
 .suim_area_table {
