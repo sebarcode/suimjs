@@ -136,6 +136,13 @@
         </s-select>
       </div>
 
+      <!-- Files cannot use v-model on the native input's value. -->
+      <div v-else-if="kind === 'file'">
+        <input type="file" ref="control" class="input_field" :accept="accept"
+          :aria-label="label || caption || field || 'Choose file'"
+          :multiple="multiple" :disabled="controlDisabled" @focus="onFocus" @change="selectFiles" />
+      </div>
+
       <!-- html -->
       <div v-else-if="kind == 'html'" class="flex flex-col gap-0">
         <s-editor ref="control" v-model="value" :disabled="controlDisabled" />
@@ -353,6 +360,7 @@ const props = defineProps({
   caption: { type: String, default: "" },
   hint: { type: String, default: "" },
   kind: { type: String, default: "text" },
+  accept: { type: String, default: "" },
   clearable: { type: Boolean, default: true },
   items: {
     type: Array,
@@ -403,9 +411,19 @@ const emit = defineEmits({
   addItem :null,
   formInsert: null,
   change: null,
+  "file-change": null,
 });
 
 const axios = inject("axios");
+
+function selectFiles(event) {
+  const files = Array.from(event.target.files || []);
+  if (!files.length) return;
+  const selected = props.multiple ? files : files[0];
+  emit("update:modelValue", selected);
+  emit("file-change", selected);
+  event.target.value = "";
+}
 
 const controlDisabled = computed(() => props.disabled || (props.readOnly && props.viewMode));
 
