@@ -5,6 +5,28 @@
       Please be noted, this can not be undone !
     </s-modal>
 
+    <Teleport to="body">
+      <div
+        v-if="showFieldMenu"
+        ref="fieldMenuEl"
+        class="suim_field_menu"
+        :style="fieldMenuStyle"
+        role="dialog"
+        aria-label="Show or hide fields"
+        @keydown.esc.prevent.stop="closeFieldMenu(true)"
+      >
+        <div class="suim_field_menu_title">Show fields</div>
+        <label v-for="field in selectableFields" :key="field.field" class="suim_field_menu_item">
+          <input
+            type="checkbox"
+            :checked="!hiddenFields.has(field.field)"
+            @change="setFieldVisible(field.field, $event.target.checked)"
+          />
+          <span>{{ field.label || field.field }}</span>
+        </label>
+      </div>
+    </Teleport>
+
     <div
       v-if="data.editorTooltip.show"
       class="suim_editor_tooltip_fixed"
@@ -182,7 +204,7 @@
 
       </div>
 
-      <div class="flex header_button">
+      <div class="flex header_button toolbar-buttons">
         <slot name="header_buttons_1" :config="config"></slot>
         <slot name="header_buttons" :config="config">
           <s-button
@@ -214,6 +236,20 @@
             @click="newData"
             v-if="!hideNewButton"
             :disabled="data.recordChanged && !hideSaveButton"
+          />
+          <s-button
+            ref="fieldMenuButton"
+            v-if="showFieldButton"
+            icon="view-column"
+            class="btn_primary show_field_action"
+            tooltip="Show or hide fields"
+            :button-attrs="{
+              type: 'button',
+              'aria-label': 'Show or hide fields',
+              'aria-haspopup': 'dialog',
+              'aria-expanded': showFieldMenu,
+            }"
+            @click="toggleFieldMenu"
           />
         </slot>
         <slot name="header_buttons_2" :config="config"></slot>
@@ -263,10 +299,8 @@
                 <input type="checkbox" @change="checkUncheckAll" />
               </th>
               <th
-                v-for="(hdr, hdrIndex) in config.fields.filter(
-                  (el) => el.readType == 'show'
-                )"
-                :key="'grid_col_' + hdrIndex"
+                v-for="(hdr, hdrIndex) in visibleFields"
+                :key="'grid_col_' + hdr.field"
                 class="whitespace-nowrap text-ellipsis relative"
                 :class="{
                   'text-right': columnHeaderAlign(hdr) === 'right',
@@ -318,13 +352,8 @@
             <tr v-if="showInlineSearch">
               <td v-if="!hideSelect" class="whitespace-nowrap px-2 py-1"></td>
               <td
-                v-for="(hdr, hdrIndex) in config.fields.filter(
-                  (el) => el.readType == 'show' && (
-                    (filteredFields && filteredFields.length > 0 ? filteredFields.includes(el.field) : true) &&
-                    (unfilteredFields && unfilteredFields.length > 0 ? !unfilteredFields.includes(el.field) : true)
-                  )
-                )"
-                :key="'grid_inline_search_' + hdrIndex"
+                v-for="(hdr, hdrIndex) in visibleFields"
+                :key="'grid_inline_search_' + hdr.field"
                 class="whitespace-nowrap px-2 py-1"
                 :style="columnWidthStyle(hdr)"
               >
@@ -378,10 +407,8 @@
                 </td>
 
                 <td
-                  v-for="(hdr, hdrIndex) in config.fields.filter(
-                    (el) => el.readType == 'show'
-                  )"
-                  :key="'grid_col_' + hdrIndex"
+                  v-for="(hdr, hdrIndex) in visibleFields"
+                  :key="'grid_col_' + hdr.field"
                   class="whitespace-nowrap px-2 py-1 text-ellipsis align-top"
                   :class="[{ 'suim_sticky': isFixedColumn(hdrIndex) }, isFixedColumn(hdrIndex) ? stickyTdBg(rIdx) : '']"
                   :style="[columnWidthStyle(hdr), isFixedColumn(hdrIndex) ? `left:${colLefts[hdrIndex] ?? 0}px` : '']"
@@ -648,6 +675,7 @@ const props = defineProps({
   hideSaveButton: { type: Boolean },
   hideEdit: { type: Boolean, default: false },
   hideDeleteButton: { type: Boolean, default: false },
+  hideShowFieldButton: { type: Boolean, default: undefined },
   hideFooter: { type: Boolean, default: false },
   hidePaging: { type: Boolean, default: false },
   hideSelect: { type: Boolean, default: false },
@@ -769,6 +797,72 @@ const tableEl = ref(null);
 const tableScrollerEl = ref(null);
 const gridFooterEl = ref(null);
 const gridRoot = ref(null);
+const hiddenFields = ref(new Set());
+const selectableFields = computed(() => (props.config?.fields || []).filter(field => field.readType === "show"));
+const showFieldButton = computed(() => !(props.hideShowFieldButton ?? (selectableFields.value.length < 5)));
+const visibleFields = computed(() => selectableFields.value.filter(field => !hiddenFields.value.has(field.field)));
+const showFieldMenu = ref(false);
+const fieldMenuEl = ref(null);
+const fieldMenuButton = ref(null);
+const fieldMenuAnchor = ref(null);
+const fieldMenuStyle = ref({});
+
+function setFieldVisible(field, visible) {
+  if (visible) hiddenFields.value.delete(field);
+  else hiddenFields.value.add(field);
+}
+
+function closeFieldMenu(restoreFocus = false) {
+  showFieldMenu.value = false;
+  if (restoreFocus === true) fieldMenuAnchor.value?.focus();
+  fieldMenuAnchor.value = null;
+}
+
+async function toggleFieldMenu() {
+  const anchor = fieldMenuButton.value?.$el?.querySelector("button");
+  if (!anchor) return;
+  if (showFieldMenu.value && fieldMenuAnchor.value === anchor) {
+    closeFieldMenu();
+    return;
+  }
+  fieldMenuAnchor.value = anchor;
+  showFieldMenu.value = true;
+  await nextTick();
+  if (!fieldMenuEl.value || !anchor.isConnected) {
+    closeFieldMenu();
+    return;
+  }
+  const rect = anchor.getBoundingClientRect();
+  const gap = 8;
+  const below = window.innerHeight - rect.bottom - gap * 2;
+  const above = rect.top - gap * 2;
+  const openAbove = below < Math.min(fieldMenuEl.value.scrollHeight, 240) && above > below;
+  const maxHeight = Math.max(0, openAbove ? above : below);
+  const height = Math.min(fieldMenuEl.value.scrollHeight, maxHeight);
+  fieldMenuStyle.value = {
+    left: `${Math.max(gap, Math.min(rect.right - fieldMenuEl.value.offsetWidth, window.innerWidth - fieldMenuEl.value.offsetWidth - gap))}px`,
+    top: `${openAbove ? rect.top - height - gap : rect.bottom + gap}px`,
+    maxHeight: `${maxHeight}px`,
+  };
+  fieldMenuEl.value.querySelector("input")?.focus();
+}
+
+function dismissFieldMenu(event) {
+  if (!showFieldMenu.value) return;
+  if (fieldMenuEl.value?.contains(event.target) || fieldMenuAnchor.value?.contains(event.target)) return;
+  closeFieldMenu();
+}
+
+watch(visibleFields, () => {
+  hideEditorTooltip();
+  refreshSticky();
+}, { flush: "post" });
+
+watch(
+  () => [showFieldButton.value, props.hideControl, data.loading, data.currentPage, data.items, data.items.length, props.config],
+  () => closeFieldMenu()
+);
+
 const colLefts = ref({});
 const shortcutScopeId = `sgrid-shortcut-${++sGridShortcutScopeSeq}`;
 const viewportTableHeight = ref("");
@@ -1075,7 +1169,7 @@ const scrollMode = computed({
 
 const gridColumnCount = computed({
   get() {
-    const visibleColumnCount = props.config?.fields?.filter((el) => el.readType == "show").length || 0;
+    const visibleColumnCount = visibleFields.value.length;
     return visibleColumnCount + (props.hideSelect ? 0 : 1) + (props.hideAction ? 0 : 1);
   },
 });
@@ -1692,6 +1786,10 @@ defineExpose({
 });
 
 onMounted(() => {
+  document.addEventListener("pointerdown", dismissFieldMenu);
+  document.addEventListener("focusin", dismissFieldMenu);
+  document.addEventListener("scroll", dismissFieldMenu, true);
+  window.addEventListener("resize", closeFieldMenu);
   window.addEventListener("resize", updateViewportHeight, { passive: true });
   sGridShortcutRegistry.set(shortcutScopeId, {
     id: shortcutScopeId,
@@ -1717,6 +1815,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  document.removeEventListener("pointerdown", dismissFieldMenu);
+  document.removeEventListener("focusin", dismissFieldMenu);
+  document.removeEventListener("scroll", dismissFieldMenu, true);
+  window.removeEventListener("resize", closeFieldMenu);
   stopColumnResize();
   stopHorizontalDrag();
   window.removeEventListener("resize", updateViewportHeight);
@@ -1942,6 +2044,45 @@ const calcSearchQuery = computed(() => {
 </script>
 <style scoped>
 /* ...existing code... */
+
+.suim_field_menu {
+  position: fixed;
+  z-index: 10001;
+  box-sizing: border-box;
+  width: 240px;
+  max-width: calc(100vw - 16px);
+  overflow-y: auto;
+  padding: 0.5rem;
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: 0.375rem;
+  background: var(--color-bgpopup, #ffffff);
+  color: var(--text-primary, var(--color-input-text, #0f172a));
+  box-shadow: 0 6px 18px rgb(0 0 0 / 15%);
+  font-size: 0.875rem;
+}
+
+.suim_field_menu_title {
+  padding: 0.25rem 0.5rem;
+  font-weight: 600;
+}
+
+.suim_field_menu_item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.suim_field_menu_item:hover,
+.suim_field_menu_item:focus-within {
+  background: var(--color-primary-light, #f1f5f9);
+}
+
+.suim_field_menu_item input {
+  accent-color: var(--color-primary, #00895b);
+}
 
 .suim_column_header {
   display: flex;

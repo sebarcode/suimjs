@@ -2,6 +2,7 @@
   <s-tooltip :no-tooltip="noTooltip || tooltip==''" :tooltip="tooltip=='' ? label : tooltip">
     <template #content>
       <button
+        v-bind="buttonAttrs"
         class="flex gap-1 btn items-center w-full justify-center cursor-pointer"
         :disabled="disableBtn"
         @click="clickBtn"
@@ -28,6 +29,7 @@ const props = defineProps({
   iconRight: { type: Boolean, default: false },
   noTooltip: { type: Boolean, default: false },
   iconSize: { type: [Number, String], default: 14 },
+  buttonAttrs: { type: Object, default: () => ({}) },
 });
 
 const data = reactive({

@@ -98,6 +98,7 @@
         :hide-paging="gridHidePaging"
         :hide-save-button="gridHideSave"
         :hide-delete-button="gridHideDelete"
+        :hide-show-field-button="hideShowFieldButton"
         :label-method="gridLabelMethod"
         :hide-refresh-button="gridHideRefresh"
         :id-field-name="idFieldName"
@@ -498,6 +499,7 @@ const props = defineProps({
   gridHideRefresh: { type: Boolean, default: false },
   gridHideSave: { type: Boolean, default: false },
   gridHideDelete: { type: Boolean, default: false },
+  hideShowFieldButton: { type: Boolean, default: undefined },
   gridHideEdit: { type: Boolean, default: false },
   gridDisableDblClick: { type: Boolean, default: false },
   gridSortField: {type: String, default:""},
